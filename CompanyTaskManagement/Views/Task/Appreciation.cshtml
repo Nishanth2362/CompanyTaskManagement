@@ -136,35 +136,72 @@
         border: 2px solid rgba(129, 140, 248, 0.4);
     }
 
-    /* Certificate Card */
+    /* Executive Certificate Card Styling */
     .certificate-frame {
         background: #ffffff;
-        color: #0c4a6e;
-        border: 1.5px solid rgba(14, 165, 233, 0.28) !important;
-        border-radius: var(--radius-xl);
+        color: #0f172a;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 24px !important;
         position: relative;
-        box-shadow: 0 20px 45px -8px rgba(14, 165, 233, 0.12);
+        overflow: hidden;
+        box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.1), 0 6px 12px -2px rgba(0, 0, 0, 0.03);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     [data-bs-theme="dark"] .certificate-frame {
         background: #0f172a;
         color: #f8fafc;
-        border-color: rgba(56, 189, 248, 0.25) !important;
+        border: 1px solid #334155 !important;
+        box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.5);
+    }
+    .certificate-header-banner {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1e1b4b 100%);
+        color: #ffffff;
+        padding: 1.5rem 2rem;
+        border-bottom: 3.5px solid #f59e0b;
+    }
+    .quality-index-card {
+        background: #ffffff;
+        border: 2px solid #2563eb;
+        box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.15);
+    }
+    [data-bs-theme="dark"] .quality-index-card {
+        background: #1e293b;
+        border-color: #60a5fa;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
     }
 
     /* Daily Wisdom & Inspiration Card */
     .inspiration-banner {
-        background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(245, 158, 11, 0.08) 100%);
-        border: 1px dashed rgba(14, 165, 233, 0.35);
-        border-radius: var(--radius-lg);
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     [data-bs-theme="dark"] .inspiration-banner {
-        background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(245, 158, 11, 0.1) 100%);
-        border-color: rgba(56, 189, 248, 0.3);
+        background: #0f172a;
+        border-color: #334155;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
     }
 
-    .quote-bubble {
-        border-left: 3px solid #f59e0b;
-        padding-left: 0.85rem;
+    .wisdom-quote-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #f59e0b !important;
+        border-radius: 16px;
+        padding: 1.2rem;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    [data-bs-theme="dark"] .wisdom-quote-card {
+        background: #1e293b;
+        border-color: #334155;
+        border-left-color: #fbbf24 !important;
+    }
+    .wisdom-quote-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 25px -4px rgba(15, 23, 42, 0.08);
+        border-color: #cbd5e1;
+        border-left-color: #d97706 !important;
     }
 
     /* Print styling */
@@ -392,15 +429,15 @@
 @if (Model.DailyInspirations != null && Model.DailyInspirations.Any())
 {
     <div class="inspiration-banner p-4 mb-4 shadow-sm">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-warning text-dark px-2.5 py-1 fw-bold">
-                    <i class="bi bi-lightbulb-fill me-1"></i> Inspiration Pillar
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3.5 pb-2.5 border-bottom border-secondary border-opacity-10">
+            <div class="d-flex align-items-center gap-2.5">
+                <span class="badge text-dark fw-extrabold px-3 py-1.5 rounded-pill shadow-xs" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); font-size: 0.78rem;">
+                    <i class="bi bi-lightbulb-fill me-1.5"></i> Inspiration Pillar
                 </span>
-                <span class="fw-bold text-body small">Engineering Philosophy &amp; Continuous Growth Wisdom</span>
+                <span class="fw-extrabold text-body fs-6 ms-1 font-heading">Engineering Philosophy &amp; Continuous Growth Wisdom</span>
             </div>
             <div class="small text-muted fw-semibold">
-                <i class="bi bi-heart-pulse-fill text-danger me-1"></i> Every effort counts &bull; No one is left behind
+                <i class="bi bi-heart-fill text-danger me-1"></i> Every effort counts &bull; No one is left behind
             </div>
         </div>
 
@@ -408,15 +445,20 @@
             @foreach (var quote in Model.DailyInspirations.Take(3))
             {
                 <div class="col-12 col-md-4">
-                    <div class="p-3 rounded-3 bg-body border border-secondary border-opacity-15 h-100 d-flex flex-column justify-content-between shadow-xs">
-                        <div class="quote-bubble mb-2">
-                            <p class="small text-body fw-medium fst-italic mb-1" style="line-height: 1.45;">
-                                "@quote.Quote"
-                            </p>
+                    <div class="wisdom-quote-card h-100 d-flex flex-column justify-content-between">
+                        <div class="mb-3">
+                            <div class="d-flex align-items-start gap-1.5">
+                                <i class="bi bi-quote text-warning fs-4 flex-shrink-0 opacity-75" style="margin-top: -4px;"></i>
+                                <p class="text-body fw-medium mb-0" style="font-size: 0.92rem; line-height: 1.6;">
+                                    @quote.Quote
+                                </p>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-10 extra-small">
-                            <span class="text-gold fw-bold"><i class="bi @quote.Icon me-1"></i>@quote.Category</span>
-                            <span class="text-muted fw-semibold">— @quote.Author</span>
+                        <div class="d-flex justify-content-between align-items-center pt-2.5 border-top border-secondary border-opacity-15 extra-small">
+                            <span class="fw-bold d-inline-flex align-items-center gap-1.5" style="color: #d97706; font-size: 0.8rem;">
+                                <i class="bi @quote.Icon"></i>@quote.Category
+                            </span>
+                            <span class="fw-extrabold text-body-secondary" style="font-size: 0.8rem;">— @quote.Author</span>
                         </div>
                     </div>
                 </div>
@@ -428,73 +470,91 @@
 <!-- STAR PERFORMER CERTIFICATE SPOTLIGHT -->
 @if (Model.StarPerformer != null)
 {
-    <div class="certificate-frame p-4 p-md-5 mb-5 print-certificate-container">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+    <div class="certificate-frame mb-5 print-certificate-container">
+        <!-- Royal Midnight Header Banner Row -->
+        <div class="certificate-header-banner d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div class="d-flex align-items-center gap-3">
-                <div class="position-relative">
-                    <img src="~/images/award_insignia.jpg" alt="Innovation Excellence Award" class="rounded-circle shadow" style="width: 72px; height: 72px; object-fit: cover; border: 3px solid #0ea5e9; background: #ffffff;" />
-                    <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-primary text-white p-1 shadow-sm" title="#1 Rank">
-                        <i class="bi bi-star-fill"></i>
+                <div class="position-relative flex-shrink-0">
+                    <img src="~/images/award_insignia.jpg" alt="Innovation Excellence Award" class="rounded-circle shadow" style="width: 76px; height: 76px; object-fit: cover; border: 3px solid #f59e0b; background: #ffffff;" />
+                    <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-warning text-dark p-1 shadow-sm border border-white" title="#1 Rank">
+                        <i class="bi bi-trophy-fill"></i>
                     </span>
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
-                        <span class="small text-muted fw-semibold"><i class="bi bi-calendar-check me-1"></i>@DateTime.Now.ToString("yyyy - MMMM") Cycle</span>
+                        <span class="badge bg-warning text-dark fw-extrabold rounded-pill px-3 py-1 shadow-xs" style="font-size: 0.75rem;">
+                            <i class="bi bi-star-fill me-1"></i> Auxinzio Excellence Award
+                        </span>
+                        <span class="small text-white-50 fw-semibold"><i class="bi bi-calendar-check me-1"></i>@DateTime.Now.ToString("yyyy - MMMM") Cycle</span>
                     </div>
-                    <h3 class="fw-bold mb-0 text-body" style="font-family: 'Outfit', sans-serif;">
+                    <h2 class="fs-4 fw-extrabold text-white mb-0 tracking-wide">
                         EMPLOYEE OF THE WEEK RECOGNITION
-                    </h3>
+                    </h2>
                 </div>
             </div>
 
             <div>
-                <button type="button" onclick="window.print()" class="btn btn-royal-gold d-inline-flex align-items-center gap-2 shadow-sm">
-                    <i class="bi bi-printer-fill"></i>
+                <button type="button" onclick="window.print()" class="btn btn-warning rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-sm border-0 text-dark" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);">
+                    <i class="bi bi-printer-fill fs-6"></i>
                     <span>Print Official Award</span>
                 </button>
             </div>
         </div>
 
-        <div class="row align-items-center g-4">
-            <div class="col-12 col-lg-8">
-                <p class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Proudly Presented To:</p>
-                <h1 class="display-5 fw-extrabold text-gold mb-3" style="font-family: 'Outfit', sans-serif;">
-                    @Model.StarPerformer.EmployeeName
-                </h1>
-                <p class="lead fs-6 text-secondary mb-3" style="line-height: 1.7;">
-                    Awarded in formal recognition of exemplary dedication, technical craftsmanship, and outstanding commitment to excellence — successfully completing <strong>@Model.StarPerformer.PerfectTasksCount task(s)</strong> with a 
-                    <strong>@Model.StarPerformer.PerfectRate% Quality Score</strong> and zero recorded project delays.
-                </p>
+        <!-- High-Contrast Crisp Card Body -->
+        <div class="p-4 p-md-5">
+            <div class="row align-items-center g-4">
+                <div class="col-12 col-lg-8">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-award-fill text-warning fs-5"></i>
+                        <p class="text-primary small text-uppercase fw-extrabold tracking-wider mb-0" style="letter-spacing: 1.2px;">PROUDLY PRESENTED TO:</p>
+                    </div>
+                    <h1 class="display-4 fw-extrabold mb-3 text-capitalize text-body" style="font-size: 2.75rem; letter-spacing: -0.5px;">
+                        @Model.StarPerformer.EmployeeName
+                    </h1>
+                    <p class="lead fs-6 text-body-secondary mb-4" style="line-height: 1.7; max-width: 720px;">
+                        Awarded in formal recognition of exemplary dedication, technical craftsmanship, and outstanding commitment to excellence — successfully completing <strong>@Model.StarPerformer.PerfectTasksCount task(s)</strong> with a 
+                        <strong>@Model.StarPerformer.PerfectRate% Quality Score</strong> and zero recorded project delays.
+                    </p>
 
-                <!-- Personal Motivational Affirmation -->
-                @if (!string.IsNullOrEmpty(Model.StarPerformer.MotivationalQuote))
-                {
-                    <div class="p-3 rounded-3 bg-body-tertiary border border-secondary border-opacity-15 mb-3 d-flex align-items-center gap-3">
-                        <i class="bi bi-chat-heart-fill text-gold fs-4 flex-shrink-0"></i>
-                        <div>
-                            <div class="small fw-semibold text-body fst-italic">"@Model.StarPerformer.MotivationalQuote"</div>
-                            <div class="extra-small text-muted">— @Model.StarPerformer.MotivationalAuthor &bull; <span class="text-gold">@Model.StarPerformer.GrowthMindsetNote</span></div>
+                    <!-- Personal Motivational Affirmation -->
+                    @if (!string.IsNullOrEmpty(Model.StarPerformer.MotivationalQuote))
+                    {
+                        <div class="p-3.5 rounded-3 mb-4 d-flex align-items-center gap-3" style="background: var(--bs-body-bg, #f8fafc); border: 1px solid var(--bs-border-color, #e2e8f0); border-left: 4px solid #f59e0b;">
+                            <div class="rounded-circle text-amber d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 42px; height: 42px; background: rgba(245, 158, 11, 0.15); color: #d97706;">
+                                <i class="bi bi-quote fs-4"></i>
+                            </div>
+                            <div>
+                                <div class="small fw-semibold text-body fst-italic mb-0.5">"@Model.StarPerformer.MotivationalQuote"</div>
+                                <div class="extra-small text-muted">— <strong class="text-body-secondary">@Model.StarPerformer.MotivationalAuthor</strong> &bull; <span class="fw-bold" style="color: #d97706;">@Model.StarPerformer.GrowthMindsetNote</span></div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="d-flex flex-wrap gap-2.5 pt-1">
+                        <span class="badge rounded-pill bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" style="font-size: 0.82rem;">
+                            <i class="bi bi-check-circle-fill text-success"></i> @Model.StarPerformer.CompletedTasksCount Completed Sprints
+                        </span>
+                        <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" style="font-size: 0.82rem;">
+                            <i class="bi bi-star-fill text-warning"></i> @Model.StarPerformer.PerfectTasksCount Flawless Tasks
+                        </span>
+                        <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" style="font-size: 0.82rem;">
+                            <i class="bi bi-building-fill text-primary"></i> @(Model.StarPerformer.AssignedCompanies.Any() ? string.Join(", ", Model.StarPerformer.AssignedCompanies) : "Enterprise Portfolio")
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-4 text-center text-lg-end">
+                    <div class="quality-index-card p-4 rounded-4 text-center shadow-md position-relative overflow-hidden d-inline-block" style="min-width: 240px;">
+                        <div class="badge bg-primary text-white fw-extrabold px-3 py-1 rounded-pill shadow-xs mb-2" style="font-size: 0.68rem; letter-spacing: 0.8px;">
+                            <i class="bi bi-patch-check-fill me-1"></i> VERIFIED ACCURACY
+                        </div>
+                        <div class="extra-small text-muted text-uppercase fw-bold tracking-wider mb-1" style="letter-spacing: 1px;">Quality Index</div>
+                        <div class="display-3 fw-extrabold text-primary mb-0 font-monospace" style="color: #1d4ed8 !important; text-shadow: 0 2px 4px rgba(29, 78, 216, 0.12);">@Model.StarPerformer.PerfectRate%</div>
+                        <div class="small fw-bold text-success mt-1 d-flex align-items-center justify-content-center gap-1">
+                            <i class="bi bi-shield-fill-check"></i> Flawless Benchmark
                         </div>
                     </div>
-                }
-
-                <div class="d-flex flex-wrap gap-2 pt-1">
-                    <span class="badge bg-body-tertiary text-body border border-secondary border-opacity-25 p-2 px-3 rounded-2 fw-semibold">
-                        <i class="bi bi-check-circle-fill text-emerald me-1"></i> @Model.StarPerformer.CompletedTasksCount Completed
-                    </span>
-                    <span class="badge bg-body-tertiary text-body border border-secondary border-opacity-25 p-2 px-3 rounded-2 fw-semibold">
-                        <i class="bi bi-star-fill text-gold me-1"></i> @Model.StarPerformer.PerfectTasksCount Flawless Tasks
-                    </span>
-                    <span class="badge bg-body-tertiary text-body border border-secondary border-opacity-25 p-2 px-3 rounded-2 fw-semibold">
-                        <i class="bi bi-buildings text-gold me-1"></i> @(Model.StarPerformer.AssignedCompanies.Any() ? string.Join(", ", Model.StarPerformer.AssignedCompanies) : "Enterprise Portfolio")
-                    </span>
-                </div>
-            </div>
-
-            <div class="col-12 col-lg-4 text-center text-lg-end">
-                <div class="p-4 rounded-4 bg-body-tertiary border border-secondary border-opacity-25 d-inline-block text-center shadow-sm" style="min-width: 220px;">
-                    <div class="extra-small text-muted text-uppercase fw-bold letter-spacing-1 mb-1">Quality Index</div>
-                    <div class="display-4 fw-extrabold text-gold font-monospace mb-0">@Model.StarPerformer.PerfectRate%</div>
                 </div>
             </div>
         </div>
@@ -754,15 +814,13 @@
         {
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <!-- Live Search Filter -->
-                <div class="input-group input-group-sm" style="min-width: 200px; max-width: 260px;">
-                    <span class="input-group-text bg-body border-secondary border-opacity-25 text-muted">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" id="auditSearchInput" class="form-control bg-body border-secondary border-opacity-25" placeholder="Search contributor, task, log..." aria-label="Search audit stream" />
+                <div class="input-group input-group-sm rounded-pill overflow-hidden border border-secondary border-opacity-25 shadow-sm bg-body p-0.5" style="min-width: 220px; max-width: 280px;">
+                    <span class="input-group-text bg-transparent border-0 ps-3 pe-1"><i class="bi bi-search text-primary"></i></span>
+                    <input type="text" id="auditSearchInput" class="form-control bg-transparent border-0 shadow-none ps-1 text-body" placeholder="Search contributor, task, log..." aria-label="Search audit stream" />
                 </div>
 
                 <!-- Action Filter Dropdown -->
-                <select id="auditActionFilter" class="form-select form-select-sm bg-body border-secondary border-opacity-25" style="width: auto; min-width: 150px;">
+                <select id="auditActionFilter" class="form-select form-select-sm rounded-pill bg-body border-secondary border-opacity-25 shadow-sm px-3 text-body" style="width: auto; min-width: 150px;">
                     <option value="">All Actions</option>
                     <option value="Task Created">Task Created</option>
                     <option value="Status Changed">Status Changed</option>
@@ -771,9 +829,9 @@
                 </select>
 
                 <!-- Page Size Selector -->
-                <div class="d-flex align-items-center gap-1.5 bg-body border border-secondary border-opacity-25 rounded px-2 py-1 shadow-sm">
+                <div class="d-flex align-items-center gap-1.5 bg-body border border-secondary border-opacity-25 rounded-pill px-3 py-1 shadow-sm">
                     <label for="auditPageSize" class="small text-muted mb-0 fw-semibold">Show:</label>
-                    <select id="auditPageSize" class="form-select form-select-sm border-0 bg-transparent py-0 ps-1 pe-4 fw-bold text-body" style="font-size: 0.82rem; width: auto; cursor: pointer;">
+                    <select id="auditPageSize" class="form-select form-select-sm border-0 bg-transparent py-0 ps-1 pe-3 fw-bold text-body shadow-none" style="font-size: 0.82rem; width: auto; cursor: pointer; border-radius: 0 !important;">
                         <option value="5" selected>5</option>
                         <option value="10">10</option>
                         <option value="20">20</option>

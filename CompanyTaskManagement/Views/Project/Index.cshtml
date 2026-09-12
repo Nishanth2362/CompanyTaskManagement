@@ -100,7 +100,7 @@
     <div class="col-6 col-lg-3">
         <div class="stat-card">
             <div>
-                <div class="stat-number text-amethyst">₹@(((decimal)ViewBag.TotalBudget).ToString("N0"))</div>
+                <div class="stat-number stat-number-currency text-amethyst" title="₹@(((decimal)ViewBag.TotalBudget).ToString("N0"))">₹@(((decimal)ViewBag.TotalBudget).ToString("N0"))</div>
                 <div class="stat-label">Portfolio Budget</div>
             </div>
             <div class="stat-icon stat-icon-amethyst">
@@ -215,36 +215,38 @@ else
                         <!-- Project Title & Description -->
                         <h4 class="fw-bold mb-2">
                             <a asp-action="Details" asp-route-id="@p.Id" class="task-title-link fs-5 text-decoration-none">
-                                <i class="bi bi-folder2-open text-sky me-1.5 opacity-90"></i>@p.ProjectName
+                                <i class="bi bi-folder2-open text-sky me-2 opacity-90"></i>@p.ProjectName
                             </a>
                         </h4>
 
-                        <p class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.55; font-size: 0.86rem;">
+                        <p class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.6; font-size: 0.88rem;">
                             @(string.IsNullOrWhiteSpace(p.Description) ? "No detailed project brief provided." : p.Description)
                         </p>
 
                         @if (totalTasks > 0)
                         {
                             var pct = (int)Math.Round((double)completedTasks * 100 / totalTasks);
-                            <div class="mb-3.5 p-2.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-10">
-                                <div class="d-flex justify-content-between align-items-center mb-1.5" style="font-size: 0.78rem;">
-                                    <span class="text-muted fw-bold"><i class="bi bi-check2-all me-1 text-sky"></i>Task Progress</span>
-                                    <span class="fw-bold text-sky">@completedTasks/@totalTasks (@pct%)</span>
+                            <div class="mb-3.5">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5" style="font-size: 0.8rem;">
+                                    <span class="text-muted fw-bold d-inline-flex align-items-center gap-1.5">
+                                        <i class="bi bi-check2-all text-sky fs-6"></i> Task Progress
+                                    </span>
+                                    <span class="fw-bold text-sky font-monospace">@completedTasks/@totalTasks (@pct%)</span>
                                 </div>
-                                <div class="progress" style="height: 6px; background-color: rgba(226, 232, 240, 0.8); border-radius: 10px;">
+                                <div class="progress" style="height: 7px; background-color: var(--bg-surface-secondary); border-radius: 10px;">
                                     <div class="progress-bar bg-sky rounded-pill" role="progressbar" style="width: @pct%;" aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
                         }
 
-                        <!-- Project Metadata Grid (Clean, High-Contrast & Beautiful Fonts) -->
-                        <div class="project-meta-grid mb-3.5">
-                            <div class="row g-2.5">
+                        <!-- Project Metadata Grid (Spacious, High-Contrast & Beautiful Fonts) -->
+                        <div class="project-meta-grid mb-4">
+                            <div class="row g-3">
                                 <!-- Lead Manager -->
                                 <div class="col-6">
                                     <span class="project-meta-label">Lead Manager</span>
-                                    <div class="project-meta-value d-flex align-items-center gap-1.5 text-truncate">
-                                        <i class="bi bi-person-circle text-sky fs-6"></i>
+                                    <div class="project-meta-value text-truncate d-flex align-items-center">
+                                        <i class="bi bi-person-circle text-sky fs-6 me-2 flex-shrink-0"></i>
                                         <span class="text-truncate">@(string.IsNullOrWhiteSpace(p.LeadManagerName) ? "Unassigned" : p.LeadManagerName)</span>
                                     </div>
                                 </div>
@@ -252,11 +254,11 @@ else
                                 <!-- Budget Allocation -->
                                 <div class="col-6">
                                     <span class="project-meta-label">Budget Allocation</span>
-                                    <div class="project-meta-value text-gold d-flex align-items-center gap-1">
+                                    <div class="project-meta-value text-gold d-flex align-items-center">
                                         @if (p.Budget.HasValue)
                                         {
-                                            <i class="bi bi-currency-rupee text-gold"></i>
-                                            <span>@p.Budget.Value.ToString("N0")</span>
+                                            <i class="bi bi-currency-rupee text-gold fs-6 me-1 flex-shrink-0"></i>
+                                            <span class="fw-extrabold">@p.Budget.Value.ToString("N0")</span>
                                         }
                                         else
                                         {
@@ -268,33 +270,33 @@ else
                                 <!-- Target Deadline -->
                                 <div class="col-6">
                                     <span class="project-meta-label">Target Deadline</span>
-                                    <div class="project-meta-value d-flex align-items-center gap-1.5 text-truncate">
-                                        <i class="bi bi-calendar-event text-amber"></i>
-                                        <span>@(p.TargetEndDate.HasValue ? p.TargetEndDate.Value.ToString("MMM dd, yyyy") : "Open Ended")</span>
+                                    <div class="project-meta-value text-truncate d-flex align-items-center">
+                                        <i class="bi bi-calendar-event text-amber me-2 flex-shrink-0"></i>
+                                        <span class="text-truncate">@(p.TargetEndDate.HasValue ? p.TargetEndDate.Value.ToString("MMM dd, yyyy") : "Open Ended")</span>
                                     </div>
                                 </div>
 
                                 <!-- Created Date -->
                                 <div class="col-6">
                                     <span class="project-meta-label">Created Date</span>
-                                    <div class="project-meta-value text-secondary d-flex align-items-center gap-1.5 text-truncate">
-                                        <i class="bi bi-clock-history text-muted"></i>
-                                        <span>@p.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                    <div class="project-meta-value text-secondary text-truncate d-flex align-items-center">
+                                        <i class="bi bi-clock-history text-muted me-2 flex-shrink-0"></i>
+                                        <span class="text-truncate">@p.CreatedAt.ToString("MMM dd, yyyy")</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Card Footer Controls -->
-                        <div class="d-flex align-items-center justify-content-between pt-3 border-top border-secondary border-opacity-15 mt-auto">
+                        <div class="d-flex align-items-center justify-content-between pt-3.5 border-top border-secondary border-opacity-15 mt-auto">
                             <a asp-action="Details" asp-route-id="@p.Id" class="btn-project-overview text-decoration-none">
                                 <span>View Project Hub</span>
-                                <i class="bi bi-arrow-right"></i>
+                                <i class="bi bi-arrow-right ms-1"></i>
                             </a>
 
                             @if (isAdmin)
                             {
-                                <div class="d-flex align-items-center gap-1.5">
+                                <div class="d-flex align-items-center gap-2">
                                     <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-action-custom rounded-circle" title="Edit Project">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>

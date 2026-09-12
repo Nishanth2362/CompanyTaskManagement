@@ -244,62 +244,70 @@
                                 emp.Department == "Tester" ? "success" : "secondary";
 
                 <div class="col-12 col-md-6 col-xl-4">
-                    <div class="glass-card p-4 rounded-4 h-100 shadow-sm transition-hover position-relative overflow-hidden">
+                    <div class="glass-card p-3 p-sm-4 rounded-4 h-100 shadow-sm transition-hover position-relative overflow-hidden d-flex flex-column">
                         <!-- Top Header -->
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="avatar-initial-circle avatar-color-@colorIdx shadow-sm" style="width: 52px; height: 52px; font-size: 1.35rem; font-weight: 800;">
-                                @initial
-                            </div>
-                            <div class="flex-grow-1 min-w-0">
-                                <h5 class="fw-bold mb-0 text-truncate">
-                                    <a asp-action="Details" asp-route-id="@emp.Id" class="text-reset text-decoration-none hover-primary">
-                                        @emp.Name
-                                    </a>
-                                </h5>
-                                <span class="text-muted small d-block text-truncate">@(emp.Designation ?? "Team Member")</span>
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-3 w-100 min-w-0">
+                            <div class="d-flex align-items-center min-w-0" style="width: 0; flex: 1 1 0%;">
+                                <div class="avatar-initial-circle avatar-color-@colorIdx shadow-sm flex-shrink-0 me-3" style="width: 48px; height: 48px; font-size: 1.25rem; font-weight: 800;">
+                                    @initial
+                                </div>
+                                <div class="min-w-0 flex-grow-1" style="width: 0;">
+                                    <h5 class="fw-bold mb-0 text-truncate fs-6">
+                                        <a asp-action="Details" asp-route-id="@emp.Id" class="text-reset text-decoration-none hover-primary">
+                                            @emp.Name
+                                        </a>
+                                    </h5>
+                                    <span class="text-muted small d-block text-truncate" style="font-size: 0.78rem;" title="@(emp.Designation ?? "Team Member")">
+                                        @(emp.Designation ?? "Team Member")
+                                    </span>
+                                </div>
                             </div>
 
                             @if (isIntern)
                             {
-                                <span style="display:inline-flex; align-items:center; gap:0.3rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-weight: 700; font-size: 0.78rem; padding: 0.3rem 0.75rem; border-radius: 999px; letter-spacing: 0.02em; box-shadow: 0 2px 8px rgba(217,119,6,0.35); white-space: nowrap;">
-                                    <i class="bi bi-mortarboard-fill"></i> Intern
+                                <span class="flex-shrink-0 ms-1" style="display:inline-flex; align-items:center; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-weight: 700; font-size: 0.75rem; padding: 0.3rem 0.7rem; border-radius: 999px; letter-spacing: 0.01em; box-shadow: 0 2px 8px rgba(217,119,6,0.3); white-space: nowrap;">
+                                    <i class="bi bi-mortarboard-fill me-1.5"></i> Intern
                                 </span>
                             }
                             else
                             {
-                                <span class="badge bg-@deptColor-subtle text-@deptColor border border-@deptColor-subtle rounded-pill px-2.5 py-1 small">
+                                <span class="badge bg-@deptColor-subtle text-@deptColor border border-@deptColor-subtle rounded-pill px-2.5 py-1.5 small flex-shrink-0 ms-1" style="font-size: 0.75rem; font-weight: 700;">
                                     @(emp.Department ?? "General")
                                 </span>
                             }
                         </div>
 
                         <!-- Info Rows -->
-                        <div class="d-flex flex-column gap-1.5 mb-3 text-muted small">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-envelope text-primary"></i>
-                                <span class="text-truncate font-monospace">@(emp.Email ?? $"{emp.Name?.ToLower().Replace(" ", ".") ?? "employee"}@auxinz.io")</span>
+                        <div class="d-flex flex-column gap-2 mb-3.5 flex-grow-1">
+                            <div class="p-2.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-10 d-flex align-items-center">
+                                <i class="bi bi-envelope-fill text-primary fs-6 me-2.5 flex-shrink-0"></i>
+                                <span class="text-truncate font-monospace small text-body fw-medium">@(emp.Email ?? $"{emp.Name?.ToLower().Replace(" ", ".") ?? "employee"}@auxinz.io")</span>
                             </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-list-task text-warning"></i>
-                                <span>Assigned to <strong class="text-main">@assignedTasksCount</strong> active task(s)</span>
+                            <div class="p-2.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-10 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-list-check text-warning fs-6 me-2.5 flex-shrink-0"></i>
+                                    <span class="small text-muted fw-semibold">Active Tasks</span>
+                                </div>
+                                <span class="badge bg-primary rounded-pill px-2.5 py-1 font-monospace fw-bold">@assignedTasksCount</span>
                             </div>
                         </div>
 
-                        <!-- Card Footer -->
-                        <div class="pt-3 border-top d-flex justify-content-between align-items-center">
-                            <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                <i class="bi bi-person-lines-fill me-1"></i> Profile &amp; Tasks
+                        <!-- Card Footer Controls -->
+                        <div class="pt-3 border-top border-secondary border-opacity-15 d-flex justify-content-between align-items-center mt-auto">
+                            <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-sm btn-sky-gradient rounded-pill px-3.5 py-1.5 fw-bold d-inline-flex align-items-center shadow-2xs">
+                                <i class="bi bi-person-lines-fill me-2"></i>
+                                <span>Profile &amp; Tasks</span>
                             </a>
 
                             @if (isAdmin)
                             {
-                                <div class="d-flex align-items-center gap-1">
-                                    <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-sm btn-outline-warning" title="Edit Record">
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-sm btn-action-custom rounded-circle" title="Edit Record">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     <form asp-action="Delete" asp-route-id="@emp.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to remove @emp.Name from directory?');">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove Record">
+                                        <button type="submit" class="btn btn-sm btn-action-custom text-danger rounded-circle" title="Remove Record">
                                             <i class="bi bi-trash3-fill"></i>
                                         </button>
                                     </form>

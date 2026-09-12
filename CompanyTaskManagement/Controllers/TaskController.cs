@@ -1190,8 +1190,11 @@ namespace CompanyTaskManagement.Controllers
         // =========================================================
         // EXPORT DAILY TASKSHEET EXCEL
         // =========================================================
+        // =========================================================
+        // EXPORT DAILY / RANGE TASKSHEET EXCEL
+        // =========================================================
         [HttpGet]
-        public async Task<IActionResult> ExportDailyTasksheet(string filter = "all")
+        public async Task<IActionResult> ExportDailyTasksheet(DateTime? startDate, DateTime? endDate, string filter = "all")
         {
             await ProcessUncompletedTaskRolloverAsync();
 
@@ -1204,6 +1207,31 @@ namespace CompanyTaskManagement.Controllers
 
             filter = filter?.ToLower() ?? "all";
 
+            // Filter by Date Range if specified
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                var start = startDate.Value.Date;
+                var end = endDate.Value.Date;
+                query = query.Where(t => (t.CreatedAt.Date >= start && t.CreatedAt.Date <= end) ||
+                                         (t.DueDate.HasValue && t.DueDate.Value.Date >= start && t.DueDate.Value.Date <= end) ||
+                                         (t.StartDate.HasValue && t.StartDate.Value.Date >= start && t.StartDate.Value.Date <= end));
+            }
+            else if (startDate.HasValue)
+            {
+                var start = startDate.Value.Date;
+                query = query.Where(t => t.CreatedAt.Date >= start ||
+                                         (t.DueDate.HasValue && t.DueDate.Value.Date >= start) ||
+                                         (t.StartDate.HasValue && t.StartDate.Value.Date >= start));
+            }
+            else if (endDate.HasValue)
+            {
+                var end = endDate.Value.Date;
+                query = query.Where(t => t.CreatedAt.Date <= end ||
+                                         (t.DueDate.HasValue && t.DueDate.Value.Date <= end) ||
+                                         (t.StartDate.HasValue && t.StartDate.Value.Date <= end));
+            }
+
+            // Filter by Status / Priority Category
             if (filter == "today")
             {
                 query = query.Where(t => !t.DueDate.HasValue || t.DueDate.Value.Date == today || t.CreatedAt.Date == today);
@@ -1266,7 +1294,15 @@ namespace CompanyTaskManagement.Controllers
             }
 
             byte[] buffer = System.Text.Encoding.UTF8.GetBytes(builder.ToString());
-            string fileName = $"Auxinzio_Daily_Tasksheet_{DateTime.Today:yyyy-MM-dd}.csv";
+            string fileName;
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                fileName = $"Auxinzio_Tasksheet_{startDate.Value:yyyyMMdd}_to_{endDate.Value:yyyyMMdd}.csv";
+            }
+            else
+            {
+                fileName = $"Auxinzio_Total_Tasksheet_{DateTime.Today:yyyy-MM-dd}.csv";
+            }
 
             return File(buffer, "text/csv; charset=utf-8", fileName);
         }

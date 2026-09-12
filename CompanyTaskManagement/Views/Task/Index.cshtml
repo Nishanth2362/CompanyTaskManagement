@@ -24,54 +24,23 @@
     </div>
 
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <!-- Notify HR Escalation Button with Direct Gmail Redirection -->
-        <div class="btn-group shadow-sm rounded-3">
-            <button type="button" class="btn btn-coral-gradient d-inline-flex align-items-center gap-2" id="openHrModalBtn" title="Notify HR of Overdue Tasks">
-                <i class="bi bi-bell-fill text-white fs-6"></i>
-                <span>Notify HR</span>
-            </button>
-            <button type="button" class="btn btn-coral-gradient dropdown-toggle dropdown-toggle-split px-2.5" data-bs-toggle="dropdown" aria-expanded="false" title="Notification Options">
-                <span class="visually-hidden">Toggle Dropdown</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 glass-card">
-                <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" id="directGmailRedirectBtn">
-                        <i class="bi bi-google text-danger fs-6"></i>
-                        <span class="fw-semibold">Compose in Gmail</span>
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" id="directMailtoRedirectBtn">
-                        <i class="bi bi-envelope-fill text-primary fs-6"></i>
-                        <span class="fw-semibold">Open Default Mail App</span>
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" id="openModalFromDropdownBtn">
-                        <i class="bi bi-list-check text-success fs-6"></i>
-                        <span>Preview Overdue Tasks List</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
+        <!-- Notify HR Escalation Button -->
+        <button type="button" class="btn btn-coral-gradient rounded-pill d-inline-flex align-items-center gap-2 shadow-sm" id="openHrModalBtn" title="Notify HR of Overdue Tasks">
+            <i class="bi bi-bell-fill text-white fs-6"></i>
+            <span>Notify HR</span>
+        </button>
 
-        <!-- Export Daily Tasksheet (Excel) Button -->
-        <a asp-action="ExportDailyTasksheet" asp-route-filter="@currentFilter" class="btn btn-emerald d-inline-flex align-items-center gap-2 shadow-sm" id="exportExcelTasksheetBtn" title="Export Daily Tasksheet to Microsoft Excel">
+        <!-- Unified Export Tasksheet Button -->
+        <button type="button" class="btn btn-emerald rounded-pill d-inline-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#exportTasksheetModal" title="Export Tasksheet with Optional Date Range">
             <i class="bi bi-file-earmark-excel-fill text-white fs-6"></i>
-            <span>Daily Tasksheet (Excel)</span>
-        </a>
-
-        <!-- Export CSV Button -->
-        <button type="button" class="btn btn-modern-csv shadow-sm" id="exportCsvBtn" title="Export tasks to CSV">
-            <i class="bi bi-file-earmark-spreadsheet-fill text-emerald fs-6"></i>
-            <span>Export CSV</span>
+            <span>Export Tasksheet</span>
         </button>
 
         @if (isCanAssign)
         {
             <!-- Create Task Button (Admin & HR Only) -->
-            <a asp-action="Create" class="btn btn-royal-gold d-flex align-items-center gap-2 shadow-sm">
-                <i class="bi bi-plus-lg"></i>
+            <a asp-action="Create" class="btn btn-royal-gold rounded-pill d-inline-flex align-items-center gap-2 shadow-sm">
+                <i class="bi bi-plus-lg text-white fs-6"></i>
                 <span>Create Task</span>
             </a>
         }
@@ -164,48 +133,48 @@
 <!-- UNIFIED INSTANT FILTER COMMAND BAR -->
 <div class="filter-toolbar-card mb-4" id="unifiedFilterBar">
     <!-- Top Row: Interactive Live Filter Tabs -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 border-bottom border-secondary border-opacity-15">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <span class="fw-bold small text-uppercase text-muted me-1 d-inline-flex align-items-center">
+    <div class="pb-3 border-bottom border-secondary border-opacity-15">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <span class="fw-bold small text-uppercase text-muted d-inline-flex align-items-center">
                 <i class="bi bi-funnel-fill text-gold me-1.5"></i> TASK VIEW:
             </span>
-            <div class="unified-filter-tabs" role="tablist" aria-label="Task Dashboard Instant Filters">
-                <button type="button" class="filter-tab-btn @(currentFilter == "all" ? "active" : "")" data-filter="all" id="filterTabAll">
-                    <i class="bi bi-grid-fill"></i>
-                    <span>All Tasks</span>
-                    <span class="badge filter-badge" id="badgeCountAll">@ViewBag.AllCount</span>
-                </button>
-                <button type="button" class="filter-tab-btn @(currentFilter == "today" ? "active" : "")" data-filter="today" id="filterTabToday">
-                    <i class="bi bi-calendar-check"></i>
-                    <span>Today's Tasks</span>
-                    <span class="badge filter-badge" id="badgeCountToday">@ViewBag.TodayCount</span>
-                </button>
-                <button type="button" class="filter-tab-btn @(currentFilter == "inprogress" ? "active" : "")" data-filter="inprogress" id="filterTabInProgress">
-                    <i class="bi bi-clock-history"></i>
-                    <span>In Progress</span>
-                    <span class="badge filter-badge" id="badgeCountInProgress">@ViewBag.InProgressCount</span>
-                </button>
-                <button type="button" class="filter-tab-btn @(currentFilter == "overdue" || currentFilter == "incomplete" ? "active" : "")" data-filter="overdue" id="filterTabOverdue">
-                    <i class="bi bi-exclamation-circle"></i>
-                    <span>Overdue / Rolled Over</span>
-                    <span class="badge filter-badge" id="badgeCountOverdue">@ViewBag.OverdueCount</span>
-                </button>
-                <button type="button" class="filter-tab-btn @(currentFilter == "completed" ? "active" : "")" data-filter="completed" id="filterTabCompleted">
-                    <i class="bi bi-check2-circle"></i>
-                    <span>Completed</span>
-                    <span class="badge filter-badge" id="badgeCountCompleted">@ViewBag.CompletedCount</span>
-                </button>
-                <button type="button" class="filter-tab-btn @(currentFilter == "urgent" ? "active" : "")" data-filter="urgent" id="filterTabUrgent">
-                    <i class="bi bi-fire"></i>
-                    <span>High / Urgent</span>
-                    <span class="badge filter-badge" id="badgeCountUrgent">@ViewBag.UrgentCount</span>
-                </button>
+            <div class="small text-muted font-monospace d-flex align-items-center gap-2 ms-auto ms-sm-0">
+                <i class="bi bi-calendar3 text-primary"></i>
+                <span>Today: <strong>@DateTime.Today.ToString("MMM dd, yyyy")</strong></span>
             </div>
         </div>
 
-        <div class="small text-muted font-monospace d-flex align-items-center gap-2">
-            <i class="bi bi-calendar3 text-primary"></i>
-            <span>Today: <strong>@DateTime.Today.ToString("MMM dd, yyyy")</strong></span>
+        <div class="unified-filter-tabs w-100" role="tablist" aria-label="Task Dashboard Instant Filters">
+            <button type="button" class="filter-tab-btn @(currentFilter == "all" ? "active" : "")" data-filter="all" id="filterTabAll">
+                <i class="bi bi-grid-fill"></i>
+                <span>All Tasks</span>
+                <span class="badge filter-badge" id="badgeCountAll">@ViewBag.AllCount</span>
+            </button>
+            <button type="button" class="filter-tab-btn @(currentFilter == "today" ? "active" : "")" data-filter="today" id="filterTabToday">
+                <i class="bi bi-calendar-check"></i>
+                <span>Today's Tasks</span>
+                <span class="badge filter-badge" id="badgeCountToday">@ViewBag.TodayCount</span>
+            </button>
+            <button type="button" class="filter-tab-btn @(currentFilter == "inprogress" ? "active" : "")" data-filter="inprogress" id="filterTabInProgress">
+                <i class="bi bi-clock-history"></i>
+                <span>In Progress</span>
+                <span class="badge filter-badge" id="badgeCountInProgress">@ViewBag.InProgressCount</span>
+            </button>
+            <button type="button" class="filter-tab-btn @(currentFilter == "overdue" || currentFilter == "incomplete" ? "active" : "")" data-filter="overdue" id="filterTabOverdue">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>Overdue / Rolled Over</span>
+                <span class="badge filter-badge" id="badgeCountOverdue">@ViewBag.OverdueCount</span>
+            </button>
+            <button type="button" class="filter-tab-btn @(currentFilter == "completed" ? "active" : "")" data-filter="completed" id="filterTabCompleted">
+                <i class="bi bi-check2-circle"></i>
+                <span>Completed</span>
+                <span class="badge filter-badge" id="badgeCountCompleted">@ViewBag.CompletedCount</span>
+            </button>
+            <button type="button" class="filter-tab-btn @(currentFilter == "urgent" ? "active" : "")" data-filter="urgent" id="filterTabUrgent">
+                <i class="bi bi-fire"></i>
+                <span>High / Urgent</span>
+                <span class="badge filter-badge" id="badgeCountUrgent">@ViewBag.UrgentCount</span>
+            </button>
         </div>
     </div>
 
@@ -223,21 +192,21 @@
         </div>
 
         <!-- Filter by Company -->
-        <div class="col-6 col-md-2">
+        <div class="col-12 col-sm-6 col-md-2">
             <select id="companyFilterSelect" class="form-select filter-select">
                 <option value="">All Companies</option>
             </select>
         </div>
 
         <!-- Filter by Employee / Assignee -->
-        <div class="col-6 col-md-2">
+        <div class="col-12 col-sm-6 col-md-2">
             <select id="employeeFilterSelect" class="form-select filter-select">
                 <option value="">All Team Members</option>
             </select>
         </div>
 
         <!-- Filter by Priority -->
-        <div class="col-6 col-md-2 col-lg-1">
+        <div class="col-5 col-sm-4 col-md-2 col-lg-1">
             <select id="priorityFilterSelect" class="form-select filter-select">
                 <option value="">Priority</option>
                 <option value="Urgent">Urgent</option>
@@ -248,7 +217,7 @@
         </div>
 
         <!-- Filter by Status -->
-        <div class="col-6 col-md-2 col-lg-1">
+        <div class="col-5 col-sm-4 col-md-2 col-lg-1">
             <select id="statusFilterSelect" class="form-select filter-select">
                 <option value="">Status</option>
                 <option value="ToDo">To Do</option>
@@ -259,8 +228,8 @@
         </div>
 
         <!-- Reset Filters Button -->
-        <div class="col-auto">
-            <button type="button" id="resetFilterBtn" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" title="Reset all active filters">
+        <div class="col-2 col-sm-auto d-flex align-items-center justify-content-center">
+            <button type="button" id="resetFilterBtn" class="btn btn-sm btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-1" style="height: 38px;" title="Reset all active filters">
                 <i class="bi bi-arrow-counterclockwise"></i>
                 <span class="d-none d-lg-inline">Reset</span>
             </button>
@@ -1047,10 +1016,79 @@ else
     </div>
 </div>
 
+<!-- Export Tasksheet Modal -->
+<div class="modal fade" id="exportTasksheetModal" tabindex="-1" aria-labelledby="exportTasksheetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 shadow-lg">
+            <div class="modal-header border-bottom border-secondary border-opacity-25 pb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-emerald-subtle text-emerald rounded-circle" style="width: 40px; height: 40px;">
+                        <i class="bi bi-file-earmark-excel-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="exportTasksheetModalLabel">Export Tasksheet</h5>
+                        <small class="text-muted">Export date range details or total tasksheet</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="ExportDailyTasksheet" method="get" id="exportTasksheetForm">
+                <div class="modal-body py-4">
+                    <div class="alert alert-info-subtle border-0 mb-4 p-3 rounded-3 d-flex align-items-start gap-2">
+                        <i class="bi bi-info-circle-fill text-info fs-5 mt-0.5"></i>
+                        <small class="text-body">
+                            Select a <strong>Start Date</strong> and <strong>End Date</strong> to export required date-range details. If left blank, the <strong>total tasksheet</strong> will be exported.
+                        </small>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="exportStartDate" class="form-label fw-semibold text-secondary">Start Date</label>
+                            <input type="date" id="exportStartDate" name="startDate" class="form-control form-control-modern" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="exportEndDate" class="form-label fw-semibold text-secondary">End Date</label>
+                            <input type="date" id="exportEndDate" name="endDate" class="form-control form-control-modern" />
+                        </div>
+                        <div class="col-12">
+                            <label for="exportFilterSelect" class="form-label fw-semibold text-secondary">Status Filter</label>
+                            <select id="exportFilterSelect" name="filter" class="form-select form-select-modern">
+                                <option value="all" selected>All Tasks (Total Tasksheet)</option>
+                                <option value="today">Today's Tasks</option>
+                                <option value="inprogress">In Progress Tasks</option>
+                                <option value="overdue">Overdue Tasks</option>
+                                <option value="completed">Completed Tasks</option>
+                                <option value="urgent">Urgent / High Priority</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary border-opacity-25 pt-3 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" id="clearExportDatesBtn">
+                        <i class="bi bi-x-circle me-1"></i> Clear Dates
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-emerald d-inline-flex align-items-center gap-2 rounded-3">
+                            <i class="bi bi-download"></i> Export Tasksheet
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         $(document.body).ready(function () {
             let activeTaskModalId = null;
+
+            // Clear Dates button in Export Tasksheet Modal
+            $('#clearExportDatesBtn').on('click', function () {
+                $('#exportStartDate').val('');
+                $('#exportEndDate').val('');
+            });
 
             // Populate Company & Employee filter dropdowns dynamically
             const companiesSet = new Set();
@@ -1737,32 +1775,7 @@ else
                 showToast('Summary copied to clipboard!');
             });
 
-            // ----------------------------------------------------
-            // Export CSV
-            // ----------------------------------------------------
-            $('#exportCsvBtn').on('click', function () {
-                let csv = 'ID,Task Name,Priority,Status,Progress,DueDate,DelayReason,ErrorDetails,Companies,Employees\n';
-                $('.task-row-item:not(.d-none)').each(function () {
-                    const id = $(this).data('task-id');
-                    const name = `"${($(this).data('task-name') || '').replace(/"/g, '""')}"`;
-                    const priority = $(this).data('priority');
-                    const status = $(this).data('status');
-                    const progress = $(this).data('progress');
-                    const duedate = $(this).data('duedate');
-                    const delayReason = `"${($(this).data('delayreason') || '').replace(/"/g, '""')}"`;
-                    const errorDetails = `"${($(this).data('errordetails') || '').replace(/"/g, '""')}"`;
-                    const companies = `"${($(this).data('companies') || '').replace(/"/g, '""')}"`;
-                    const employees = `"${($(this).data('employees') || '').replace(/"/g, '""')}"`;
 
-                    csv += `${id},${name},${priority},${status},${progress}%,${duedate},${delayReason},${errorDetails},${companies},${employees}\n`;
-                });
-
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `Auxinzio_Export_${new Date().toISOString().slice(0, 10)}.csv`;
-                link.click();
-            });
 
             function showToast(msg) {
                 if ($('#appToast').length) {

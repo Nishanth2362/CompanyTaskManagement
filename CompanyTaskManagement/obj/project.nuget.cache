@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "nCowl3mX8SA=",
+  "dgSpecHash": "QVRzHX9HiOM=",
   "success": true,
-  "projectFilePath": "C:\\Users\\karth\\source\\repos\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj",
+  "projectFilePath": "D:\\PROJECTS\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\karth\\.nuget\\packages\\azure.core\\1.50.0\\azure.core.1.50.0.nupkg.sha512",
     "C:\\Users\\karth\\.nuget\\packages\\azure.identity\\1.17.1\\azure.identity.1.17.1.nupkg.sha512",
