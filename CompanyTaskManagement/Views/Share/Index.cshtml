@@ -1,0 +1,2067 @@
+@model List<CompanyTaskManagement.Models.ColleaguePost>
+@using CompanyTaskManagement.Models
+@{
+    ViewData["Title"] = "Share with Colleagues";
+    var selectedCategory = ViewBag.SelectedCategory as string ?? "";
+    var selectedStatus = ViewBag.SelectedStatus as string ?? "";
+    var search = ViewBag.Search as string ?? "";
+    var sort = ViewBag.Sort as string ?? "latest";
+    int totalPosts = ViewBag.TotalPosts ?? 0;
+    int totalFeedbacks = ViewBag.TotalFeedbacks ?? 0;
+    int totalLikes = ViewBag.TotalLikes ?? 0;
+    var isAdmin = ViewBag.IsAdmin as bool? ?? false;
+
+    string CategoryLabel(PostCategory c) => c switch
+    {
+        PostCategory.ProjectDemo => "🚀 Live Demo",
+        PostCategory.CompanyUpdate => "📢 Company Update",
+        PostCategory.ToolOrResource => "🔧 Tool & Resource",
+        PostCategory.DesignPrototype => "🎨 Design & Prototype",
+        PostCategory.CodeReview => "💻 Code Review",
+        _ => "📌 Other"
+    };
+    string CategoryBadgeClass(PostCategory c) => c switch
+    {
+        PostCategory.ProjectDemo => "badge-category-demo",
+        PostCategory.CompanyUpdate => "badge-category-update",
+        PostCategory.ToolOrResource => "badge-category-tool",
+        PostCategory.DesignPrototype => "badge-category-design",
+        PostCategory.CodeReview => "badge-category-code",
+        _ => "bg-secondary"
+    };
+    string StatusBadgeClass(PostStatus s) => s switch
+    {
+        PostStatus.SeekingFeedback => "status-seeking",
+        PostStatus.UnderReview => "status-review",
+        PostStatus.Live => "status-live",
+        PostStatus.Archived => "status-archived",
+        _ => "bg-secondary"
+    };
+    string StatusLabel(PostStatus s) => s switch
+    {
+        PostStatus.SeekingFeedback => "⏳ Seeking Feedback",
+        PostStatus.UnderReview => "🔍 Under Review",
+        PostStatus.Live => "✅ Ready / Live",
+        PostStatus.Archived => "📦 Archived",
+        _ => s.ToString()
+    };
+}
+
+<style>
+    /* ======================================================
+       Share with Colleague - Premium Enterprise Design
+    ====================================================== */
+
+    .share-hero {
+        background: linear-gradient(135deg, #1a1035 0%, #2d1b6e 40%, #0f2a5c 80%, #0a3d62 100%);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .share-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .share-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .hero-stat-pill {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(10px);
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Showcase Cards */
+    .post-card {
+        background: var(--bs-body-bg);
+        border: 1px solid rgba(139, 92, 246, 0.12);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        position: relative;
+    }
+
+    .post-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 48px rgba(139, 92, 246, 0.15);
+        border-color: rgba(139, 92, 246, 0.35);
+    }
+
+    .post-card.pinned {
+        border-color: rgba(245, 158, 11, 0.4);
+        box-shadow: 0 4px 24px rgba(245, 158, 11, 0.1);
+    }
+
+    .post-card.pinned::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    [data-bs-theme="dark"] .post-card {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Author Avatar */
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7c3aed, #3b82f6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    /* Category Badges */
+    .badge-category-demo { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; }
+    .badge-category-update { background: linear-gradient(135deg, #f59e0b, #d97706); color: #1a1a1a; }
+    .badge-category-tool { background: linear-gradient(135deg, #059669, #047857); color: white; }
+    .badge-category-design { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
+    .badge-category-code { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; }
+
+    /* Status Badges */
+    .status-seeking { background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.7rem; }
+    .status-review { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 0.7rem; }
+    .status-live { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.7rem; }
+    .status-archived { background: rgba(107, 114, 128, 0.15); color: #6b7280; border: 1px solid rgba(107, 114, 128, 0.3); font-size: 0.7rem; }
+
+    /* Category Filter Tabs */
+    .category-tab-btn {
+        border: 1.5px solid rgba(139, 92, 246, 0.25);
+        border-radius: 50px;
+        padding: 7px 18px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: transparent;
+        color: var(--bs-body-color);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .category-tab-btn:hover,
+    .category-tab-btn.active {
+        background: linear-gradient(135deg, #7c3aed, #3b82f6);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+
+    /* Live URL Button */
+    .btn-open-demo {
+        background: linear-gradient(135deg, #7c3aed, #3b82f6);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-open-demo:hover {
+        color: white;
+        box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
+        transform: translateY(-1px);
+    }
+
+    /* Like Button */
+    .btn-like {
+        background: transparent;
+        border: 1.5px solid rgba(239, 68, 68, 0.3);
+        color: #6b7280;
+        border-radius: 50px;
+        padding: 5px 14px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-like:hover, .btn-like.liked {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    /* Feedback Panel */
+    .feedback-panel {
+        background: var(--bs-body-bg);
+        border: 1px solid rgba(139, 92, 246, 0.12);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    [data-bs-theme="dark"] .feedback-panel {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .feedback-item {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 14px 16px;
+        transition: background 0.2s;
+    }
+
+    [data-bs-theme="dark"] .feedback-item {
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .feedback-item:last-child { border-bottom: none; }
+    .feedback-item:hover { background: rgba(139, 92, 246, 0.04); }
+
+    .feedback-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #059669, #0284c7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.75rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    /* Star Rating */
+    .star-rating { color: #f59e0b; font-size: 0.7rem; }
+    .star-empty { color: #d1d5db; }
+
+    /* Tag Chips */
+    .tag-chip {
+        background: rgba(139, 92, 246, 0.1);
+        color: #7c3aed;
+        border-radius: 50px;
+        padding: 3px 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    [data-bs-theme="dark"] .tag-chip { color: #a78bfa; }
+
+    /* Copy link button */
+    .btn-copy {
+        background: transparent;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 0.7rem;
+        color: var(--bs-body-color);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-copy:hover { background: rgba(139, 92, 246, 0.08); border-color: rgba(139, 92, 246, 0.3); }
+
+    [data-bs-theme="dark"] .btn-copy { border-color: rgba(255,255,255,0.15); }
+
+    /* Empty state */
+    .empty-state-card {
+        background: var(--bs-body-bg);
+        border: 2px dashed rgba(139, 92, 246, 0.25);
+        border-radius: 20px;
+        padding: 60px 40px;
+        text-align: center;
+    }
+
+    /* Filter bar */
+    .filter-bar {
+        background: var(--bs-body-bg);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        padding: 16px 20px;
+    }
+
+    [data-bs-theme="dark"] .filter-bar { border-color: rgba(255,255,255,0.08); }
+
+    /* Pinned ribbon */
+    .pinned-ribbon {
+        position: absolute;
+        top: 14px;
+        right: -26px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 3px 30px;
+        transform: rotate(45deg);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        overflow: hidden;
+    }
+
+    /* Pulse animation for seeking feedback */
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #f59e0b;
+        display: inline-block;
+        animation: pulse-glow 1.8s ease-in-out infinite;
+    }
+
+    @@keyframes pulse-glow {
+        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(245,158,11,0.5); }
+        50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(245,158,11,0); }
+    }
+
+    /* ── Reaction Buttons ── */
+    .reaction-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 50px;
+        border: 1.5px solid rgba(0, 0, 0, 0.1);
+        background: transparent;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--bs-body-color);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .reaction-btn:hover { transform: scale(1.06); }
+
+    .reaction-btn.active-ok     { background: rgba(16,185,129,0.12);  border-color: #10b981; color: #10b981; }
+    .reaction-btn.active-notok  { background: rgba(239,68,68,0.1);    border-color: #ef4444; color: #ef4444; }
+    .reaction-btn.active-needs  { background: rgba(245,158,11,0.12);  border-color: #f59e0b; color: #d97706; }
+    .reaction-btn.active-appr   { background: rgba(59,130,246,0.1);   border-color: #3b82f6; color: #3b82f6; }
+    .reaction-btn.active-issues { background: rgba(139,92,246,0.1);   border-color: #7c3aed; color: #7c3aed; }
+
+    [data-bs-theme="dark"] .reaction-btn { border-color: rgba(255,255,255,0.15); }
+
+    .reaction-count {
+        background: rgba(0,0,0,0.08);
+        border-radius: 50px;
+        padding: 1px 6px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        min-width: 18px;
+        text-align: center;
+    }
+
+    [data-bs-theme="dark"] .reaction-count { background: rgba(255,255,255,0.1); }
+
+    .reaction-label { font-size: 0.7rem; }
+
+    /* ── Reply Panel ── */
+    .reply-panel {
+        background: var(--bs-body-bg);
+        border: 1px solid rgba(124, 58, 237, 0.18);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    [data-bs-theme="dark"] .reply-panel { background: rgba(255,255,255,0.03); }
+
+    .reply-panel-header {
+        background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(59,130,246,0.06));
+        border-bottom: 1px solid rgba(124,58,237,0.15);
+    }
+
+    .reply-list { max-height: 280px; overflow-y: auto; }
+
+    .reply-item {
+        display: flex;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: background 0.15s;
+    }
+
+    [data-bs-theme="dark"] .reply-item { border-color: rgba(255,255,255,0.05); }
+    .reply-item:last-child { border-bottom: none; }
+    .reply-item:hover { background: rgba(124,58,237,0.04); }
+
+    .reply-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7c3aed, #059669);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.7rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .reply-input-box {
+        border-top: 1px solid rgba(0,0,0,0.06);
+        background: rgba(139,92,246,0.03);
+    }
+
+    [data-bs-theme="dark"] .reply-input-box { border-color: rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
+
+    /* Daily Meeting Hub Cards */
+    .meeting-hub-card {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.04) 0%, rgba(59, 130, 246, 0.04) 100%);
+        border: 1.5px solid rgba(124, 58, 237, 0.18);
+        border-radius: 16px;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .meeting-hub-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(124, 58, 237, 0.12);
+        border-color: rgba(124, 58, 237, 0.35);
+    }
+    [data-bs-theme="dark"] .meeting-hub-card {
+        background: rgba(30, 27, 75, 0.35);
+        border-color: rgba(139, 92, 246, 0.25);
+    }
+    .meeting-time-pill {
+        background: rgba(124, 58, 237, 0.12);
+        color: #7c3aed;
+        font-family: var(--font-mono, monospace);
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 4px 12px;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    [data-bs-theme="dark"] .meeting-time-pill {
+        background: rgba(139, 92, 246, 0.22);
+        color: #c084fc;
+    }
+    .badge-morning-sync {
+        background: #ecfdf5 !important;
+        color: #065f46 !important;
+        border: 1.5px solid #a7f3d0 !important;
+        font-weight: 800 !important;
+        font-size: 0.8rem !important;
+        padding: 5px 12px !important;
+        border-radius: 50px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+    [data-bs-theme="dark"] .badge-morning-sync {
+        background: rgba(16, 185, 129, 0.2) !important;
+        color: #6ee7b7 !important;
+        border-color: rgba(16, 185, 129, 0.4) !important;
+    }
+    .badge-evening-sync {
+        background: #f5f3ff !important;
+        color: #5b21b6 !important;
+        border: 1.5px solid #ddd6fe !important;
+        font-weight: 800 !important;
+        font-size: 0.8rem !important;
+        padding: 5px 12px !important;
+        border-radius: 50px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+    [data-bs-theme="dark"] .badge-evening-sync {
+        background: rgba(124, 58, 237, 0.2) !important;
+        color: #d8b4fe !important;
+        border-color: rgba(124, 58, 237, 0.4) !important;
+    }
+    .btn-meet-join {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: #ffffff !important;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+        transition: all 0.2s ease;
+    }
+    .btn-meet-join:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(5, 150, 105, 0.45);
+        color: #ffffff !important;
+    }
+    .btn-meet-eod {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        color: #ffffff !important;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 0.5rem 1.25rem;
+        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+        transition: all 0.2s ease;
+    }
+    .btn-meet-eod:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(124, 58, 237, 0.45);
+        color: #ffffff !important;
+    }
+
+    /* ===== IMPORTANT MEETINGS ===== */
+    .imp-meeting-panel {
+        background: linear-gradient(135deg, rgba(245,158,11,0.05) 0%, rgba(239,68,68,0.04) 100%);
+        border: 1.5px solid rgba(245,158,11,0.22);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    [data-bs-theme="dark"] .imp-meeting-panel {
+        background: rgba(45,35,10,0.3);
+        border-color: rgba(245,158,11,0.3);
+    }
+    .imp-meeting-header {
+        background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(239,68,68,0.08));
+        border-bottom: 1px solid rgba(245,158,11,0.18);
+        padding: 0.9rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .imp-meeting-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 1.25rem;
+        border-bottom: 1px solid rgba(245,158,11,0.1);
+        transition: background 0.15s;
+    }
+    .imp-meeting-item:last-child { border-bottom: none; }
+    .imp-meeting-item:hover { background: rgba(245,158,11,0.04); }
+    [data-bs-theme="dark"] .imp-meeting-item:hover { background: rgba(245,158,11,0.08); }
+    .imp-meeting-icon {
+        width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1rem;
+        box-shadow: 0 3px 8px rgba(245,158,11,0.3);
+    }
+    .btn-imp-join {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: #fff !important; font-weight: 700;
+        border-radius: 8px; padding: 0.35rem 0.9rem;
+        font-size: 0.82rem; border: none;
+        box-shadow: 0 3px 10px rgba(245,158,11,0.3);
+        transition: all 0.18s;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-imp-join:hover { opacity: 0.88; transform: translateY(-1px); color: #fff !important; }
+    .imp-empty-state {
+        padding: 2rem 1rem; text-align: center;
+        color: rgba(245,158,11,0.6);
+        font-size: 0.88rem;
+    }
+    .imp-add-row {
+        padding: 0.75rem 1.25rem;
+        background: rgba(245,158,11,0.04);
+        border-top: 1px solid rgba(245,158,11,0.12);
+    }
+    [data-bs-theme="dark"] .imp-add-row { background: rgba(245,158,11,0.07); }
+</style>
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a asp-controller="Task" asp-action="Index" class="text-gold text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Share with Colleagues</li>
+    </ol>
+</nav>
+
+<!-- Hero Banner -->
+<div class="share-hero mb-4 p-4 p-lg-5 text-white">
+    <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+        <div class="col-12 col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-warning text-dark fw-bold px-3 py-1.5"><i class="bi bi-share-fill me-1"></i> Colleague Hub</span>
+                <span class="badge hero-badge-glass px-3 py-1.5 font-monospace">Internal Showcase & Review</span>
+            </div>
+            <h1 class="display-6 fw-extrabold text-white mb-2" style="font-family: 'Outfit', sans-serif;">
+                Share with Colleagues
+            </h1>
+            <p class="text-white opacity-90 lead fs-6 mb-3" style="max-width: 600px;">
+                Share live project links, demos, design prototypes, tools, or company updates with your team. Gather peer feedback, upvotes, and constructive reviews in one place.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="hero-stat-pill"><i class="bi bi-collection-fill text-warning"></i> @totalPosts Posts Shared</span>
+                <span class="hero-stat-pill"><i class="bi bi-chat-dots-fill text-info"></i> @totalFeedbacks Feedbacks Given</span>
+                <span class="hero-stat-pill"><i class="bi bi-heart-fill text-danger"></i> @totalLikes Total Upvotes</span>
+            </div>
+        </div>
+        <div class="col-12 col-lg-5 text-lg-end">
+            <button type="button" class="btn btn-royal-gold shadow d-inline-flex align-items-center gap-2 fw-bold"
+                    data-bs-toggle="modal" data-bs-target="#sharePostModal" id="newShareBtn">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>+ Share a Link or Project</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Team Standup & Meeting Sync Links -->
+<div class="card glass-card border-0 shadow-sm mb-4 p-3 p-lg-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-1.5 rounded-pill fw-bold">
+                <i class="bi bi-camera-video-fill me-1"></i> Daily Team Meetings
+            </span>
+            <span class="text-muted small fw-semibold d-none d-md-inline">Connect with team members on Google Meet</span>
+        </div>
+        <span class="badge bg-body-secondary text-body font-monospace px-3 py-1.5 rounded-pill">
+            <i class="bi bi-clock me-1 text-primary"></i> Asia/Kolkata (IST)
+        </span>
+    </div>
+
+    <div class="row g-3">
+        <!-- Morning Standup Call -->
+        <div class="col-12 col-md-6" id="daily-meet-card-morning">
+            <div class="meeting-hub-card p-3 p-xl-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="badge-morning-sync">
+                            <i class="bi bi-sun-fill text-warning"></i> Morning Standup
+                        </span>
+                        <span class="meeting-time-pill">
+                            <i class="bi bi-clock-fill"></i> 10:00 AM – 10:30 AM
+                        </span>
+                    </div>
+                    <h5 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                        <span>Daily Morning Sync Call</span>
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        Daily task alignment, sprint planning updates, priorities, and unblocking colleagues.
+                    </p>
+                </div>
+                <div class="pt-3 border-top border-secondary border-opacity-25 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <a href="https://meet.google.com/cnk-vbyu-kty" target="_blank" rel="noopener noreferrer" class="btn btn-meet-join d-inline-flex align-items-center gap-2 shadow-sm">
+                        <i class="bi bi-camera-video-fill"></i>
+                        <span>Join Morning Standup</span>
+                    </a>
+                    <div class="d-flex align-items-center gap-1.5">
+                        <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3 py-1.5 copy-meet-btn" data-link="https://meet.google.com/cnk-vbyu-kty" title="Copy Google Meet Link">
+                            <i class="bi bi-clipboard me-1"></i>
+                            <span>Copy Link</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5" onclick="deleteMeetingCard(this, 'daily-meet-card-morning')" title="Delete Meeting Card">
+                            <i class="bi bi-trash3-fill"></i>
+                            <span>Delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evening Closure Call -->
+        <div class="col-12 col-md-6" id="daily-meet-card-evening">
+            <div class="meeting-hub-card p-3 p-xl-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="badge-evening-sync">
+                            <i class="bi bi-moon-stars-fill text-info"></i> Evening Closure Sync
+                        </span>
+                        <span class="meeting-time-pill">
+                            <i class="bi bi-clock-fill"></i> 6:00 PM – 6:30 PM
+                        </span>
+                    </div>
+                    <h5 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                        <span>Daily Evening Closure Call</span>
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        End-of-day review, completed deliverables check, status sync, and tomorrow's prep.
+                    </p>
+                </div>
+                <div class="pt-3 border-top border-secondary border-opacity-25 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <a href="https://meet.google.com/skx-imxp-iyg" target="_blank" rel="noopener noreferrer" class="btn btn-meet-eod d-inline-flex align-items-center gap-2 shadow-sm">
+                        <i class="bi bi-camera-video-fill"></i>
+                        <span>Join Evening Closure Call</span>
+                    </a>
+                    <div class="d-flex align-items-center gap-1.5">
+                        <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3 py-1.5 copy-meet-btn" data-link="https://meet.google.com/skx-imxp-iyg" title="Copy Google Meet Link">
+                            <i class="bi bi-clipboard me-1"></i>
+                            <span>Copy Link</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5" onclick="deleteMeetingCard(this, 'daily-meet-card-evening')" title="Delete Meeting Card">
+                            <i class="bi bi-trash3-fill"></i>
+                            <span>Delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== IMPORTANT MEETINGS ===== -->
+    <div class="imp-meeting-panel mt-4" id="impMeetingPanel">
+        <div class="imp-meeting-header">
+            <div class="d-flex align-items-center gap-2">
+                <span style="font-size:1.3rem;">⭐</span>
+                <div>
+                    <div class="fw-bold" style="font-size:0.95rem;">Important Meetings</div>
+                    <div class="text-muted" style="font-size:0.75rem;">Add meeting links you want quick access to</div>
+                </div>
+            </div>
+            <button class="btn btn-sm d-inline-flex align-items-center gap-1 fw-bold"
+                    style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border-radius:8px;font-size:0.8rem;padding:0.35rem 0.85rem;"
+                    onclick="toggleImpAddForm()" id="impAddToggleBtn">
+                <i class="bi bi-plus-lg" id="impAddToggleIcon"></i>
+                <span id="impAddToggleText">Add Meeting</span>
+            </button>
+        </div>
+
+        <!-- Add Form (hidden by default) -->
+        <div class="imp-add-row" id="impAddForm" style="display:none;">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-semibold mb-1" style="font-size:0.78rem;">Meeting Title</label>
+                    <input type="text" id="impMeetTitle" class="form-control form-control-sm"
+                           placeholder="e.g. Sprint Review, Client Call..." maxlength="60"
+                           style="border-radius:8px;border:1.5px solid rgba(245,158,11,0.35);font-size:0.85rem;" />
+                </div>
+                <div class="col-12 col-md-5">
+                    <label class="form-label small fw-semibold mb-1" style="font-size:0.78rem;">Meeting Link (URL)</label>
+                    <input type="url" id="impMeetUrl" class="form-control form-control-sm"
+                           placeholder="https://meet.google.com/..." 
+                           style="border-radius:8px;border:1.5px solid rgba(245,158,11,0.35);font-size:0.85rem;" />
+                </div>
+                <div class="col-12 col-md-3 d-flex gap-2">
+                    <button class="btn btn-sm fw-bold flex-fill" onclick="addImpMeeting()"
+                            style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border-radius:8px;font-size:0.82rem;">
+                        <i class="bi bi-check-lg me-1"></i>Save
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="toggleImpAddForm()"
+                            style="border-radius:8px;font-size:0.82rem;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+            <div id="impAddError" class="text-danger small mt-1" style="display:none;"></div>
+        </div>
+
+        <!-- Meeting List -->
+        <div id="impMeetingList">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+
+</div>
+
+<!-- Alerts -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success border-0 rounded-3 d-flex align-items-center gap-2 mb-3 shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill text-success"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger border-0 rounded-3 d-flex align-items-center gap-2 mb-3 shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+
+<!-- Filter Bar -->
+<div class="filter-bar mb-4">
+    <form id="filterForm" method="get" asp-action="Index" asp-controller="Share">
+        <div class="row g-3 align-items-center">
+            <!-- Search -->
+            <div class="col-12 col-md-4">
+                <div class="input-group input-group-sm rounded-pill overflow-hidden border shadow-sm bg-body p-0.5">
+                    <span class="input-group-text bg-transparent border-0 ps-3 pe-2"><i class="bi bi-search text-primary"></i></span>
+                    <input type="text" name="search" value="@search" class="form-control border-0 shadow-none ps-0"
+                           placeholder="Search posts, authors, tags..." id="searchInput" />
+                </div>
+            </div>
+
+            <!-- Category Pills -->
+            <div class="col-12 col-md-6">
+                <div class="d-flex flex-wrap gap-1">
+                    <button type="button" class="category-tab-btn @(string.IsNullOrEmpty(selectedCategory) ? "active" : "")"
+                            onclick="setCategory('')">All</button>
+                    <button type="button" class="category-tab-btn @(selectedCategory == "1" ? "active" : "")"
+                            onclick="setCategory('1')">🚀 Demos</button>
+                    <button type="button" class="category-tab-btn @(selectedCategory == "2" ? "active" : "")"
+                            onclick="setCategory('2')">📢 Updates</button>
+                    <button type="button" class="category-tab-btn @(selectedCategory == "3" ? "active" : "")"
+                            onclick="setCategory('3')">🔧 Tools</button>
+                    <button type="button" class="category-tab-btn @(selectedCategory == "4" ? "active" : "")"
+                            onclick="setCategory('4')">🎨 Design</button>
+                    <button type="button" class="category-tab-btn @(selectedCategory == "5" ? "active" : "")"
+                            onclick="setCategory('5')">💻 Code</button>
+                </div>
+            </div>
+
+            <!-- Sort -->
+            <div class="col-12 col-md-2">
+                <select name="sort" class="form-select form-select-sm border-0" onchange="this.form.submit()"
+                        style="background: rgba(139,92,246,0.06); border-radius: 8px;">
+                    <option value="latest" selected="@(sort == "latest")">⏱ Latest</option>
+                    <option value="most_liked" selected="@(sort == "most_liked")">❤️ Most Liked</option>
+                    <option value="most_feedback" selected="@(sort == "most_feedback")">💬 Most Feedback</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Hidden fields for form submission -->
+        <input type="hidden" name="category" id="categoryInput" value="@selectedCategory" />
+    </form>
+</div>
+
+<!-- Posts Grid -->
+@if (!Model.Any())
+{
+    <div class="empty-state-card">
+        <div class="mb-4" style="font-size: 4rem; opacity: 0.5;">🤝</div>
+        <h4 class="fw-bold mb-2">No Posts Yet</h4>
+        <p class="text-muted mb-4" style="max-width: 400px; margin: 0 auto;">
+            Be the first to share a live project link, useful tool, or company update with your team!
+        </p>
+        <button type="button" class="btn btn-royal-gold fw-bold d-inline-flex align-items-center gap-2"
+                data-bs-toggle="modal" data-bs-target="#sharePostModal">
+            <i class="bi bi-plus-circle-fill"></i> Share Something Now
+        </button>
+    </div>
+}
+else
+{
+    <div class="row g-4" id="postsGrid">
+        @foreach (var post in Model)
+        {
+            var feedbackCount = post.Feedbacks?.Count ?? 0;
+            var authorInitials = post.AuthorName.Length > 0 ? post.AuthorName[0].ToString().ToUpper() : "?";
+            var tags = (post.Tags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="post-card h-100 @(post.IsPinned ? "pinned" : "")">
+                    @if (post.IsPinned)
+                    {
+                        <div style="overflow:hidden; position:absolute; top:0; right:0; width:60px; height:60px;">
+                            <div class="pinned-ribbon">📌 PIN</div>
+                        </div>
+                    }
+
+                    <div class="p-4">
+                        <!-- Author + Time -->
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="author-avatar">@authorInitials</div>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-bold text-body small text-truncate">@post.AuthorName</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">@(post.AuthorDepartment ?? "Developer") • @post.CreatedAt.ToString("MMM dd, yyyy")</div>
+                            </div>
+                            <span class="badge @StatusBadgeClass(post.Status) rounded-pill">@StatusLabel(post.Status)</span>
+                        </div>
+
+                        <!-- Category Badge -->
+                        <div class="mb-2">
+                            <span class="badge @CategoryBadgeClass(post.Category) rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                @CategoryLabel(post.Category)
+                            </span>
+                        </div>
+
+                        <!-- Title + Description -->
+                        <h5 class="fw-bold text-body mb-1" style="font-family: 'Outfit', sans-serif; line-height: 1.35;">
+                            @post.Title
+                        </h5>
+                        <p class="text-secondary small mb-3" style="line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            @post.Description
+                        </p>
+
+                        <!-- Tags -->
+                        @if (tags.Length > 0)
+                        {
+                            <div class="d-flex flex-wrap gap-1 mb-3">
+                                @foreach (var tag in tags.Take(4))
+                                {
+                                    <span class="tag-chip">#@tag</span>
+                                }
+                                @if (tags.Length > 4)
+                                {
+                                    <span class="tag-chip">+@(tags.Length - 4)</span>
+                                }
+                            </div>
+                        }
+
+                        <!-- Live URL Actions -->
+                        @if (!string.IsNullOrEmpty(post.LiveUrl))
+                        {
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <a href="@post.LiveUrl" target="_blank" rel="noopener noreferrer" class="btn-open-demo">
+                                    <i class="bi bi-box-arrow-up-right"></i> Open Live Demo
+                                </a>
+                                <button class="btn-copy" onclick="copyLink('@post.LiveUrl', this)" title="Copy Link">
+                                    <i class="bi bi-clipboard me-1"></i>Copy
+                                </button>
+                                @if (!string.IsNullOrEmpty(post.RepositoryUrl))
+                                {
+                                    <a href="@post.RepositoryUrl" target="_blank" rel="noopener noreferrer"
+                                       class="btn-copy text-decoration-none" title="View Repository">
+                                        <i class="bi bi-git"></i>
+                                    </a>
+                                }
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(post.RepositoryUrl))
+                        {
+                            <div class="mb-3">
+                                <a href="@post.RepositoryUrl" target="_blank" rel="noopener noreferrer" class="btn-open-demo">
+                                    <i class="bi bi-git"></i> View Repository
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="px-4 pb-4">
+
+                        <!-- ── Quick Reactions Row ── -->
+                        <div class="pt-3 border-top border-opacity-25 mb-2">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <span class="text-muted small me-1" style="font-size: 0.7rem; font-weight: 600;">React:</span>
+                                <button class="reaction-btn" data-post="@post.Id" data-type="1"
+                                        onclick="sendReaction(@post.Id, 1, this)" title="OK – Looks good!">
+                                    👍 <span class="reaction-label">OK</span>
+                                    <span class="reaction-count" id="react-1-@post.Id">0</span>
+                                </button>
+                                <button class="reaction-btn" data-post="@post.Id" data-type="2"
+                                        onclick="sendReaction(@post.Id, 2, this)" title="Not OK – Has problems">
+                                    👎 <span class="reaction-label">Not OK</span>
+                                    <span class="reaction-count" id="react-2-@post.Id">0</span>
+                                </button>
+                                <button class="reaction-btn" data-post="@post.Id" data-type="3"
+                                        onclick="sendReaction(@post.Id, 3, this)" title="Needs more work">
+                                    🔧 <span class="reaction-label">Needs Work</span>
+                                    <span class="reaction-count" id="react-3-@post.Id">0</span>
+                                </button>
+                                <button class="reaction-btn" data-post="@post.Id" data-type="4"
+                                        onclick="sendReaction(@post.Id, 4, this)" title="Approved – Ship it!">
+                                    ✅ <span class="reaction-label">Approved</span>
+                                    <span class="reaction-count" id="react-4-@post.Id">0</span>
+                                </button>
+                                <button class="reaction-btn" data-post="@post.Id" data-type="5"
+                                        onclick="sendReaction(@post.Id, 5, this)" title="Has critical issues">
+                                    ⚠️ <span class="reaction-label">Has Issues</span>
+                                    <span class="reaction-count" id="react-5-@post.Id">0</span>
+                                </button>
+
+                                <!-- Like button right-aligned -->
+                                <button class="btn-like ms-auto" id="like-btn-@post.Id" onclick="toggleLike(@post.Id, this)">
+                                    <i class="bi bi-heart-fill"></i>
+                                    <span id="like-count-@post.Id">@post.LikesCount</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ── Action Buttons Row ── -->
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                            <!-- Reply toggle -->
+                            <button class="btn btn-sm rounded-pill fw-semibold d-flex align-items-center gap-1"
+                                    style="font-size:0.75rem; border: 1.5px solid rgba(139,92,246,0.3); color: #7c3aed; background: rgba(139,92,246,0.06);"
+                                    onclick="toggleReplyPanel(@post.Id, this)" id="reply-toggle-@post.Id">
+                                <i class="bi bi-reply-fill"></i>
+                                Reply <span id="reply-count-badge-@post.Id" class="badge bg-secondary ms-1" style="font-size:0.6rem;">0</span>
+                            </button>
+
+                            <!-- Feedback count button -->
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill fw-semibold d-flex align-items-center gap-1"
+                                    style="font-size: 0.75rem;"
+                                    onclick="toggleFeedbackPanel(@post.Id, this)" id="feedback-toggle-@post.Id">
+                                <i class="bi bi-chat-dots"></i>
+                                <span id="feedback-count-badge-@post.Id">@feedbackCount</span> Feedback
+                            </button>
+
+                            <!-- Give Feedback -->
+                            <button class="btn btn-sm btn-outline-primary rounded-pill fw-semibold ms-auto d-flex align-items-center gap-1"
+                                    style="font-size: 0.75rem;"
+                                    onclick="openFeedbackModal(@post.Id, '@post.Title.Replace("'", "\\'")' )">
+                                <i class="bi bi-pencil-fill"></i> Give Feedback
+                            </button>
+                        </div>
+
+                        <!-- ── Reply / Comment Thread Panel ── -->
+                        <div id="reply-panel-@post.Id" class="reply-panel mt-2" style="display: none;">
+                            <div class="reply-panel-header d-flex align-items-center justify-content-between px-3 py-2">
+                                <span class="fw-bold small">💬 Replies</span>
+                                <span class="badge bg-warning text-dark" id="panel-reply-count-@post.Id">0</span>
+                            </div>
+
+                            <!-- Reply list -->
+                            <div id="reply-list-@post.Id" class="reply-list">
+                                <div class="text-center py-3 text-muted small reply-empty-msg">
+                                    <i class="bi bi-chat-square-text opacity-50 d-block fs-5 mb-1"></i>
+                                    No replies yet — be the first to reply!
+                                </div>
+                            </div>
+
+                            <!-- Quick reply input -->
+                            <div class="reply-input-box px-3 py-2 d-flex flex-column gap-2">
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="reply-name-@post.Id" placeholder="Your name *" maxlength="60"
+                                           style="max-width: 140px; font-size: 0.78rem;" />
+                                    <select class="form-select form-select-sm" id="reply-role-@post.Id"
+                                            style="max-width: 160px; font-size: 0.75rem;">
+                                        <option value="Team Member">Team Member</option>
+                                        <option value="Frontend Developer">🎨 Frontend Dev</option>
+                                        <option value="Backend Developer">⚙️ Backend Dev</option>
+                                        <option value="Full Stack Developer">🔗 Full Stack Dev</option>
+                                        <option value="UI / UX Designer">🖌️ UI / UX</option>
+                                        <option value="QA Engineer">🧪 QA Engineer</option>
+                                        <option value="Project Manager">📋 PM</option>
+                                        <option value="Intern">🎓 Intern</option>
+                                    </select>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <textarea class="form-control form-control-sm flex-grow-1"
+                                              id="reply-text-@post.Id" rows="2"
+                                              placeholder="Write your reply... (e.g. 'Looks great!', 'Needs more testing', 'The login bug is fixed ✅')"
+                                              style="font-size: 0.78rem; resize: none;"></textarea>
+                                    <button class="btn btn-sm fw-bold align-self-end px-3"
+                                            style="background: linear-gradient(135deg,#7c3aed,#3b82f6); color: white; border: none; border-radius: 8px; white-space: nowrap;"
+                                            onclick="submitReply(@post.Id, this)">
+                                        <i class="bi bi-send-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── Inline Feedback Panel ── -->
+                        <div id="feedback-panel-@post.Id" class="feedback-panel mt-2" style="display: none;">
+                            <div class="d-flex align-items-center justify-content-between px-3 py-2"
+                                 style="background: rgba(139,92,246,0.06); border-bottom: 1px solid rgba(139,92,246,0.12);">
+                                <span class="fw-bold small text-body">Peer Feedback</span>
+                                <span class="badge bg-warning text-dark" id="panel-feedback-count-@post.Id">@feedbackCount</span>
+                            </div>
+                            <div id="feedback-list-@post.Id">
+                                @if (post.Feedbacks != null && post.Feedbacks.Any())
+                                {
+                                    @foreach (var fb in post.Feedbacks.OrderByDescending(f => f.CreatedAt).Take(3))
+                                    {
+                                        var fbInitials = fb.ColleagueName.Length > 0 ? fb.ColleagueName[0].ToString().ToUpper() : "?";
+                                        <div class="feedback-item d-flex gap-2">
+                                            <div class="feedback-avatar">@fbInitials</div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                    <span class="fw-semibold small">@fb.ColleagueName</span>
+                                                    <span class="badge rounded-pill px-2" style="font-size: 0.62rem; background: rgba(139,92,246,0.1); color: #7c3aed;">@fb.ColleagueRole</span>
+                                                    <span class="star-rating">
+                                                        @for (int i = 1; i <= 5; i++) { <span class="@(i <= fb.Rating ? "star-rating" : "star-empty")">★</span> }
+                                                    </span>
+                                                </div>
+                                                <p class="small mb-0 text-body" style="line-height: 1.5;">@fb.Comment</p>
+                                                @if (!string.IsNullOrEmpty(fb.ScreenshotPath))
+                                                {
+                                                    <div class="mt-2">
+                                                        <a href="javascript:void(0);" onclick="openLightbox('@fb.ScreenshotPath')">
+                                                            <img src="@fb.ScreenshotPath" alt="Screenshot" class="img-fluid rounded border" style="max-height: 120px; object-fit: cover;" />
+                                                        </a>
+                                                    </div>
+                                                }
+                                                <div class="text-muted" style="font-size: 0.65rem; margin-top: 4px;">@fb.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (feedbackCount > 3)
+                                    {
+                                        <div class="text-center py-2">
+                                            <button class="btn btn-link btn-sm text-muted" onclick="loadAllFeedbacks(@post.Id)">
+                                                View all @feedbackCount feedbacks
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4 text-muted small">
+                                        <i class="bi bi-chat-dots fs-4 d-block mb-1 opacity-50"></i>
+                                        No feedback yet. Be the first!
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        @if (isAdmin)
+                        {
+                            <div class="d-flex gap-2 mt-2">
+                                <form method="post" asp-action="UpdateStatus" asp-controller="Share" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="postId" value="@post.Id" />
+                                    <select name="newStatus" class="form-select form-select-sm" onchange="this.form.submit()" style="font-size: 0.7rem; max-width: 130px;">
+                                        @foreach (PostStatus s in Enum.GetValues(typeof(PostStatus)))
+                                        {
+                                            <option value="@((int)s)" selected="@(post.Status == s)">@StatusLabel(s)</option>
+                                        }
+                                    </select>
+                                </form>
+                                <form method="post" asp-action="Delete" asp-controller="Share" class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to delete this post?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="postId" value="@post.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" style="font-size: 0.7rem;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- ============================================================
+     MODAL: Share a New Post / Link
+============================================================ -->
+<div class="modal fade" id="sharePostModal" tabindex="-1" aria-labelledby="sharePostModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 18px; overflow: hidden;">
+
+            <!-- Header -->
+            <div class="modal-header border-0 py-3 px-4"
+                 style="background: linear-gradient(135deg, #1a1035, #2d1b6e); color: white;">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2 m-0"
+                    id="sharePostModalLabel" style="font-family: 'Outfit', sans-serif; font-size: 1rem;">
+                    <i class="bi bi-share-fill text-warning"></i>
+                    Share with Your Colleagues
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="post" asp-action="Create" asp-controller="Share" id="sharePostForm">
+                @Html.AntiForgeryToken()
+
+                <!-- Scrollable body with fixed max-height -->
+                <div class="modal-body px-4 pt-3 pb-0"
+                     style="max-height: 65vh; overflow-y: auto; overflow-x: hidden;">
+                    <div class="row g-2">
+
+                        <!-- Title -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small mb-1">
+                                Post Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="Title" class="form-control form-control-sm"
+                                   id="postTitleInput"
+                                   placeholder="e.g. Auxinzio Task App – Staging link for review"
+                                   maxlength="200" required />
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small mb-1">
+                                What are you sharing? <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="Description" class="form-control form-control-sm"
+                                      rows="2" id="postDescInput" required
+                                      placeholder="Describe it briefly and mention what feedback you need..."></textarea>
+                        </div>
+
+                        <!-- Live URL + Repo side by side -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small mb-1">🌐 Live URL / Demo Link</label>
+                            <input type="url" name="LiveUrl" class="form-control form-control-sm font-monospace"
+                                   placeholder="https://demo.auxinz.io" id="postLiveUrlInput" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small mb-1">🔗 Repository (optional)</label>
+                            <input type="url" name="RepositoryUrl" class="form-control form-control-sm font-monospace"
+                                   placeholder="https://github.com/org/repo" />
+                        </div>
+
+                        <!-- Category + Tags side by side -->
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small mb-1">Category <span class="text-danger">*</span></label>
+                            <select name="Category" class="form-select form-select-sm" required>
+                                @foreach (PostCategory cat in Enum.GetValues(typeof(PostCategory)))
+                                {
+                                    <option value="@((int)cat)">@CategoryLabel(cat)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small mb-1">Tags <span class="text-muted">(comma-separated)</span></label>
+                            <input type="text" name="Tags" class="form-control form-control-sm"
+                                   placeholder="e.g. ASP.NET, AI, Vue" maxlength="200" />
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="col-12"><hr class="my-1 opacity-25" /></div>
+                        <div class="col-12">
+                            <span class="fw-semibold small text-muted">
+                                <i class="bi bi-person-fill me-1"></i>Your Information
+                            </span>
+                        </div>
+
+                        <!-- Name + Email + Role in one row -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small mb-1">Your Name <span class="text-danger">*</span></label>
+                            <input type="text" name="AuthorName" class="form-control form-control-sm"
+                                   placeholder="e.g. Karthikeyan" maxlength="100" required />
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small mb-1">Email (optional)</label>
+                            <input type="email" name="AuthorEmail" class="form-control form-control-sm font-monospace"
+                                   placeholder="karthikeyan@auxinz.io" maxlength="150" />
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold small mb-1">Your Role <span class="text-danger">*</span></label>
+                            <select name="AuthorDepartment" class="form-select form-select-sm" required>
+                                <option value="" disabled selected>Select role...</option>
+                                <option value="Frontend Developer">🎨 Frontend Developer</option>
+                                <option value="Backend Developer">⚙️ Backend Developer</option>
+                                <option value="Full Stack Developer">🔗 Full Stack Developer</option>
+                                <option value="UI / UX Designer">🖌️ UI / UX Designer</option>
+                                <option value="DevOps Engineer">☁️ DevOps Engineer</option>
+                                <option value="QA Engineer">🧪 QA / Test Engineer</option>
+                                <option value="Mobile Developer">📱 Mobile Developer</option>
+                                <option value="Project Manager">📋 Project Manager</option>
+                                <option value="HR Manager">👤 HR Manager</option>
+                                <option value="Intern">🎓 Intern</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ✅ SUBMIT FOOTER — always pinned at bottom, outside scroll area -->
+                <div class="px-4 py-3 d-flex align-items-center justify-content-between gap-3"
+                     style="border-top: 1px solid rgba(124,58,237,0.18);
+                            background: linear-gradient(135deg,rgba(124,58,237,0.06),rgba(59,130,246,0.04));">
+                    <span class="small text-muted d-none d-sm-flex align-items-center gap-1">
+                        <i class="bi bi-people-fill text-primary"></i>
+                        Visible to <strong class="ms-1">all colleagues</strong>
+                    </span>
+                    <div class="d-flex gap-2 ms-auto">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                id="submitShareBtn"
+                                class="btn fw-bold rounded-pill px-4 py-2 d-flex align-items-center gap-2"
+                                style="background: linear-gradient(135deg,#7c3aed,#3b82f6);
+                                       color: white; border: none; font-size: 0.95rem;
+                                       box-shadow: 0 4px 18px rgba(124,58,237,0.4);">
+                            <i class="bi bi-send-fill"></i>
+                            Post to Group
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     MODAL: Give Feedback
+============================================================ -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-2" style="background: linear-gradient(135deg, #0f2a5c, #1a1035); color: white;">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="feedbackModalLabel" style="font-family: 'Outfit', sans-serif;">
+                    <i class="bi bi-chat-dots-fill text-info"></i>
+                    Give Peer Feedback
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3 p-3 rounded-3" style="background: rgba(139,92,246,0.07); border: 1px solid rgba(139,92,246,0.15);">
+                    <div class="small text-muted mb-1">Reviewing:</div>
+                    <div class="fw-bold text-body small" id="feedbackPostTitle">-</div>
+                </div>
+                <input type="hidden" id="feedbackPostId" value="" />
+
+                <div class="row g-3">
+                    <!-- Colleague Name -->
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-semibold small">Your Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="fbName" placeholder="e.g. Mujimal" maxlength="100" />
+                    </div>
+
+                    <!-- Colleague Role -->
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-semibold small">Your Role</label>
+                        <input type="text" class="form-control" id="fbRole" placeholder="e.g. Frontend Developer" maxlength="100" />
+                    </div>
+
+                    <!-- Sentiment -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small">Feedback Type <span class="text-danger">*</span></label>
+                        <div class="d-flex flex-wrap gap-2" id="sentimentSelector">
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold sentiment-btn" data-value="1">🌟 Impressive</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold sentiment-btn" data-value="2">💡 Suggestion</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold sentiment-btn" data-value="3">🐞 Bug Found</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold sentiment-btn" data-value="4">🚀 Ready to Ship</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold sentiment-btn" data-value="5">🎨 Design Feedback</button>
+                        </div>
+                        <input type="hidden" id="fbSentiment" value="2" />
+                    </div>
+
+                    <!-- Star Rating -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small">Rating</label>
+                        <div class="d-flex gap-2" id="starRatingInput">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <button type="button" class="btn p-0 star-btn" data-value="@i"
+                                        style="font-size: 1.6rem; color: #d1d5db; background: none; border: none; line-height: 1; cursor: pointer;">★</button>
+                            }
+                        </div>
+                        <input type="hidden" id="fbRating" value="5" />
+                    </div>
+
+                    <!-- Comment -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small">Your Feedback Comment <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="fbComment" rows="4"
+                                  placeholder="Share your honest thoughts — what works, what could be improved, any bugs, or features you'd love to see..."></textarea>
+                    </div>
+
+                    <!-- Screenshot Upload (Optional) -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small">Attach Screenshot <span class="text-muted">(optional)</span></label>
+                        <input type="file" class="form-control form-control-sm" id="fbScreenshot" accept="image/*" />
+                        <div class="form-text small">Helpful for bug reports or UI feedback.</div>
+                    </div>
+
+                    <!-- Email (Optional) -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small">Your Email (optional)</label>
+                        <input type="email" class="form-control font-monospace" id="fbEmail"
+                               placeholder="e.g. mujimal@auxinz.io" maxlength="150" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary fw-bold rounded-pill d-flex align-items-center gap-2 px-4"
+                        onclick="submitFeedback()" id="submitFeedbackBtn">
+                    <i class="bi bi-send-fill"></i> Submit Feedback
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     MODAL: Image Lightbox
+============================================================ -->
+<div class="modal fade" id="lightboxModal" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1) grayscale(100%) brightness(200%); z-index: 1080;"></button>
+            </div>
+            <div class="modal-body text-center p-0" style="position: relative;">
+                <img id="lightboxImage" src="" class="img-fluid rounded shadow-lg" style="max-height: 85vh;" alt="Enlarged Screenshot" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ====== Lightbox ======
+    function openLightbox(url) {
+        document.getElementById('lightboxImage').src = url;
+        new bootstrap.Modal(document.getElementById('lightboxModal')).show();
+    }
+
+    // ====== Category Filter ======
+    function setCategory(val) {
+        document.getElementById('categoryInput').value = val;
+        document.getElementById('filterForm').submit();
+    }
+
+    // Search with debounce
+    let searchTimer;
+    document.getElementById('searchInput').addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => document.getElementById('filterForm').submit(), 600);
+    });
+
+    // ====== Like / Upvote ======
+    function toggleLike(postId, btn) {
+        fetch('/Share/ToggleLike', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getAntiForgeryToken() },
+            body: JSON.stringify({ PostId: postId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('like-count-' + postId).textContent = data.likesCount;
+                btn.classList.toggle('liked', data.liked);
+                const icon = btn.querySelector('i');
+                if (data.liked) {
+                    icon.style.color = '#ef4444';
+                    btn.style.color = '#ef4444';
+                } else {
+                    icon.style.color = '';
+                    btn.style.color = '';
+                }
+            }
+        });
+    }
+
+    // ====== Toggle Feedback Panel ======
+    function toggleFeedbackPanel(postId, btn) {
+        const feedbackPanel = document.getElementById('feedback-panel-' + postId);
+        const replyPanel = document.getElementById('reply-panel-' + postId);
+        const replyBtn = document.getElementById('reply-toggle-' + postId);
+        
+        if (!feedbackPanel) return;
+
+        const isVisible = feedbackPanel.style.display !== 'none';
+
+        if (isVisible) {
+            feedbackPanel.style.display = 'none';
+            if (btn) btn.classList.remove('active');
+        } else {
+            // Close reply panel if open
+            if (replyPanel) replyPanel.style.display = 'none';
+            if (replyBtn) replyBtn.classList.remove('active');
+
+            feedbackPanel.style.display = 'block';
+            if (btn) btn.classList.add('active');
+        }
+    }
+
+    // ====== Load All Feedbacks via AJAX ======
+    function loadAllFeedbacks(postId) {
+        fetch('/Share/GetFeedbacks?postId=' + postId)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const list = document.getElementById('feedback-list-' + postId);
+                if (data.feedbacks.length === 0) {
+                    list.innerHTML = '<div class="text-center py-4 text-muted small"><i class="bi bi-chat-dots fs-4 d-block mb-1 opacity-50"></i>No feedback yet.</div>';
+                    return;
+                }
+                list.innerHTML = data.feedbacks.map(fb => `
+                    <div class="feedback-item d-flex gap-2">
+                        <div class="feedback-avatar">${fb.authorInitials}</div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                <span class="fw-semibold small">${fb.collegaueName || fb.authorInitials}</span>
+                                <span class="badge rounded-pill px-2" style="font-size:0.62rem; background:rgba(139,92,246,0.1); color:#7c3aed;">${fb.colleagueRole || 'Team Member'}</span>
+                                <span class="star-rating">${'★'.repeat(fb.rating)}<span class="star-empty">${'★'.repeat(5 - fb.rating)}</span></span>
+                            </div>
+                            <p class="small mb-0 text-body">${fb.comment}</p>
+                            ${fb.screenshotPath ? `<div class="mt-2">
+                                                    <a href="javascript:void(0);" onclick="openLightbox('${fb.screenshotPath}')">
+                                                        <img src="${fb.screenshotPath}" alt="Screenshot" class="img-fluid rounded border" style="max-height: 120px; object-fit: cover;" />
+                                                    </a>
+                                                   </div>` : ''}
+                            <div class="text-muted" style="font-size:0.65rem;margin-top:4px;">${fb.createdAt}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        });
+    }
+
+    // ====== Open Feedback Modal ======
+    function openFeedbackModal(postId, title) {
+        document.getElementById('feedbackPostId').value = postId;
+        document.getElementById('feedbackPostTitle').textContent = title;
+        document.getElementById('fbName').value = '';
+        document.getElementById('fbRole').value = '';
+        document.getElementById('fbEmail').value = '';
+        document.getElementById('fbComment').value = '';
+        document.getElementById('fbSentiment').value = '2';
+        document.getElementById('fbRating').value = '5';
+        // Reset sentiment buttons
+        document.querySelectorAll('.sentiment-btn').forEach(b => b.classList.remove('btn-primary', 'active'));
+        document.querySelector('.sentiment-btn[data-value="2"]').classList.add('btn-primary', 'active');
+        // Reset stars
+        updateStarDisplay(5);
+        var modal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+        modal.show();
+    }
+
+    // ====== Sentiment Selector ======
+    document.querySelectorAll('.sentiment-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.sentiment-btn').forEach(b => {
+                b.classList.remove('btn-primary', 'active');
+                b.classList.add('btn-outline-secondary');
+            });
+            this.classList.remove('btn-outline-secondary');
+            this.classList.add('btn-primary', 'active');
+            document.getElementById('fbSentiment').value = this.dataset.value;
+        });
+    });
+
+    // ====== Star Rating ======
+    function updateStarDisplay(rating) {
+        document.querySelectorAll('.star-btn').forEach(s => {
+            s.style.color = parseInt(s.dataset.value) <= rating ? '#f59e0b' : '#d1d5db';
+        });
+    }
+
+    document.querySelectorAll('.star-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.getElementById('fbRating').value = this.dataset.value;
+            updateStarDisplay(parseInt(this.dataset.value));
+        });
+        btn.addEventListener('mouseenter', function () {
+            updateStarDisplay(parseInt(this.dataset.value));
+        });
+        btn.addEventListener('mouseleave', function () {
+            updateStarDisplay(parseInt(document.getElementById('fbRating').value));
+        });
+    });
+
+    // Initialize stars to 5
+    updateStarDisplay(5);
+
+    // ====== Submit Feedback ======
+    function submitFeedback() {
+        const name = document.getElementById('fbName').value.trim();
+        const comment = document.getElementById('fbComment').value.trim();
+        const postId = parseInt(document.getElementById('feedbackPostId').value);
+
+        if (!name || !comment) {
+            alert('Please enter your name and feedback comment.');
+            return;
+        }
+
+        const btn = document.getElementById('submitFeedbackBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+
+        const formData = new FormData();
+        formData.append('PostId', postId);
+        formData.append('ColleagueName', name);
+        formData.append('ColleagueEmail', document.getElementById('fbEmail').value.trim());
+        formData.append('ColleagueRole', document.getElementById('fbRole').value.trim() || 'Team Member');
+        formData.append('Sentiment', document.getElementById('fbSentiment').value);
+        formData.append('Rating', document.getElementById('fbRating').value);
+        formData.append('Comment', comment);
+
+        const screenshotFile = document.getElementById('fbScreenshot').files[0];
+        if (screenshotFile) {
+            formData.append('Screenshot', screenshotFile);
+        }
+
+        fetch('/Share/AddFeedback', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiForgeryToken() },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send-fill"></i> Submit Feedback';
+            if (data.success) {
+                // Update feedback count
+                const countBadge = document.getElementById('feedback-count-badge-' + postId);
+                const panelCount = document.getElementById('panel-feedback-count-' + postId);
+                const newCount = data.feedbackCount;
+                if (countBadge) countBadge.textContent = newCount;
+                if (panelCount) panelCount.textContent = newCount;
+
+                // Append to panel list
+                const list = document.getElementById('feedback-list-' + postId);
+                if (list) {
+                    const noFeedback = list.querySelector('.text-center.py-4');
+                    if (noFeedback) noFeedback.remove();
+
+                    const stars = '★'.repeat(formData.get('Rating')) + '<span style="color:#d1d5db">' + '★'.repeat(5 - formData.get('Rating')) + '</span>';
+                    
+                    let screenshotHtml = '';
+                    if (data.screenshotPath) {
+                        screenshotHtml = `<div class="mt-2">
+                                            <a href="javascript:void(0);" onclick="openLightbox('${data.screenshotPath}')">
+                                                <img src="${data.screenshotPath}" alt="Screenshot" class="img-fluid rounded border" style="max-height: 120px; object-fit: cover;" />
+                                            </a>
+                                          </div>`;
+                    }
+
+                    const itemHtml = `
+                        <div class="feedback-item d-flex gap-2">
+                            <div class="feedback-avatar">${data.authorInitials}</div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                    <span class="fw-semibold small">${data.authorName}</span>
+                                    <span class="badge rounded-pill px-2" style="font-size:0.62rem; background:rgba(139,92,246,0.1); color:#7c3aed;">${data.authorRole}</span>
+                                    <span class="star-rating" style="font-size:0.7rem;">${stars}</span>
+                                </div>
+                                <p class="small mb-0 text-body">${formData.get('Comment')}</p>
+                                ${screenshotHtml}
+                                <div class="text-muted" style="font-size:0.65rem;margin-top:4px;">${data.createdAt}</div>
+                            </div>
+                        </div>`;
+                    list.insertAdjacentHTML('afterbegin', itemHtml);
+
+                    // Make panel visible
+                    const panel = document.getElementById('feedback-panel-' + postId);
+                    if (panel) panel.style.display = 'block';
+                }
+
+                bootstrap.Modal.getInstance(document.getElementById('feedbackModal')).hide();
+                // Clear screenshot input for next time
+                document.getElementById('fbScreenshot').value = '';
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send-fill"></i> Submit Feedback';
+            alert('An error occurred. Please try again.');
+        });
+    }
+
+    // ====== Copy Link ======
+    function copyLink(url, btn) {
+        navigator.clipboard.writeText(url).then(() => {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Copied!';
+            btn.style.color = '#10b981';
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.style.color = '';
+            }, 2000);
+        });
+    }
+
+    // ====== Anti-forgery token helper ======
+    function getAntiForgeryToken() {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        return token ? token.value : '';
+    }
+
+    // ======================================================
+    // REACTIONS (OK / Not OK / Needs Work / Approved / Has Issues)
+    // ======================================================
+
+    const REACTION_ACTIVE_CLASS = { 1: 'active-ok', 2: 'active-notok', 3: 'active-needs', 4: 'active-appr', 5: 'active-issues' };
+
+    function sendReaction(postId, reactionType, btn) {
+        // Ask for reactor name if not already stored
+        const nameKey = 'shareHub_name';
+        let reactorName = sessionStorage.getItem(nameKey);
+        if (!reactorName) {
+            reactorName = prompt('Enter your name to react:', '');
+            if (!reactorName || !reactorName.trim()) return;
+            sessionStorage.setItem(nameKey, reactorName.trim());
+        }
+
+        fetch('/Share/AddReaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getAntiForgeryToken() },
+            body: JSON.stringify({ PostId: postId, ReactorName: reactorName.trim(), ReactionType: reactionType })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Update all reaction counts for this post
+                const countMap = {};
+                (data.counts || []).forEach(c => countMap[c.type] = c.count);
+
+                for (let t = 1; t <= 5; t++) {
+                    const countEl = document.getElementById(`react-${t}-${postId}`);
+                    if (countEl) countEl.textContent = countMap[t] || 0;
+
+                    // Update active state for all sibling buttons
+                    const btnEl = document.querySelector(`.reaction-btn[data-post="${postId}"][data-type="${t}"]`);
+                    if (btnEl) {
+                        Object.values(REACTION_ACTIVE_CLASS).forEach(cls => btnEl.classList.remove(cls));
+                    }
+                }
+
+                // Highlight the chosen reaction if toggled on
+                if (data.toggled) {
+                    Object.values(REACTION_ACTIVE_CLASS).forEach(cls => btn.classList.remove(cls));
+                    btn.classList.add(REACTION_ACTIVE_CLASS[reactionType]);
+
+                    // Micro-animation
+                    btn.style.transform = 'scale(1.15)';
+                    setTimeout(() => btn.style.transform = '', 300);
+                }
+            }
+        });
+    }
+
+    // ======================================================
+    // REPLY / COMMENT THREAD
+    // ======================================================
+
+    function toggleReplyPanel(postId, toggleBtn) {
+        const replyPanel = document.getElementById(`reply-panel-${postId}`);
+        const feedbackPanel = document.getElementById(`feedback-panel-${postId}`);
+        const feedbackBtn = document.getElementById(`feedback-toggle-${postId}`);
+
+        if (!replyPanel) return;
+
+        const isVisible = replyPanel.style.display !== 'none';
+
+        if (isVisible) {
+            replyPanel.style.display = 'none';
+            if (toggleBtn) toggleBtn.classList.remove('active');
+        } else {
+            // Close feedback panel if open
+            if (feedbackPanel) feedbackPanel.style.display = 'none';
+            if (feedbackBtn) feedbackBtn.classList.remove('active');
+
+            replyPanel.style.display = 'block';
+            if (toggleBtn) toggleBtn.classList.add('active');
+            loadReplies(postId);
+        }
+    }
+
+    function loadReplies(postId) {
+        fetch(`/Share/GetReplies?postId=${postId}`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) return;
+            const list = document.getElementById(`reply-list-${postId}`);
+            if (!list) return;
+
+            // Update count badges
+            const count = data.replies.length;
+            const badge = document.getElementById(`reply-count-badge-${postId}`);
+            const panelBadge = document.getElementById(`panel-reply-count-${postId}`);
+            if (badge) badge.textContent = count;
+            if (panelBadge) panelBadge.textContent = count;
+
+            if (count === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-3 text-muted small reply-empty-msg">
+                        <i class="bi bi-chat-square-text opacity-50 d-block fs-5 mb-1"></i>
+                        No replies yet — be the first to reply!
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = data.replies.map(r => `
+                <div class="reply-item">
+                    <div class="reply-avatar">${r.authorInitials}</div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <span class="fw-semibold small">${r.authorName}</span>
+                            <span class="badge rounded-pill px-2" style="font-size:0.6rem; background:rgba(124,58,237,0.1); color:#7c3aed;">${r.authorRole || 'Team Member'}</span>
+                            <span class="text-muted ms-auto" style="font-size:0.62rem;">${r.createdAt}</span>
+                        </div>
+                        <p class="mb-0 text-body" style="font-size:0.8rem; line-height:1.5;">${escapeHtml(r.replyText)}</p>
+                    </div>
+                </div>
+            `).join('');
+        });
+    }
+
+    function submitReply(postId, btn) {
+        const nameEl = document.getElementById(`reply-name-${postId}`);
+        const roleEl = document.getElementById(`reply-role-${postId}`);
+        const textEl = document.getElementById(`reply-text-${postId}`);
+
+        const name = nameEl?.value.trim();
+        const role = roleEl?.value || 'Team Member';
+        const text = textEl?.value.trim();
+
+        if (!name) { nameEl?.focus(); nameEl?.classList.add('is-invalid'); return; }
+        if (!text) { textEl?.focus(); textEl?.classList.add('is-invalid'); return; }
+
+        nameEl.classList.remove('is-invalid');
+        textEl.classList.remove('is-invalid');
+
+        // Store name for session convenience
+        sessionStorage.setItem('shareHub_name', name);
+
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        fetch('/Share/AddReply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getAntiForgeryToken() },
+            body: JSON.stringify({ PostId: postId, AuthorName: name, AuthorRole: role, ReplyText: text })
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+
+            if (data.success) {
+                textEl.value = '';
+
+                // Update counts
+                const badge = document.getElementById(`reply-count-badge-${postId}`);
+                const panelBadge = document.getElementById(`panel-reply-count-${postId}`);
+                if (badge) badge.textContent = data.replyCount;
+                if (panelBadge) panelBadge.textContent = data.replyCount;
+
+                // Prepend new reply to list
+                const list = document.getElementById(`reply-list-${postId}`);
+                const empty = list?.querySelector('.reply-empty-msg');
+                if (empty) empty.remove();
+
+                const newItem = document.createElement('div');
+                newItem.className = 'reply-item';
+                newItem.style.background = 'rgba(124,58,237,0.05)';
+                newItem.innerHTML = `
+                    <div class="reply-avatar">${data.authorInitials}</div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <span class="fw-semibold small">${data.authorName}</span>
+                            <span class="badge rounded-pill px-2" style="font-size:0.6rem; background:rgba(124,58,237,0.1); color:#7c3aed;">${data.authorRole}</span>
+                            <span class="text-muted ms-auto" style="font-size:0.62rem;">${data.createdAt}</span>
+                        </div>
+                        <p class="mb-0 text-body" style="font-size:0.8rem; line-height:1.5;">${escapeHtml(data.replyText)}</p>
+                    </div>`;
+
+                if (list) {
+                    list.appendChild(newItem);
+                    newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    // Fade in
+                    setTimeout(() => newItem.style.background = '', 1500);
+                }
+            } else {
+                alert('Could not submit reply: ' + data.message);
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            alert('Network error. Please try again.');
+        });
+    }
+
+    // ======================================================
+    // Prefill name in reply boxes from session storage
+    // ======================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedName = sessionStorage.getItem('shareHub_name');
+        if (savedName) {
+            document.querySelectorAll('[id^="reply-name-"]').forEach(el => {
+                if (!el.value) el.value = savedName;
+            });
+        }
+    });
+
+    // Escape HTML helper (prevent XSS in JS-rendered content)
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    // ======================================================
+    // Copy Google Meet link handler
+    // ======================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.copy-meet-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const link = this.getAttribute('data-link');
+                if (link) {
+                    navigator.clipboard.writeText(link).then(() => {
+                        const originalHtml = this.innerHTML;
+                        this.innerHTML = '<i class="bi bi-check2 text-success"></i> <span class="text-success fw-bold">Copied!</span>';
+                        setTimeout(() => {
+                            this.innerHTML = originalHtml;
+                        }, 2000);
+                    }).catch(() => {
+                        prompt('Copy this Google Meet link:', link);
+                    });
+                }
+            });
+        });
+    });
+    // ======================================================
+    // IMPORTANT MEETINGS — localStorage-based add/remove
+    // ======================================================
+    const IMP_KEY = 'auxinzio_imp_meetings';
+
+    function getImpMeetings() {
+        try { return JSON.parse(localStorage.getItem(IMP_KEY)) || []; }
+        catch { return []; }
+    }
+
+    function saveImpMeetings(list) {
+        localStorage.setItem(IMP_KEY, JSON.stringify(list));
+    }
+
+    function renderImpMeetings() {
+        const list = getImpMeetings();
+        const container = document.getElementById('impMeetingList');
+        if (!container) return;
+
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="imp-empty-state">
+                    <i class="bi bi-calendar-x" style="font-size:1.8rem;opacity:0.4;display:block;margin-bottom:0.4rem;"></i>
+                    No important meetings yet. Click <strong>Add Meeting</strong> to add one.
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = list.map((m, i) => `
+            <div class="imp-meeting-item" id="imp-item-${i}">
+                <div class="imp-meeting-icon"><i class="bi bi-camera-video-fill"></i></div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="fw-bold" style="font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(m.title)}</div>
+                    <div class="text-muted" style="font-size:0.73rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(m.url)}</div>
+                </div>
+                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                    <a href="${escapeHtml(m.url)}" target="_blank" rel="noopener noreferrer" class="btn-imp-join">
+                        <i class="bi bi-box-arrow-up-right"></i> Join
+                    </a>
+                    <button class="btn btn-sm btn-outline-secondary px-2 py-1" title="Copy link"
+                            onclick="copyImpLink(${i})" style="border-radius:7px;font-size:0.75rem;">
+                        <i class="bi bi-clipboard" id="imp-copy-icon-${i}"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger px-2 py-1" title="Remove meeting"
+                            onclick="removeImpMeeting(${i})" style="border-radius:7px;font-size:0.75rem;">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+            </div>`).join('');
+    }
+
+    function toggleImpAddForm() {
+        const form = document.getElementById('impAddForm');
+        const icon = document.getElementById('impAddToggleIcon');
+        const text = document.getElementById('impAddToggleText');
+        const isOpen = form.style.display !== 'none';
+        form.style.display = isOpen ? 'none' : 'block';
+        icon.className = isOpen ? 'bi bi-plus-lg' : 'bi bi-x-lg';
+        text.textContent = isOpen ? 'Add Meeting' : 'Cancel';
+        document.getElementById('impAddError').style.display = 'none';
+        if (!isOpen) {
+            document.getElementById('impMeetTitle').focus();
+        }
+    }
+
+    function addImpMeeting() {
+        const titleEl = document.getElementById('impMeetTitle');
+        const urlEl   = document.getElementById('impMeetUrl');
+        const errEl   = document.getElementById('impAddError');
+        const title = titleEl.value.trim();
+        const url   = urlEl.value.trim();
+
+        errEl.style.display = 'none';
+        if (!title) { errEl.textContent = 'Please enter a meeting title.'; errEl.style.display = 'block'; titleEl.focus(); return; }
+        if (!url || !/^https?:\/\/.+/.test(url)) { errEl.textContent = 'Please enter a valid meeting URL starting with http(s)://'; errEl.style.display = 'block'; urlEl.focus(); return; }
+
+        const list = getImpMeetings();
+        list.push({ title, url, addedAt: new Date().toISOString() });
+        saveImpMeetings(list);
+        titleEl.value = ''; urlEl.value = '';
+        toggleImpAddForm();
+        renderImpMeetings();
+    }
+
+    function removeImpMeeting(index) {
+        const item = document.getElementById(`imp-item-${index}`);
+        if (item) {
+            item.style.transition = 'opacity 0.25s, transform 0.25s';
+            item.style.opacity = '0'; item.style.transform = 'translateX(20px)';
+            setTimeout(() => {
+                const list = getImpMeetings();
+                list.splice(index, 1);
+                saveImpMeetings(list);
+                renderImpMeetings();
+            }, 260);
+        }
+    }
+
+    function copyImpLink(index) {
+        const list = getImpMeetings();
+        const url = list[index]?.url;
+        if (!url) return;
+        navigator.clipboard.writeText(url).then(() => {
+            const icon = document.getElementById(`imp-copy-icon-${index}`);
+            if (icon) { icon.className = 'bi bi-check2 text-success'; setTimeout(() => { icon.className = 'bi bi-clipboard'; }, 2000); }
+        }).catch(() => prompt('Copy this meeting link:', url));
+    }
+
+    // ======================================================
+    // DAILY MEETING CARDS — Delete & Persist Deletion
+    // ======================================================
+    function deleteMeetingCard(btn, cardId) {
+        if (confirm('Are you sure you want to delete this meeting card?')) {
+            const cardCol = document.getElementById(cardId) || btn.closest('.col-12');
+            if (cardCol) {
+                cardCol.style.transition = 'all 0.3s ease';
+                cardCol.style.opacity = '0';
+                cardCol.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    cardCol.remove();
+                    if (cardId) {
+                        const deleted = JSON.parse(localStorage.getItem('auxinzio_deleted_daily_meets') || '[]');
+                        if (!deleted.includes(cardId)) {
+                            deleted.push(cardId);
+                            localStorage.setItem('auxinzio_deleted_daily_meets', JSON.stringify(deleted));
+                        }
+                    }
+                }, 300);
+            }
+        }
+    }
+
+    // Init on load
+    document.addEventListener('DOMContentLoaded', () => {
+        // Restore deleted daily meeting cards
+        const deletedMeets = JSON.parse(localStorage.getItem('auxinzio_deleted_daily_meets') || '[]');
+        deletedMeets.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        });
+
+        renderImpMeetings();
+        // Allow pressing Enter in the title/url inputs to save
+        ['impMeetTitle','impMeetUrl'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') addImpMeeting(); });
+        });
+    });
+
+</script>
+}

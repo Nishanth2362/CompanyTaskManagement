@@ -1,0 +1,284 @@
+@model CompanyTaskManagement.Models.InternDoubt
+
+@{
+    ViewData["Title"] = $"Doubt: {Model.Title} - Internship Academy";
+    var employees = ViewBag.Employees as List<CompanyTaskManagement.Models.Employee> ?? new List<CompanyTaskManagement.Models.Employee>();
+
+    var urgencyClass = Model.Urgency == "Blocker / Critical" ? "bg-danger text-white" :
+                       Model.Urgency == "Help Needed Today" ? "bg-warning text-dark" : "badge-royal-gold";
+
+    var statusClass = Model.Status == "Resolved" ? "badge-emerald" :
+                      Model.Status == "Clarified" ? "badge-royal-gold" : "bg-warning text-dark";
+
+    var clarifications = Model.Clarifications?.ToList() ?? new List<CompanyTaskManagement.Models.InternDoubtClarification>();
+}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a asp-action="Index" asp-route-tab="doubts"><i class="bi bi-mortarboard me-1"></i>Internship Hub</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index" asp-route-tab="doubts">Doubt Forum</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Doubt #@Model.Id</li>
+    </ol>
+</nav>
+
+<!-- Success / Error Alert Messages -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div>@TempData["Success"]</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+        <div>@TempData["Error"]</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Main Left Column: Doubt Thread & Existing Clarifications -->
+    <div class="col-12 col-lg-8">
+        <!-- Doubt Question Card -->
+        <div class="card border-0 shadow-sm glass-card p-4 p-md-5 mb-4">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="badge @urgencyClass px-2.5 py-1">@Model.Urgency</span>
+                    <span class="badge @statusClass px-2.5 py-1">
+                        @if (Model.Clarifications != null && Model.Clarifications.Any(c => c.IsAcceptedSolution))
+                        {
+                            <i class="bi bi-check-all me-1"></i><span>Verified Solution</span>
+                        }
+                        else
+                        {
+                            @Model.Status
+                        }
+                    </span>
+                    <span class="badge bg-body-secondary text-body px-2.5 py-1">
+                        <i class="bi bi-tag-fill me-1 text-gold"></i>@Model.Domain
+                    </span>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 upvote-btn" data-id="@Model.Id">
+                    <i class="bi bi-hand-thumbs-up-fill text-warning"></i>
+                    <span>Helpful (<strong class="upvote-count">@Model.Upvotes</strong>)</span>
+                </button>
+            </div>
+
+            <h1 class="h3 fw-bold mb-3">@Model.Title</h1>
+
+            <div class="p-3 bg-body rounded-3 border border-secondary border-opacity-25 mb-4" style="white-space: pre-wrap; line-height: 1.7;">
+@Model.Description
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.CodeSnippet))
+            {
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between text-muted small mb-1">
+                        <span><i class="bi bi-code-slash text-gold me-1"></i> Intern Code Snippet</span>
+                        <button class="btn btn-sm btn-link text-decoration-none text-muted p-0" onclick="navigator.clipboard.writeText(document.getElementById('codeSnippetArea').innerText)">
+                            <i class="bi bi-clipboard me-1"></i> Copy Code
+                        </button>
+                    </div>
+                    <div class="p-3 rounded-3 bg-dark border border-secondary text-light font-monospace" style="overflow-x: auto;">
+                        <pre class="m-0 text-warning"><code id="codeSnippetArea">@Model.CodeSnippet</code></pre>
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.ScreenshotPath))
+            {
+                <div class="mb-4 p-3 bg-body-tertiary rounded-3 border border-secondary border-opacity-25">
+                    <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-image me-1"></i> Attached Error Screenshot</h6>
+                    <a href="@Model.ScreenshotPath" target="_blank">
+                        <img src="@Model.ScreenshotPath" alt="Error Screenshot" class="img-fluid rounded border border-secondary" style="max-height: 280px;" />
+                    </a>
+                </div>
+            }
+
+            <div class="d-flex align-items-center justify-content-between pt-3 border-top border-secondary border-opacity-25 small text-muted">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-circle-sm">@Model.InternName.Substring(0, 1)</div>
+                    <div>
+                        <strong class="text-body d-block">@Model.InternName</strong>
+                        <span class="text-muted">Asked on @Model.CreatedAt.ToString("MMMM dd, yyyy • hh:mm tt")</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge badge-royal-gold px-3 py-1 font-monospace">@clarifications.Count Clarifications</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clarifications Header -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h4 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-chat-square-quote-fill text-gold"></i>
+                <span>Mentor Solutions &amp; Clarifications (@clarifications.Count)</span>
+            </h4>
+        </div>
+
+        @if (!clarifications.Any())
+        {
+            <div class="card border-0 shadow-sm glass-card p-4 text-center mb-4">
+                <i class="bi bi-chat-left-dots text-muted display-5 mb-2"></i>
+                <h6 class="fw-bold">No clarifications submitted yet.</h6>
+                <p class="text-muted small mb-0">Are you a team member or mentor? Share your solution using the form on the right!</p>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-column gap-3 mb-4">
+                @foreach (var c in clarifications)
+                {
+                    var isAccepted = c.IsAcceptedSolution;
+                    <div class="card border-0 shadow-sm glass-card p-4 @(isAccepted ? "border border-2 border-warning bg-warning bg-opacity-10" : "")">
+                        @if (isAccepted)
+                        {
+                            <div class="d-flex align-items-center gap-2 text-warning fw-bold small mb-2">
+                                <i class="bi bi-patch-check-fill fs-5"></i>
+                                <span>Accepted &amp; Verified Solution by Intern</span>
+                            </div>
+                        }
+
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-circle-mentor">@c.ClarifiedByEmployeeName.Substring(0, 1)</div>
+                                <div>
+                                    <strong class="text-body d-block">@c.ClarifiedByEmployeeName</strong>
+                                    <span class="text-muted small">@c.AnsweredAt.ToString("MMM dd, yyyy • hh:mm tt")</span>
+                                </div>
+                            </div>
+
+                            @if (!isAccepted)
+                            {
+                                <form asp-action="AcceptClarification" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="doubtId" value="@Model.Id" />
+                                    <input type="hidden" name="clarificationId" value="@c.Id" />
+                                    <button type="submit" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1">
+                                        <i class="bi bi-check2"></i>
+                                        <span>Accept Solution</span>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+
+                        <div class="mb-3 text-body" style="white-space: pre-wrap; line-height: 1.7;">
+@c.ClarificationText
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(c.CodeSolution))
+                        {
+                            <div class="mb-3 p-3 rounded-3 bg-dark border border-secondary text-light font-monospace small" style="overflow-x: auto;">
+                                <div class="text-warning small mb-1"><i class="bi bi-check-circle me-1"></i> Solution Code:</div>
+                                <pre class="m-0 text-warning"><code>@c.CodeSolution</code></pre>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(c.HelpfulLink))
+                        {
+                            <div>
+                                <a href="@c.HelpfulLink" target="_blank" class="text-gold small text-decoration-none d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-link-45deg fs-6"></i>
+                                    <span>Helpful Reference: @c.HelpfulLink</span>
+                                    <i class="bi bi-box-arrow-up-right extra-small"></i>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Right Side Column: Employee Clarification Submission Form -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm glass-card p-4 sticky-lg-top" style="top: 90px;">
+            <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-pencil-square text-gold"></i>
+                <span>Post a Mentor Clarification</span>
+            </h5>
+            <p class="small text-muted mb-3">Provide technical guidance, explanations, or code fixes to help the intern resolve this blocker.</p>
+
+            <form asp-action="AddClarification" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="doubtId" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Mentor / Employee Profile</label>
+                    <select name="employeeId" class="form-select" id="mentorSelect">
+                        <option value="">-- Select Your Name --</option>
+                        @foreach (var emp in employees)
+                        {
+                            <option value="@emp.Id">@emp.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Or Enter Mentor Name <span class="text-danger">*</span></label>
+                    <input type="text" name="employeeName" id="mentorNameInput" class="form-control" placeholder="e.g. Karthikeyan" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Explanation &amp; Solution <span class="text-danger">*</span></label>
+                    <textarea name="clarificationText" class="form-control" rows="5" placeholder="Detail the root cause and steps to fix the issue..." required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Corrective Code Solution (Optional)</label>
+                    <textarea name="codeSolution" class="form-control font-monospace" rows="3" placeholder="// Paste resolved C# / SQL / JS snippet..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Documentation Link (Optional)</label>
+                    <input type="url" name="helpfulLink" class="form-control" placeholder="https://learn.microsoft.com/..." />
+                </div>
+
+                <button type="submit" class="btn btn-royal-gold w-100 d-flex align-items-center justify-content-center gap-2 py-2.5">
+                    <i class="bi bi-send-check-fill"></i>
+                    <span>Submit Clarification</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mentorSelect = document.getElementById('mentorSelect');
+            const mentorNameInput = document.getElementById('mentorNameInput');
+            if (mentorSelect && mentorNameInput) {
+                mentorSelect.addEventListener('change', function() {
+                    if (mentorSelect.value) {
+                        mentorNameInput.value = mentorSelect.options[mentorSelect.selectedIndex].text;
+                    }
+                });
+            }
+
+            document.querySelectorAll('.upvote-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const doubtId = this.getAttribute('data-id');
+                    const countSpan = this.querySelector('.upvote-count');
+                    fetch(`/Internship/UpvoteDoubt/${doubtId}`, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            countSpan.textContent = data.upvotes;
+                            btn.classList.remove('btn-outline-secondary');
+                            btn.classList.add('btn-warning', 'text-dark', 'fw-bold');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}

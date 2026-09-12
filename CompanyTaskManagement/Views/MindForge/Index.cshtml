@@ -1,0 +1,752 @@
+@model CompanyTaskManagement.ViewModels.MindForgePageViewModel
+@{
+    ViewData["Title"] = "MindForge – Employee Brain Games";
+}
+
+<style>
+    :root {
+        --mf-primary: #6d28d9;
+        --mf-accent: #f59e0b;
+        --mf-glow: rgba(109,40,217,0.35);
+        --mf-card-bg: var(--bs-body-bg);
+    }
+
+    .mf-hero {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        border-radius: 14px;
+        position: relative;
+        overflow: hidden;
+        padding: 1.25rem 1.5rem;
+        color: white;
+    }
+    .mf-hero::before {
+        content: '';
+        position: absolute;
+        top: -80px; right: -80px;
+        width: 320px; height: 320px;
+        background: radial-gradient(circle, rgba(109,40,217,0.4) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .mf-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: -60px;
+        width: 240px; height: 240px;
+        background: radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .game-card {
+        border-radius: 14px;
+        border: 1px solid rgba(109,40,217,0.15);
+        background: var(--mf-card-bg);
+        box-shadow: 0 3px 18px rgba(0,0,0,0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: hidden;
+    }
+    .game-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(109,40,217,0.14); }
+
+    .game-header {
+        background: linear-gradient(135deg, #0f0c29, #302b63);
+        color: white;
+        padding: 0.65rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    /* ===== MEMORY GAME ===== */
+    .memory-grid { 
+        display: grid; 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 6px; 
+        max-width: 230px; 
+        margin: 0 auto; 
+    }
+    .mem-card {
+        aspect-ratio: 1;
+        cursor: pointer;
+        perspective: 600px;
+    }
+    .mem-card-inner {
+        width: 100%; height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.4s ease;
+        border-radius: 8px;
+    }
+    .mem-card.flipped .mem-card-inner { transform: rotateY(180deg); }
+    .mem-card.matched .mem-card-inner { transform: rotateY(180deg); }
+    .mem-card.matched .mem-card-front { box-shadow: 0 0 0 2px #10b981; }
+    .mem-front, .mem-back {
+        position: absolute; width: 100%; height: 100%;
+        border-radius: 8px;
+        backface-visibility: hidden;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
+        user-select: none;
+    }
+    .mem-front { background: linear-gradient(135deg, #6d28d9, #4f46e5); color: white; }
+    .mem-front::after { content: '?'; font-size: 1.1rem; font-weight: bold; }
+    .mem-back { background: white; transform: rotateY(180deg); border: 1px solid #e5e7eb; }
+
+    /* ===== WORD SCRAMBLE ===== */
+    .scrambled-word {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 0.25rem;
+        color: #6d28d9;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    .word-input {
+        font-size: 1rem;
+        text-align: center;
+        letter-spacing: 0.15rem;
+        font-family: 'JetBrains Mono', monospace;
+        border-radius: 8px;
+        border: 2px solid #6d28d9;
+        padding: 0.35rem 0.75rem;
+        max-width: 280px;
+        margin: 0 auto;
+        width: 100%;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .word-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+    .word-input.correct { border-color: #10b981; background: rgba(16,185,129,0.08); }
+    .word-input.wrong { border-color: #ef4444; background: rgba(239,68,68,0.08); animation: shake 0.4s; }
+
+    /* ===== .NET CODE CHALLENGE ===== */
+    .dotnet-code-block {
+        background: #0f0c29;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.76rem;
+        color: #c4b5fd;
+        line-height: 1.5;
+        text-align: left;
+        border: 1px solid rgba(109,40,217,0.3);
+        white-space: pre;
+        overflow-x: auto;
+        min-height: 55px;
+        max-height: 110px;
+    }
+    .dotnet-code-block .kw  { color: #818cf8; font-weight: bold; }
+    .dotnet-code-block .str { color: #34d399; }
+    .dotnet-code-block .num { color: #fb923c; }
+    .dotnet-code-block .cls { color: #fbbf24; }
+    .dotnet-opt-btn {
+        width: 100%; text-align: left;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        border: 1.5px solid rgba(109,40,217,0.2);
+        background: var(--mf-card-bg);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-weight: 600;
+    }
+    .dotnet-opt-btn:hover:not(:disabled) { border-color: #6d28d9; background: rgba(109,40,217,0.07); transform: translateX(3px); }
+    .dotnet-opt-btn.opt-correct { border-color: #10b981 !important; background: rgba(16,185,129,0.12) !important; color: #10b981 !important; }
+    .dotnet-opt-btn.opt-wrong   { border-color: #ef4444 !important; background: rgba(239,68,68,0.12) !important; color: #ef4444 !important; }
+    .dotnet-timer-bar { height: 4px; border-radius: 99px; background: linear-gradient(90deg,#6d28d9,#a78bfa); transition: width 1s linear; }
+
+    /* ===== TIC TAC TOE ===== */
+    .ttt-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        max-width: 180px;
+        margin: 0 auto;
+    }
+    .ttt-cell {
+        aspect-ratio: 1;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 900;
+        border-radius: 8px;
+        background: rgba(109,40,217,0.07);
+        border: 1.5px solid rgba(109,40,217,0.15);
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+        user-select: none;
+    }
+    .ttt-cell:hover:not(.taken) { background: rgba(109,40,217,0.15); transform: scale(1.04); }
+    .ttt-cell.taken { cursor: default; }
+    .ttt-cell.win-cell { background: rgba(16,185,129,0.2); border-color: #10b981; }
+
+    /* ===== TYPING TEST ===== */
+    .typing-passage {
+        font-size: 0.92rem;
+        line-height: 1.65;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        padding: 0.65rem 0.85rem;
+        border-radius: 8px;
+        background: rgba(109,40,217,0.04);
+        border: 1px solid rgba(109,40,217,0.12);
+        min-height: 70px;
+    }
+    .typing-passage .char { transition: color 0.05s; }
+    .typing-passage .char.correct { color: #10b981; }
+    .typing-passage .char.wrong   { color: #ef4444; background: rgba(239,68,68,0.12); border-radius: 2px; }
+    .typing-passage .char.current { border-bottom: 2px solid #6d28d9; }
+    .typing-area {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.88rem;
+        border-radius: 8px;
+        border: 1.5px solid #6d28d9;
+        padding: 0.5rem 0.75rem;
+        resize: none;
+        width: 100%;
+    }
+    .typing-area:focus { outline: none; box-shadow: 0 0 0 3px var(--mf-glow); }
+
+    /* ===== SCORE BADGES ===== */
+    .score-badge {
+        background: linear-gradient(135deg, #6d28d9, #4f46e5);
+        color: white;
+        border-radius: 50px;
+        padding: 0.18rem 0.65rem;
+        font-weight: 700;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.76rem;
+    }
+    .btn-mf {
+        background: linear-gradient(135deg, #6d28d9, #4f46e5);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.32rem 0.85rem;
+        font-weight: 700;
+        font-size: 0.8rem;
+        transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-mf:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
+    .btn-mf-gold {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white; border: none; border-radius: 8px;
+        padding: 0.32rem 0.85rem; font-weight: 700;
+        font-size: 0.8rem;
+        transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-mf-gold:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
+
+    @@keyframes shake {
+        0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)}
+    }
+    @@keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+    .celebrate { animation: bounce 0.5s ease 3; }
+</style>
+
+<!-- ===== HERO ===== -->
+<div class="mf-hero mb-4">
+    <div class="row align-items-center position-relative" style="z-index:2;">
+        <div class="col-12 col-lg-8">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-warning text-dark fw-bold px-3"><i class="bi bi-controller me-1"></i>MindForge</span>
+                <span class="badge" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);">Brain Recharge Zone</span>
+            </div>
+            <h1 class="fw-black text-white mb-2" style="font-family:'Outfit',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);">
+                🧠 MindForge – Recharge Your Brain
+            </h1>
+            <p class="text-white opacity-75 mb-0">
+                Take a quick break and flex your mind with puzzles, word games &amp; more. Built for the Auxinzio team to refresh, refocus &amp; have fun.
+            </p>
+        </div>
+        <div class="col-12 col-lg-4 text-lg-end mt-3 mt-lg-0">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-2 fs-6">
+                    <i class="bi bi-lightning-charge-fill me-1"></i>4 Games
+                </span>
+                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-3 py-2 fs-6">
+                    <i class="bi bi-stars me-1"></i>No logins needed
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== GAME GRID ===== -->
+<div class="row g-4">
+
+    <!-- ===== GAME 1: MEMORY MATCH ===== -->
+    <div class="col-12 col-lg-6">
+        <div class="game-card">
+            <div class="game-header">
+                <i class="bi bi-grid-3x3-gap-fill fs-4 text-warning"></i>
+                <div>
+                    <div class="fw-bold fs-5">Memory Match</div>
+                    <div class="opacity-75 small">Flip cards & find matching pairs</div>
+                </div>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <span class="score-badge" id="memScore">Pairs: 0</span>
+                    <span class="score-badge" id="memMoves">Moves: 0</span>
+                </div>
+            </div>
+            <div class="p-3">
+                <div class="memory-grid" id="memoryGrid"></div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div id="memMsg" class="small text-muted"></div>
+                    <button class="btn-mf" onclick="initMemory()"><i class="bi bi-arrow-clockwise me-1"></i>New Game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== GAME 2: WORD SCRAMBLE ===== -->
+    <div class="col-12 col-lg-6">
+        <div class="game-card">
+            <div class="game-header">
+                <i class="bi bi-alphabet fs-4 text-info"></i>
+                <div>
+                    <div class="fw-bold fs-5">Word Scramble</div>
+                    <div class="opacity-75 small">Unscramble the hidden word</div>
+                </div>
+                <div class="ms-auto">
+                    <span class="score-badge" id="wordScore">Score: 0</span>
+                </div>
+            </div>
+            <div class="p-3 text-center">
+                <div class="mb-1 text-muted small" id="wordHint"></div>
+                <div class="scrambled-word mb-2" id="scrambledWord">------</div>
+                <input class="word-input mb-2" id="wordInput" type="text" placeholder="Type your answer..." autocomplete="off" maxlength="20" />
+                <div id="wordMsg" class="mb-3 fw-bold" style="min-height:1.5rem;"></div>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button class="btn-mf" onclick="checkWord()"><i class="bi bi-check-lg me-1"></i>Submit</button>
+                    <button class="btn-mf-gold" onclick="nextWord()"><i class="bi bi-skip-forward-fill me-1"></i>Skip</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== GAME 3: .NET CODE CHALLENGE ===== -->
+    <div class="col-12 col-lg-6">
+        <div class="game-card">
+            <div class="game-header">
+                <i class="bi bi-braces fs-4" style="color:#a78bfa"></i>
+                <div>
+                    <div class="fw-bold fs-5">.NET Code Challenge</div>
+                    <div class="opacity-75 small">What does this C# code output?</div>
+                </div>
+                <div class="ms-auto d-flex gap-2 align-items-center">
+                    <span class="score-badge" id="dotnetScore">Score: 0</span>
+                    <span class="score-badge" id="dotnetStreak" style="background:linear-gradient(135deg,#d97706,#f59e0b);">🔥 0</span>
+                </div>
+            </div>
+            <div class="p-3">
+                <div style="background:rgba(109,40,217,0.1);border-radius:99px;height:5px;margin-bottom:0.6rem;">
+                    <div class="dotnet-timer-bar" id="dotnetTimerBar" style="width:100%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small text-muted" id="dotnetQNum">Q 1 / 20</span>
+                    <span class="small fw-bold" id="dotnetTimerLabel" style="color:#6d28d9;">⏱ 15s</span>
+                </div>
+                <div class="dotnet-code-block mb-2" id="dotnetCode"></div>
+                <div class="d-grid gap-1 mb-2" id="dotnetOptions"></div>
+                <div class="fw-bold text-center" id="dotnetMsg" style="min-height:1.4rem;font-size:0.88rem;"></div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <span class="small text-muted fst-italic" id="dotnetExplain"></span>
+                    <button class="btn-mf" onclick="dotnetNext()" id="dotnetNextBtn" style="display:none;padding:0.3rem 0.9rem;font-size:0.82rem;"><i class="bi bi-skip-forward-fill me-1"></i>Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== GAME 4: TIC TAC TOE ===== -->
+    <div class="col-12 col-lg-6">
+        <div class="game-card">
+            <div class="game-header">
+                <i class="bi bi-hash fs-4 text-success"></i>
+                <div>
+                    <div class="fw-bold fs-5">Tic-Tac-Toe</div>
+                    <div class="opacity-75 small">You're X — beat the AI!</div>
+                </div>
+                <div class="ms-auto">
+                    <span class="score-badge" id="tttScore">W:0 D:0 L:0</span>
+                </div>
+            </div>
+            <div class="p-3 text-center">
+                <div id="tttStatus" class="fw-bold mb-3 small text-muted">Your turn – click a square!</div>
+                <div class="ttt-board mb-3" id="tttBoard">
+                    @for (int i = 0; i < 9; i++) {
+                        <div class="ttt-cell" id="ttt-@i" onclick="tttClick(@i)"></div>
+                    }
+                </div>
+                <button class="btn-mf" onclick="initTTT()"><i class="bi bi-arrow-clockwise me-1"></i>New Game</button>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+@section Scripts {
+<script>
+// ============================================================
+// GAME 1: MEMORY MATCH
+// ============================================================
+const memEmojis = ['🚀','💡','🎯','🔥','⚡','🎨','🌟','💎'];
+let memCards = [], memFlipped = [], memMatched = 0, memMoves = 0, memLock = false;
+
+function initMemory() {
+    const deck = [...memEmojis, ...memEmojis].sort(() => Math.random() - 0.5);
+    memFlipped = []; memMatched = 0; memMoves = 0; memLock = false;
+    document.getElementById('memScore').textContent = 'Pairs: 0';
+    document.getElementById('memMoves').textContent = 'Moves: 0';
+    document.getElementById('memMsg').textContent = '';
+    const grid = document.getElementById('memoryGrid');
+    grid.innerHTML = '';
+    memCards = deck.map((emoji, i) => {
+        const card = document.createElement('div');
+        card.className = 'mem-card';
+        card.dataset.emoji = emoji;
+        card.dataset.index = i;
+        card.innerHTML = `<div class="mem-card-inner"><div class="mem-front"></div><div class="mem-back">${emoji}</div></div>`;
+        card.addEventListener('click', () => memFlip(card));
+        grid.appendChild(card);
+        return card;
+    });
+}
+
+function memFlip(card) {
+    if (memLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+    card.classList.add('flipped');
+    memFlipped.push(card);
+    if (memFlipped.length === 2) {
+        memLock = true; memMoves++;
+        document.getElementById('memMoves').textContent = `Moves: ${memMoves}`;
+        if (memFlipped[0].dataset.emoji === memFlipped[1].dataset.emoji) {
+            memFlipped.forEach(c => c.classList.add('matched'));
+            memMatched++;
+            document.getElementById('memScore').textContent = `Pairs: ${memMatched}`;
+            memFlipped = []; memLock = false;
+            if (memMatched === memEmojis.length) {
+                document.getElementById('memMsg').textContent = `🎉 Cleared in ${memMoves} moves!`;
+            }
+        } else {
+            setTimeout(() => {
+                memFlipped.forEach(c => c.classList.remove('flipped'));
+                memFlipped = []; memLock = false;
+            }, 900);
+        }
+    }
+}
+
+// ============================================================
+// GAME 2: WORD SCRAMBLE
+// ============================================================
+const wordList = [
+    {word:'DEVELOPER', hint:'Someone who writes code'},
+    {word:'DEADLINE', hint:'When work must be done'},
+    {word:'PROJECT', hint:'A planned undertaking'},
+    {word:'MEETING', hint:'Team discussion session'},
+    {word:'FEEDBACK', hint:'Reaction to someone\'s work'},
+    {word:'STRATEGY', hint:'Plan of action for goals'},
+    {word:'AGILE', hint:'Flexible software method'},
+    {word:'DATABASE', hint:'Where data is stored'},
+    {word:'PIPELINE', hint:'CI/CD workflow term'},
+    {word:'FRONTEND', hint:'The visible part of an app'},
+    {word:'BACKEND',  hint:'The server-side logic'},
+    {word:'EMPLOYEE', hint:'Person working for company'},
+    {word:'MANAGER',  hint:'Team leader role'},
+    {word:'SPRINT',   hint:'Short work cycle in Agile'},
+    {word:'DEPLOYMENT',hint:'Releasing software to servers'},
+    {word:'ALGORITHM', hint:'Step-by-step problem solution'},
+];
+let wordIndex = 0, wordScore = 0, wordOrder = [];
+
+function initWord() {
+    wordOrder = [...wordList].sort(() => Math.random() - 0.5);
+    wordIndex = 0; wordScore = 0;
+    document.getElementById('wordScore').textContent = 'Score: 0';
+    nextWord();
+}
+
+function nextWord() {
+    if (wordIndex >= wordOrder.length) wordIndex = 0;
+    const {word, hint} = wordOrder[wordIndex++];
+    document.getElementById('wordHint').textContent = `💡 Hint: ${hint}`;
+    document.getElementById('scrambledWord').textContent = scramble(word);
+    document.getElementById('scrambledWord').dataset.answer = word;
+    const inp = document.getElementById('wordInput');
+    inp.value = '';
+    inp.className = 'word-input mb-3';
+    document.getElementById('wordMsg').textContent = '';
+    inp.focus();
+}
+
+function scramble(w) {
+    let a = w.split('');
+    do { a.sort(() => Math.random() - 0.5); } while (a.join('') === w);
+    return a.join(' ');
+}
+
+function checkWord() {
+    const inp = document.getElementById('wordInput');
+    const guess = inp.value.trim().toUpperCase();
+    const answer = document.getElementById('scrambledWord').dataset.answer;
+    const msg = document.getElementById('wordMsg');
+    if (guess === answer) {
+        inp.className = 'word-input mb-3 correct';
+        msg.innerHTML = `<span class="text-success">✅ Correct! The word was <strong>${answer}</strong></span>`;
+        wordScore++;
+        document.getElementById('wordScore').textContent = `Score: ${wordScore}`;
+        document.getElementById('scrambledWord').classList.add('celebrate');
+        setTimeout(() => { document.getElementById('scrambledWord').classList.remove('celebrate'); nextWord(); }, 1400);
+    } else {
+        inp.className = 'word-input mb-3 wrong';
+        msg.innerHTML = `<span class="text-danger">❌ Try again!</span>`;
+        setTimeout(() => { inp.className = 'word-input mb-3'; msg.textContent = ''; }, 800);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('wordInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkWord(); });
+});
+
+// ============================================================
+// GAME 3: .NET CODE CHALLENGE
+// ============================================================
+const dotnetQs = [
+  { code: `<span class="kw">var</span> nums = <span class="kw">new</span> <span class="cls">List</span>&lt;<span class="kw">int</span>&gt; { 1, 2, 3, 4, 5 };
+<span class="kw">var</span> result = nums.<span class="cls">Where</span>(x => x % 2 == 0).<span class="cls">Sum</span>();
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(result);`, answer:'6', options:['6','10','12','15'], explain:'Where filters evens (2,4), Sum = 6.' },
+  { code: `<span class="kw">string</span> s = <span class="str">"Hello World"</span>;
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(s.<span class="cls">Replace</span>(<span class="str">"World"</span>, <span class="str">"C#"</span>).<span class="cls">ToLower</span>());`, answer:'hello c#', options:['hello c#','Hello C#','hello world','HELLO C#'], explain:'Replace then ToLower gives "hello c#".' },
+  { code: `<span class="kw">int</span>[] arr = { 3, 1, 4, 1, 5 };
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(arr.<span class="cls">Distinct</span>().<span class="cls">Count</span>());`, answer:'4', options:['4','5','3','6'], explain:'Distinct removes duplicate 1 → 4 values.' },
+  { code: `<span class="kw">int</span> x = <span class="num">10</span>;
+<span class="kw">string</span> r = x <span class="kw">switch</span> {
+    < <span class="num">5</span>  => <span class="str">"low"</span>,
+    < <span class="num">15</span> => <span class="str">"mid"</span>,
+    _    => <span class="str">"high"</span>
+};
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(r);`, answer:'mid', options:['mid','low','high','Error'], explain:'10 < 15 matches "mid".' },
+  { code: `<span class="kw">var</span> nums = <span class="cls">Enumerable</span>.<span class="cls">Range</span>(<span class="num">1</span>, <span class="num">5</span>);
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(nums.<span class="cls">Average</span>());`, answer:'3', options:['3','2.5','4','15'], explain:'(1+2+3+4+5)/5 = 3.' },
+  { code: `<span class="kw">string</span> s = <span class="str">"abcdef"</span>;
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(s.<span class="cls">Substring</span>(<span class="num">2</span>, <span class="num">3</span>));`, answer:'cde', options:['cde','bcd','cdef','abc'], explain:'Substring(2,3): start at index 2, length 3 = "cde".' },
+  { code: `<span class="kw">int</span>? val = <span class="kw">null</span>;
+<span class="kw">int</span> result = val ?? <span class="num">42</span>;
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(result);`, answer:'42', options:['42','0','null','Error'], explain:'?? returns 42 when val is null.' },
+  { code: `<span class="kw">var</span> words = <span class="kw">new</span>[] { <span class="str">"hi"</span>, <span class="str">"hello"</span>, <span class="str">"hey"</span> };
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(<span class="kw">string</span>.<span class="cls">Join</span>(<span class="str">"-"</span>, words));`, answer:'hi-hello-hey', options:['hi-hello-hey','hi hello hey','hihellohey','hi,hello,hey'], explain:'string.Join joins with "-" separator.' },
+  { code: `<span class="kw">var</span> stk = <span class="kw">new</span> <span class="cls">Stack</span>&lt;<span class="kw">int</span>&gt;();
+stk.<span class="cls">Push</span>(<span class="num">1</span>); stk.<span class="cls">Push</span>(<span class="num">2</span>); stk.<span class="cls">Push</span>(<span class="num">3</span>);
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(stk.<span class="cls">Pop</span>());`, answer:'3', options:['3','1','2','0'], explain:'Stack is LIFO — Pop returns last pushed = 3.' },
+  { code: `<span class="kw">var</span> q = <span class="kw">new</span> <span class="cls">Queue</span>&lt;<span class="kw">string</span>&gt;();
+q.<span class="cls">Enqueue</span>(<span class="str">"A"</span>); q.<span class="cls">Enqueue</span>(<span class="str">"B"</span>);
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(q.<span class="cls">Dequeue</span>());`, answer:'A', options:['A','B','null','Error'], explain:'Queue is FIFO — Dequeue returns first = "A".' },
+  { code: `<span class="kw">var</span> nums = <span class="kw">new</span> <span class="cls">List</span>&lt;<span class="kw">int</span>&gt; { 5, 3, 9, 1 };
+nums.<span class="cls">Sort</span>();
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(nums[<span class="num">0</span>]);`, answer:'1', options:['1','5','3','9'], explain:'After Sort(), first element is 1.' },
+  { code: `<span class="kw">bool</span> r = <span class="str">"hello"</span>.<span class="cls">StartsWith</span>(<span class="str">"he"</span>) && <span class="str">"world"</span>.<span class="cls">EndsWith</span>(<span class="str">"ld"</span>);
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(r);`, answer:'True', options:['True','False','Error','null'], explain:'Both conditions true → True.' },
+  { code: `<span class="kw">var</span> nums = <span class="cls">Enumerable</span>.<span class="cls">Range</span>(<span class="num">1</span>, <span class="num">10</span>);
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(nums.<span class="cls">Count</span>(x => x % 3 == 0));`, answer:'3', options:['3','4','2','10'], explain:'Multiples of 3 in 1-10: 3,6,9 → 3.' },
+  { code: `<span class="kw">string</span> s = <span class="str">"  trim me  "</span>;
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(s.<span class="cls">Trim</span>().<span class="cls">Length</span>);`, answer:'7', options:['7','11','9','6'], explain:'"trim me" has 7 chars after trim.' },
+  { code: `<span class="kw">int</span> a = <span class="num">5</span>, b = <span class="num">2</span>;
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>($<span class="str">"{a / b} rem {a % b}"</span>);`, answer:'2 rem 1', options:['2 rem 1','2.5 rem 0','2 rem 0','3 rem 1'], explain:'Integer division: 5/2=2, 5%2=1.' },
+  { code: `<span class="kw">var</span> nums = <span class="kw">new</span> <span class="cls">List</span>&lt;<span class="kw">int</span>&gt; { 1, 2, 3 };
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(nums.<span class="cls">Select</span>(x => x * x).<span class="cls">Max</span>());`, answer:'9', options:['9','6','3','8'], explain:'Squares: 1,4,9 → Max = 9.' },
+  { code: `<span class="kw">var</span> a = <span class="kw">new</span>[] { 1, 2, 3 };
+<span class="kw">var</span> b = <span class="kw">new</span>[] { 3, 4, 5 };
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(a.<span class="cls">Intersect</span>(b).<span class="cls">Single</span>());`, answer:'3', options:['3','1','5','Error'], explain:'Intersection of {1,2,3} and {3,4,5} = {3}.' },
+  { code: `<span class="kw">var</span> hs = <span class="kw">new</span> <span class="cls">HashSet</span>&lt;<span class="kw">int</span>&gt; { 1, 2, 3 };
+hs.<span class="cls">Add</span>(<span class="num">2</span>);
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(hs.<span class="cls">Count</span>);`, answer:'3', options:['3','4','2','Error'], explain:'HashSet ignores duplicate 2 — count stays 3.' },
+  { code: `<span class="kw">var</span> list = <span class="kw">new</span> <span class="cls">List</span>&lt;<span class="kw">string</span>&gt; { <span class="str">"cat"</span>, <span class="str">"dog"</span>, <span class="str">"ape"</span> };
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(list.<span class="cls">OrderBy</span>(x => x).<span class="cls">First</span>());`, answer:'ape', options:['ape','cat','dog','zoo'], explain:'Alphabetical: ape < cat < dog, so First = ape.' },
+  { code: `<span class="kw">var</span> d = <span class="kw">new</span> <span class="cls">Dictionary</span>&lt;<span class="kw">string</span>,<span class="kw">int</span>&gt;
+    { {<span class="str">"a"</span>,1}, {<span class="str">"b"</span>,2} };
+<span class="cls">Console</span>.<span class="cls">WriteLine</span>(d.<span class="cls">ContainsKey</span>(<span class="str">"c"</span>));`, answer:'False', options:['False','True','0','Exception'], explain:'Key "c" not present → False.' },
+];
+
+let dnIdx = 0, dnScore = 0, dnStreak = 0, dnTimer, dnSecs, dnOrder = [], dnAnswered = false;
+
+function initDotnet() {
+    dnOrder = [...dotnetQs].sort(() => Math.random() - 0.5);
+    dnIdx = 0; dnScore = 0; dnStreak = 0;
+    document.getElementById('dotnetScore').textContent = 'Score: 0';
+    document.getElementById('dotnetStreak').textContent = '🔥 0';
+    dotnetLoad();
+}
+
+function dotnetLoad() {
+    clearInterval(dnTimer);
+    if (dnIdx >= dnOrder.length) dnIdx = 0;
+    const q = dnOrder[dnIdx];
+    document.getElementById('dotnetQNum').textContent = `Q ${dnIdx + 1} / ${dnOrder.length}`;
+    document.getElementById('dotnetCode').innerHTML = q.code;
+    document.getElementById('dotnetMsg').textContent = '';
+    document.getElementById('dotnetExplain').textContent = '';
+    document.getElementById('dotnetNextBtn').style.display = 'none';
+    dnAnswered = false;
+    const opts = [...q.options].sort(() => Math.random() - 0.5);
+    const ctr = document.getElementById('dotnetOptions');
+    ctr.innerHTML = '';
+    opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'dotnet-opt-btn';
+        btn.textContent = opt;
+        btn.onclick = () => dotnetAnswer(opt, q.answer, q.explain);
+        ctr.appendChild(btn);
+    });
+    dnSecs = 15;
+    document.getElementById('dotnetTimerLabel').textContent = `⏱ ${dnSecs}s`;
+    const bar = document.getElementById('dotnetTimerBar');
+    bar.style.transition = 'none'; bar.style.width = '100%';
+    setTimeout(() => { bar.style.transition = `width ${dnSecs}s linear`; bar.style.width = '0%'; }, 50);
+    dnTimer = setInterval(() => {
+        dnSecs--;
+        document.getElementById('dotnetTimerLabel').textContent = `⏱ ${dnSecs}s`;
+        if (dnSecs <= 0) { clearInterval(dnTimer); if (!dnAnswered) dotnetAnswer(null, q.answer, q.explain); }
+    }, 1000);
+}
+
+function dotnetAnswer(chosen, correct, explain) {
+    if (dnAnswered) return;
+    dnAnswered = true;
+    clearInterval(dnTimer);
+    document.getElementById('dotnetTimerBar').style.transition = 'none';
+    document.querySelectorAll('.dotnet-opt-btn').forEach(b => {
+        b.disabled = true;
+        if (b.textContent === correct) b.classList.add('opt-correct');
+        else if (b.textContent === chosen) b.classList.add('opt-wrong');
+    });
+    if (chosen === correct) {
+        dnScore += 10 + dnStreak * 3; dnStreak++;
+        document.getElementById('dotnetMsg').innerHTML = '<span style="color:#10b981">✅ Correct!</span>';
+    } else {
+        dnStreak = 0;
+        document.getElementById('dotnetMsg').innerHTML = chosen
+            ? '<span style="color:#ef4444">❌ Wrong!</span>'
+            : '<span style="color:#f59e0b">⏰ Time\'s up!</span>';
+    }
+    document.getElementById('dotnetScore').textContent = `Score: ${dnScore}`;
+    document.getElementById('dotnetStreak').textContent = `🔥 ${dnStreak}`;
+    document.getElementById('dotnetExplain').textContent = explain;
+    document.getElementById('dotnetNextBtn').style.display = 'inline-block';
+    dnIdx++;
+}
+
+function dotnetNext() { dotnetLoad(); }
+
+// ============================================================
+// GAME 4: TIC-TAC-TOE vs AI
+// ============================================================
+let tttBoard2 = Array(9).fill(''), tttActive = true, tttW=0, tttD=0, tttL=0;
+
+const tttWins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+function initTTT() {
+    tttBoard2 = Array(9).fill(''); tttActive = true;
+    document.querySelectorAll('.ttt-cell').forEach(c => { c.textContent=''; c.className='ttt-cell'; });
+    document.getElementById('tttStatus').textContent = 'Your turn – click a square!';
+}
+
+function tttClick(i) {
+    if (!tttActive || tttBoard2[i]) return;
+    tttBoard2[i] = 'X';
+    document.getElementById(`ttt-${i}`).textContent = 'X';
+    document.getElementById(`ttt-${i}`).classList.add('taken');
+    const res = tttCheck(tttBoard2);
+    if (res) { endTTT(res, 'X'); return; }
+    if (tttBoard2.every(v=>v)) { endTTT('draw'); return; }
+    document.getElementById('tttStatus').textContent = '🤖 AI thinking...';
+    setTimeout(aiTTT, 300);
+}
+
+function aiTTT() {
+    const best = minimax(tttBoard2, 'O');
+    tttBoard2[best.idx] = 'O';
+    const cell = document.getElementById(`ttt-${best.idx}`);
+    cell.textContent = 'O'; cell.classList.add('taken');
+    const res = tttCheck(tttBoard2);
+    if (res) { endTTT(res, 'O'); return; }
+    if (tttBoard2.every(v=>v)) { endTTT('draw'); return; }
+    document.getElementById('tttStatus').textContent = 'Your turn – click a square!';
+}
+
+function minimax(board, player) {
+    const check = tttCheck(board);
+    if (check === 'X') return {score: -10};
+    if (check === 'O') return {score: 10};
+    if (board.every(v=>v)) return {score: 0};
+    const moves = [];
+    for (let i=0;i<9;i++) {
+        if (!board[i]) {
+            const nb = [...board]; nb[i] = player;
+            const score = minimax(nb, player==='O'?'X':'O').score;
+            moves.push({idx:i, score});
+        }
+    }
+    return player==='O' ? moves.reduce((a,b)=>a.score>b.score?a:b) : moves.reduce((a,b)=>a.score<b.score?a:b);
+}
+
+function tttCheck(b) {
+    for (const [a,c,d] of tttWins) if (b[a] && b[a]===b[c] && b[a]===b[d]) return b[a];
+    return null;
+}
+
+function endTTT(winner, mark) {
+    tttActive = false;
+    if (winner === 'draw') {
+        document.getElementById('tttStatus').textContent = "🤝 It's a draw!";
+        tttD++;
+    } else if (mark === 'X') {
+        document.getElementById('tttStatus').textContent = '🎉 You Win!';
+        tttW++;
+        tttWins.filter(([a,b,c])=>tttBoard2[a]===mark && tttBoard2[b]===mark && tttBoard2[c]===mark)
+            .forEach(([a,b,c])=>{ [a,b,c].forEach(i=>document.getElementById(`ttt-${i}`).classList.add('win-cell')); });
+    } else {
+        document.getElementById('tttStatus').textContent = '🤖 AI Wins! Try again!';
+        tttL++;
+        tttWins.filter(([a,b,c])=>tttBoard2[a]===mark && tttBoard2[b]===mark && tttBoard2[c]===mark)
+            .forEach(([a,b,c])=>{ [a,b,c].forEach(i=>document.getElementById(`ttt-${i}`).classList.add('win-cell')); });
+    }
+    document.getElementById('tttScore').textContent = `W:${tttW} D:${tttD} L:${tttL}`;
+}
+
+
+
+// ============================================================
+// DYNAMIC DATABASE SCORE PERSISTENCE
+// ============================================================
+function submitScoreToDatabase(gameType, score, timeTakenSeconds) {
+    fetch('/MindForge/SubmitScore', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            gameType: gameType,
+            score: parseInt(score) || 100,
+            timeTakenSeconds: parseInt(timeTakenSeconds) || 30
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Score saved dynamically in SQL Server database!', data);
+            if (typeof showToast === 'function') {
+                showToast(`🏆 Score saved to Database! (+${data.savedScore} pts)`);
+            }
+        }
+    })
+    .catch(err => console.error('Error saving score to database:', err));
+}
+
+// ============================================================
+// INIT ALL GAMES
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    initMemory();
+    initWord();
+    initDotnet();
+    initTTT();
+});
+</script>
+}

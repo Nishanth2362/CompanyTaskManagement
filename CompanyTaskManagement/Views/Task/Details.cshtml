@@ -1,0 +1,438 @@
+@model CompanyTaskManagement.Models.TaskItem
+
+@{
+    ViewData["Title"] = "Task Details - " + Model.TaskName;
+    var compCount = Model.TaskCompanies?.Count ?? 0;
+    var empCount = Model.TaskEmployees?.Count ?? 0;
+    var priorityCss = Model.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent ? "priority-urgent" :
+                      Model.Priority == CompanyTaskManagement.Models.TaskPriority.High ? "priority-high" :
+                      Model.Priority == CompanyTaskManagement.Models.TaskPriority.Medium ? "priority-medium" : "priority-low";
+    var isOverdue = Model.Status != CompanyTaskManagement.Models.TaskStatus.Completed && ((Model.EndDate.HasValue && Model.EndDate.Value <= DateTime.Now) || (Model.DueDate.HasValue && (Model.DueDate.Value <= DateTime.Now || Model.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(Model.DelayReason));
+}
+
+<!-- Breadcrumbs -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a asp-action="Index"><i class="bi bi-grid-1x2-fill me-1"></i>Tasks</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Task #@Model.Id.ToString("D3") Details</li>
+    </ol>
+</nav>
+
+<!-- Top Hero Card -->
+<div class="details-hero-card">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                <span class="badge-task-id">#@Model.Id.ToString("D3")</span>
+                @if (Model.Project != null)
+                {
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1">
+                        <i class="bi bi-kanban me-1"></i>Project: @Model.Project.ProjectName
+                    </span>
+                }
+                <span class="priority-badge @priorityCss">@Model.Priority Priority</span>
+                <span class="status-pill status-@(Model.Status.ToString().ToLower())">
+                    <span class="status-dot-indicator"></span> @Model.Status
+                </span>
+                @if (isOverdue)
+                {
+                    <span class="due-date-overdue"><i class="bi bi-exclamation-triangle-fill me-1"></i>Overdue</span>
+                }
+            </div>
+            <h1 class="h2 fw-bold mb-1 text-break">@Model.TaskName</h1>
+            <p class="text-muted small mb-0 d-flex flex-wrap align-items-center gap-2">
+                <span><i class="bi bi-clock text-success me-1"></i>Task Start Time: <strong class="font-monospace">@((Model.StartDate ?? Model.CreatedAt).ToString("h:mm tt"))</strong> <small class="text-muted">(@((Model.StartDate ?? Model.CreatedAt).ToString("MMM dd, yyyy")))</small></span>
+                <span>•</span>
+                <span><i class="bi bi-clock-fill text-danger me-1"></i>Task End Time: <strong class="font-monospace">@((Model.EndDate ?? Model.DueDate)?.ToString("h:mm tt") ?? "No End Time")</strong> <small class="text-muted">@((Model.EndDate ?? Model.DueDate).HasValue ? $"({(Model.EndDate ?? Model.DueDate)!.Value:MMM dd, yyyy})" : "")</small></span>
+                <span>•</span>
+                <span><i class="bi bi-hourglass-split text-info me-1"></i>Total Working: <strong class="total-working-badge px-2.5 py-0.5" style="font-size: 0.82rem;">
+                    @{
+                        var dStart = Model.StartDate ?? Model.CreatedAt;
+                        var dEnd = Model.EndDate ?? Model.DueDate;
+                        string dTotal = "—";
+                        if (dEnd.HasValue)
+                        {
+                            var dsTime = dStart.TimeOfDay;
+                            var deTime = dEnd.Value.TimeOfDay;
+                            TimeSpan dDiff;
+                            if (dEnd.Value.Date == dStart.Date)
+                            {
+                                dDiff = dEnd.Value - dStart;
+                            }
+                            else
+                            {
+                                if (deTime >= dsTime)
+                                {
+                                    dDiff = deTime - dsTime;
+                                }
+                                else
+                                {
+                                    dDiff = (TimeSpan.FromHours(24) - dsTime) + deTime;
+                                }
+                            }
+
+                            if (dDiff.TotalMinutes > 0)
+                            {
+                                dTotal = $"{(int)dDiff.TotalHours}:{dDiff.Minutes:D2}";
+                            }
+                            else
+                            {
+                                dTotal = "0:00";
+                            }
+                        }
+                    }
+                    @dTotal
+                </strong></span>
+            </p>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <button type="button" 
+                    class="btn btn-outline-secondary copy-summary-btn d-flex align-items-center gap-2"
+                    data-name="@Model.TaskName"
+                    data-desc="@Model.Description">
+                <i class="bi bi-clipboard"></i>
+                <span>Copy Summary</span>
+            </button>
+
+            <button type="button" 
+                    class="btn btn-outline-secondary d-flex align-items-center gap-2"
+                    onclick="window.print();">
+                <i class="bi bi-printer"></i>
+                <span>Print</span>
+            </button>
+
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning d-flex align-items-center gap-2 fw-semibold">
+                <i class="bi bi-pencil-square"></i>
+                <span>Edit Task</span>
+            </a>
+
+            <a asp-action="Index" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Progress Bar Banner -->
+    <div class="p-3 bg-body-tertiary rounded-3 border">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small fw-bold text-muted text-uppercase">Task Progress</span>
+            <span class="fw-bold text-primary">@Model.Progress% Completed</span>
+        </div>
+        <div class="task-progress-track" style="height: 9px;">
+            <div class="task-progress-fill @(Model.Status == CompanyTaskManagement.Models.TaskStatus.Completed ? "fill-completed" : "")" style="width: @(Model.Progress)%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Main Grid -->
+<div class="row g-4 mb-4">
+    <!-- Left: Description and Scope -->
+    <div class="col-12 col-lg-7">
+        <div class="details-section-card">
+            <div class="details-section-title">
+                <i class="bi bi-card-text text-primary fs-5"></i>
+                <span>Description & Instructions</span>
+            </div>
+
+            <div class="p-3 bg-body-tertiary rounded-3 mb-4">
+                @if (string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <p class="text-muted font-italic mb-0">No description provided for this task.</p>
+                }
+                else
+                {
+                    <p class="text-secondary mb-0" style="white-space: pre-line; line-height: 1.7; font-size: 0.98rem;">
+                        @Model.Description
+                    </p>
+                }
+            </div>
+
+            <!-- Issue, Delay & Error Report Section -->
+            @if (!string.IsNullOrWhiteSpace(Model.DelayReason) || !string.IsNullOrWhiteSpace(Model.ErrorDetails) || !string.IsNullOrWhiteSpace(Model.ErrorScreenshotPath))
+            {
+                <div class="p-4 bg-dark-subtle rounded-3 border border-danger border-opacity-50 mb-4 shadow-sm">
+                    <h5 class="fw-bold text-danger d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                        <span>Project Delay & Technical Error Report</span>
+                    </h5>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.DelayReason))
+                    {
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Reason for Project Delay / Pending Status</label>
+                            <div class="p-2 px-3 bg-danger-subtle text-danger rounded-2 fw-semibold border border-danger border-opacity-25">
+                                <i class="bi bi-hourglass-split me-1"></i> @Model.DelayReason
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ErrorDetails))
+                    {
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Technical Error & Blocker Description</label>
+                            <div class="p-3 bg-body-tertiary rounded-3 border text-secondary font-monospace" style="white-space: pre-line; font-size: 0.9rem;">
+                                @Model.ErrorDetails
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ErrorScreenshotPath))
+                    {
+                        <div>
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-2">Attached Error Screenshot</label>
+                            <div class="position-relative d-inline-block rounded-3 overflow-hidden border border-secondary shadow-sm">
+                                <img src="@Model.ErrorScreenshotPath" 
+                                     alt="Error Screenshot" 
+                                     class="img-fluid rounded-3 cursor-pointer" 
+                                     style="max-height: 240px; object-fit: contain; cursor: pointer;"
+                                     data-bs-toggle="modal" 
+                                     data-bs-target="#screenshotZoomModal" />
+                                <div class="position-absolute bottom-0 end-0 bg-dark text-white px-2 py-1 small rounded-start opacity-75">
+                                    <i class="bi bi-zoom-in me-1"></i>Click to Zoom
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Zoom Screenshot Modal -->
+                        <div class="modal fade modal-custom" id="screenshotZoomModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-xl">
+                                <div class="modal-content bg-dark text-white">
+                                    <div class="modal-header border-secondary">
+                                        <h5 class="modal-title fw-bold text-danger"><i class="bi bi-file-image me-2"></i>Error Screenshot - Task #@Model.Id.ToString("D3")</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body text-center p-3">
+                                        <img src="@Model.ErrorScreenshotPath" alt="Error Screenshot Large View" class="img-fluid rounded border border-secondary shadow-lg" style="max-height: 80vh;" />
+                                    </div>
+                                    <div class="modal-footer border-secondary">
+                                        <a href="@Model.ErrorScreenshotPath" target="_blank" class="btn btn-outline-light btn-sm">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Open Original Image
+                                        </a>
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Metadata Highlights -->
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <div class="p-3 border rounded-3 bg-body text-center">
+                        <small class="text-muted d-block font-monospace mb-1" style="font-size: 0.72rem;">PRIORITY</small>
+                        <span class="fw-bold text-dark">@Model.Priority</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 border rounded-3 bg-body text-center">
+                        <small class="text-muted d-block font-monospace mb-1" style="font-size: 0.72rem;">STATUS</small>
+                        <span class="fw-bold text-dark">@Model.Status</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 border rounded-3 bg-body text-center">
+                        <small class="text-muted d-block font-monospace mb-1" style="font-size: 0.72rem;">COMPANIES</small>
+                        <span class="fw-bold text-info fs-5">@compCount</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 border rounded-3 bg-body text-center">
+                        <small class="text-muted d-block font-monospace mb-1" style="font-size: 0.72rem;">TEAM MEMBERS</small>
+                        <span class="fw-bold text-primary fs-5">@empCount</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Companies and Employees Cards -->
+    <div class="col-12 col-lg-5">
+        <div class="d-flex flex-column gap-4">
+            <!-- Participating Companies Card -->
+            <div class="details-section-card">
+                <div class="details-section-title justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-buildings text-info fs-5"></i>
+                        <span>Participating Companies</span>
+                    </div>
+                    <span class="badge bg-info-subtle text-info rounded-pill px-2 py-1">@compCount</span>
+                </div>
+
+                @if (Model.TaskCompanies != null && Model.TaskCompanies.Any())
+                {
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var taskCompany in Model.TaskCompanies)
+                        {
+                            <div class="detail-item-box">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle p-2 bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        <i class="bi bi-building"></i>
+                                    </div>
+                                    <span class="fw-semibold text-main">@taskCompany.Company?.Name</span>
+                                </div>
+                                <span class="badge bg-light text-secondary border">ID: #@taskCompany.CompanyId</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3 text-center bg-body-tertiary rounded-3 text-muted">
+                        <i class="bi bi-building-slash fs-4 d-block mb-1"></i>
+                        No companies assigned yet.
+                    </div>
+                }
+            </div>
+
+            <!-- Assigned Team Members Card -->
+            <div class="details-section-card">
+                <div class="details-section-title justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-people text-purple fs-5"></i>
+                        <span>Assigned Team Members</span>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1">@empCount</span>
+                </div>
+
+                @if (Model.TaskEmployees != null && Model.TaskEmployees.Any())
+                {
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var taskEmployee in Model.TaskEmployees)
+                        {
+                            var initial = !string.IsNullOrEmpty(taskEmployee.Employee?.Name) ? taskEmployee.Employee.Name.Substring(0, 1) : "?";
+                            var colorIdx = Math.Abs((taskEmployee.Employee?.Name ?? "").GetHashCode()) % 7;
+                            <div class="detail-item-box">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="avatar-initial-circle avatar-color-@colorIdx" style="width: 32px; height: 32px; font-size: 0.85rem;">@initial</span>
+                                    <div>
+                                        <span class="fw-semibold text-main d-block">@taskEmployee.Employee?.Name</span>
+                                        <small class="text-muted" style="font-size: 0.75rem;">Member ID: #@taskEmployee.EmployeeId</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-primary-subtle text-primary">Assignee</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3 text-center bg-body-tertiary rounded-3 text-muted">
+                        <i class="bi bi-person-x fs-4 d-block mb-1"></i>
+                        No team members assigned yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HR INDIVIDUAL EMPLOYEE ACTIVITY LOG & AUDIT TRAIL -->
+<div class="card border-0 shadow-sm mt-4 mb-4" style="border-radius: var(--radius-xl); background: #ffffff;">
+    <div class="card-header bg-white border-bottom p-3.5 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-journal-text text-primary fs-5"></i>
+            <h5 class="fw-bold text-dark mb-0">HR Line-by-Line Employee Activity Audit Log</h5>
+        </div>
+        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1.5 font-monospace">
+            @Model.TaskActivityLogs.Count Log Entries
+        </span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.TaskActivityLogs != null && Model.TaskActivityLogs.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                    <thead class="table-light text-uppercase font-monospace small">
+                        <tr>
+                            <th class="ps-4">Timestamp</th>
+                            <th>Employee Name</th>
+                            <th>Action Type</th>
+                            <th>Status Change</th>
+                            <th>Progress</th>
+                            <th>Delay / Error Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model.TaskActivityLogs.OrderByDescending(l => l.LoggedAt))
+                        {
+                            <tr>
+                                <td class="ps-4 text-muted font-monospace" style="font-size: 0.8rem;">
+                                    <i class="bi bi-clock me-1"></i>@log.LoggedAt.ToString("MMM dd, yyyy HH:mm:ss")
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-person-circle text-primary"></i>
+                                        <span class="fw-bold text-dark">@log.EmployeeName</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (log.ActionType != null && log.ActionType.Contains("Rollover"))
+                                    {
+                                        <span class="badge rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fcd34d; font-size: 0.78rem;">
+                                            <i class="bi bi-arrow-repeat me-1"></i>@log.ActionType
+                                        </span>
+                                    }
+                                    else if (log.ActionType != null && (log.ActionType.Contains("Created") || log.ActionType.Contains("Add")))
+                                    {
+                                        <span class="badge rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="background-color: #d1fae5; color: #047857; border: 1px solid #6ee7b7; font-size: 0.78rem;">
+                                            <i class="bi bi-plus-circle-fill me-1"></i>@log.ActionType
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; font-size: 0.78rem;">
+                                            <i class="bi bi-info-circle-fill me-1"></i>@log.ActionType
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.OldStatus) || !string.IsNullOrEmpty(log.NewStatus))
+                                    {
+                                        <span class="text-muted">@(log.OldStatus ?? "None")</span>
+                                        <i class="bi bi-arrow-right mx-1 text-primary"></i>
+                                        <span class="fw-bold text-dark">@(log.NewStatus ?? "Updated")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark">@log.Progress%</span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.DelayReason))
+                                    {
+                                        <div class="text-danger fw-semibold" style="font-size: 0.82rem;">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>@log.DelayReason
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(log.ErrorDetails))
+                                    {
+                                        <small class="text-muted d-block" style="font-size: 0.78rem;">@log.ErrorDetails</small>
+                                    }
+                                    @if (string.IsNullOrEmpty(log.DelayReason) && string.IsNullOrEmpty(log.ErrorDetails))
+                                    {
+                                        <span class="text-muted small">No issue reported</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-journal-x fs-3 d-block mb-1"></i>
+                No historical activity logs recorded yet for this task.
+            </div>
+        }
+    </div>
+</div>

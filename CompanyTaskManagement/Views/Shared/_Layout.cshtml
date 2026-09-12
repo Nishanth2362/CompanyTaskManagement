@@ -1,0 +1,324 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@inject CompanyTaskManagement.Services.IUserSessionService UserSession
+@inject CompanyTaskManagement.Data.ApplicationDbContext AppDb
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AUXINZ.io Enterprise</title>
+    
+    <!-- Google Fonts: Outfit (Headlines), Plus Jakarta Sans (UI Body), JetBrains Mono (Code/Numbers) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS & Bootstrap Icons -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Site Styles -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/CompanyTaskManagement.styles.css" asp-append-version="true" />
+
+    <!-- Instant Theme Synchronization to Prevent Flash -->
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('taskflow_theme') || 'light';
+                document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            } catch (e) { }
+        })();
+    </script>
+</head>
+<body>
+    @{
+        var currentCtrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        var currentAct = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+        var currentRole = UserSession.GetCurrentRole();
+        var currentEmpName = UserSession.GetCurrentEmployeeName();
+        var isCanAssign = UserSession.IsAdminOrHr();
+        var employeesList = AppDb.Employees.OrderBy(e => e.Name).ToList();
+        var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    }
+
+    <!-- Top Header Navigation -->
+    <header class="sticky-top app-header">
+        <nav class="navbar navbar-expand-xl navbar-app">
+            <div class="container-fluid px-2 px-sm-3 px-lg-4">
+                <!-- Company Brand -->
+                <a class="navbar-brand d-flex align-items-center py-0 me-2 me-sm-3 flex-shrink-0" asp-controller="Task" asp-action="Index">
+                    <img src="~/images/auxinz_logo.png" alt="AUXINZ.io - Your Growth Catalyst" class="auxinz-brand-logo" asp-append-version="true" />
+                </a>
+
+                <!-- Mobile Toggle -->
+                <button class="navbar-toggler border-0 shadow-none p-2 text-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAppContent" aria-controls="navbarAppContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="bi bi-list fs-2"></i>
+                </button>
+
+                <!-- Nav Items with Vibrant Icons -->
+                <div class="collapse navbar-collapse" id="navbarAppContent">
+                    <ul class="navbar-nav mx-auto mb-2 mb-xl-0 ms-xl-3 gap-1">
+                        <!-- Tasks Dashboard -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "Task" && currentAct == "Index" ? "active" : "")" asp-controller="Task" asp-action="Index">
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Tasks</span>
+                            </a>
+                        </li>
+
+                        <!-- Projects Portfolio -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "Project" ? "active" : "")" asp-controller="Project" asp-action="Index">
+                                <i class="bi bi-kanban"></i>
+                                <span>Projects</span>
+                            </a>
+                        </li>
+
+                        <!-- Employees Directory -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "Employee" ? "active" : "")" asp-controller="Employee" asp-action="Index">
+                                <i class="bi bi-people-fill"></i>
+                                <span>Employees</span>
+                            </a>
+                        </li>
+
+                        <!-- Teams & Assignments -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "Teams" ? "active" : "")" asp-controller="Teams" asp-action="Index">
+                                <i class="bi bi-diagram-3-fill"></i>
+                                <span>Teams &amp; Assignments</span>
+                            </a>
+                        </li>
+
+                        <!-- Wall of Fame -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "Task" && currentAct == "Appreciation" ? "active" : "")" asp-controller="Task" asp-action="Appreciation">
+                                <i class="bi bi-trophy-fill text-gold"></i>
+                                <span>Wall of Fame</span>
+                            </a>
+                        </li>
+
+                        <!-- Internship Learning Academy -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "Internship" ? "active" : "")" asp-controller="Internship" asp-action="Index">
+                                <i class="bi bi-mortarboard-fill text-amethyst"></i>
+                                <span>Internship Hub</span>
+                            </a>
+                        </li>
+
+                        <!-- Confidential HR Grievance Portal -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "Grievance" ? "active" : "")" asp-controller="Grievance" asp-action="Index">
+                                <i class="bi bi-fire text-coral"></i>
+                                <span>HR Grievances</span>
+                            </a>
+                        </li>
+
+                        <!-- Share with Colleagues -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "Share" ? "active" : "")" asp-controller="Share" asp-action="Index">
+                                <i class="bi bi-share-fill" style="color: #7c3aed;"></i>
+                                <span>Share's Hub</span>
+                            </a>
+                        </li>
+
+                        <!-- MindForge Brain Games -->
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link @(currentCtrl == "MindForge" ? "active" : "")" asp-controller="MindForge" asp-action="Index">
+                                <i class="bi bi-gear-fill" style="color: #f59e0b;"></i>
+                                <span>MindForge</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Right Controls -->
+                    <div class="d-flex align-items-center flex-wrap flex-xl-nowrap gap-2.5 mt-3 mt-xl-0 ms-xl-auto flex-shrink-0 header-right-controls">
+
+                        <!-- Role Switcher Dropdown -->
+                        <div class="dropdown flex-grow-1 flex-xl-grow-0">
+                            <button class="btn btn-role-switcher dropdown-toggle d-flex align-items-center justify-content-between gap-1.5 shadow-2xs w-100 w-xl-auto" type="button" id="roleSwitcherDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Active Role Context">
+                                @if (currentRole == CompanyTaskManagement.Models.UserRole.Admin)
+                                {
+                                    <span class="role-pill role-pill-admin"><i class="bi bi-crown-fill text-gold me-1"></i> Admin</span>
+                                }
+                                else if (currentRole == CompanyTaskManagement.Models.UserRole.HR)
+                                {
+                                    <span class="role-pill role-pill-hr"><i class="bi bi-briefcase-fill me-1"></i> HR Manager</span>
+                                }
+                                else
+                                {
+                                    <span class="role-pill role-pill-employee"><i class="bi bi-person-badge-fill me-1"></i> @currentEmpName</span>
+                                }
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end glass-card border-0 shadow-lg p-2" style="min-width: 270px; max-width: 90vw;" aria-labelledby="roleSwitcherDropdown">
+                                <li class="dropdown-header text-uppercase small fw-bold text-muted px-3 py-1">
+                                    <i class="bi bi-person-gear text-gold me-1"></i> Switch Active Persona
+                                </li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="SwitchRole" method="post" class="m-0 p-0">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="role" value="Admin" />
+                                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                        <button type="submit" class="dropdown-item rounded-2 py-2 d-flex align-items-center justify-content-between @(currentRole == CompanyTaskManagement.Models.UserRole.Admin ? "active fw-bold" : "")">
+                                            <span class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-shield-shaded text-danger"></i> Administrator
+                                            </span>
+                                            <span class="badge bg-danger text-white rounded-pill" style="font-size: 0.68rem;">Full Access</span>
+                                        </button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="SwitchRole" method="post" class="m-0 p-0">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="role" value="HR" />
+                                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                        <button type="submit" class="dropdown-item rounded-2 py-2 d-flex align-items-center justify-content-between @(currentRole == CompanyTaskManagement.Models.UserRole.HR ? "active fw-bold" : "")">
+                                            <span class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-briefcase-fill text-primary"></i> HR Manager
+                                            </span>
+                                            <span class="badge bg-primary text-white rounded-pill" style="font-size: 0.68rem;">Assign Tasks</span>
+                                        </button>
+                                    </form>
+                                </li>
+                                <li><hr class="dropdown-divider border-secondary border-opacity-25 my-2"></li>
+                                <li class="dropdown-header text-uppercase small fw-bold text-muted px-3 py-1">
+                                    <i class="bi bi-people-fill text-emerald me-1"></i> Team Members (Employee View)
+                                </li>
+                                @foreach (var emp in employeesList)
+                                {
+                                    var isSelectedEmp = currentRole == CompanyTaskManagement.Models.UserRole.Employee && UserSession.GetCurrentEmployeeId() == emp.Id;
+                                    <li>
+                                        <form asp-controller="Account" asp-action="SwitchRole" method="post" class="m-0 p-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="role" value="Employee" />
+                                            <input type="hidden" name="employeeId" value="@emp.Id" />
+                                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                            <button type="submit" class="dropdown-item rounded-2 py-1.5 d-flex align-items-center justify-content-between @(isSelectedEmp ? "active fw-bold" : "")">
+                                                <span class="d-flex align-items-center gap-2">
+                                                    <i class="bi bi-person text-secondary"></i> @emp.Name
+                                                </span>
+                                                @if (isSelectedEmp)
+                                                {
+                                                    <i class="bi bi-check2 text-emerald fw-bold"></i>
+                                                }
+                                            </button>
+                                        </form>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- Theme Toggle Button -->
+                            <button type="button" class="btn btn-icon theme-toggle-btn" id="themeToggleBtn" title="Toggle Light / Dark Mode" aria-label="Toggle Theme">
+                                <i class="bi bi-moon-stars-fill theme-icon-dark"></i>
+                                <i class="bi bi-sun-fill theme-icon-light d-none"></i>
+                            </button>
+
+
+                            <!-- Quick Action Dropdown -->
+                            <div class="dropdown">
+                                <button class="btn btn-royal-gold rounded-circle d-flex align-items-center justify-content-center p-0 shadow" type="button" id="quickActionDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Quick Actions" style="width: 42px; height: 42px; min-width: 42px; border-radius: 50% !important;">
+                                    <i class="bi bi-lightning-charge-fill fs-5"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end glass-card border-0 shadow-lg p-2" aria-labelledby="quickActionDropdown">
+                                    @if (isCanAssign)
+                                    {
+                                        <li>
+                                            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Task" asp-action="Create">
+                                                <i class="bi bi-plus-circle-fill text-gold"></i> Create Task
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (UserSession.IsAdmin())
+                                    {
+                                        <li>
+                                            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Project" asp-action="Create">
+                                                <i class="bi bi-plus-square-fill text-info"></i> Create Project (Admin)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Employee" asp-action="Create">
+                                                <i class="bi bi-person-plus-fill text-emerald"></i> Add Employee (Admin)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Internship" asp-action="Index" asp-route-tab="members">
+                                                <i class="bi bi-mortarboard-fill text-emerald"></i> Add Intern / Mentor (Admin)
+                                            </a>
+                                        </li>
+                                    }
+                                    <li>
+                                        <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Internship" asp-action="Index" asp-route-tab="youtube">
+                                            <i class="bi bi-youtube text-danger"></i> YouTube References
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Internship" asp-action="Index" asp-route-tab="tests">
+                                            <i class="bi bi-patch-check-fill text-warning"></i> Topic Tests &amp; Results
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Internship" asp-action="Index" asp-route-tab="doubts">
+                                            <i class="bi bi-question-circle-fill text-amethyst"></i> Ask Intern Doubt
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                                    <li>
+                                        <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Share" asp-action="Index">
+                                            <i class="bi bi-share-fill" style="color:#7c3aed;"></i> Share with Colleagues
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                                    <li>
+                                        <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" asp-controller="Grievance" asp-action="Submit">
+                                            <i class="bi bi-shield-lock-fill text-coral"></i> Submit HR Grievance
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main role="main" class="pb-5 pt-3 app-main-content">
+        <div class="container-fluid px-2 px-sm-3 px-lg-4">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- Global Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+        <div id="appToast" class="toast align-items-center border-0 shadow-lg glass-card" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2" id="appToastBody">
+                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                    <span id="appToastMessage">Action completed successfully.</span>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Footer -->
+    <footer class="app-footer border-top border-secondary border-opacity-25 mt-auto py-3">
+        <div class="container-fluid px-3 text-center small">
+            <span class="text-muted opacity-75 me-1">&copy; 2026 All Rights Reserved.</span>
+            <a href="https://auxinz.io/" target="_blank" rel="noopener noreferrer" class="footer-link text-gold fw-bold text-decoration-none">
+                Auxinzio Private Ltd.
+            </a>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

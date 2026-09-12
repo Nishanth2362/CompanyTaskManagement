@@ -1,0 +1,349 @@
+@model CompanyTaskManagement.Models.HrComplaint
+
+@{
+    ViewData["Title"] = $"Case File #{Model.TicketNumber} - HR Grievance";
+
+    var priorityColor = Model.Priority == "Urgent" ? "#ef4444" :
+                        Model.Priority == "High"   ? "#f59e0b" :
+                        Model.Priority == "Medium" ? "#818cf8" : "#94a3b8";
+
+    var priorityBg = Model.Priority == "Urgent" ? "rgba(239,68,68,0.1)"  :
+                     Model.Priority == "High"   ? "rgba(245,158,11,0.1)" :
+                     Model.Priority == "Medium" ? "rgba(99,102,241,0.1)" : "rgba(148,163,184,0.1)";
+
+    var statusColor = Model.Status == "Resolved"        ? "#22c55e" :
+                      Model.Status == "In Investigation" ? "#a78bfa" :
+                      Model.Status == "Under Review"     ? "#f59e0b" :
+                      Model.Status == "Dismissed"        ? "#f87171" : "#94a3b8";
+
+    var statusBg = Model.Status == "Resolved"        ? "rgba(34,197,94,0.1)"   :
+                   Model.Status == "In Investigation" ? "rgba(167,139,250,0.1)" :
+                   Model.Status == "Under Review"     ? "rgba(245,158,11,0.1)"  :
+                   Model.Status == "Dismissed"        ? "rgba(239,68,68,0.08)"  : "rgba(148,163,184,0.1)";
+
+    var statusIcon = Model.Status == "Resolved"        ? "bi-check-circle-fill"   :
+                     Model.Status == "In Investigation" ? "bi-search"              :
+                     Model.Status == "Under Review"     ? "bi-hourglass-split"     :
+                     Model.Status == "Dismissed"        ? "bi-x-circle-fill"       : "bi-clock-history";
+}
+
+<style>
+    .case-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e293b 100%);
+        border-radius: 18px;
+        padding: 2rem 2.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(148,163,184,0.12);
+    }
+    .case-hero::before {
+        content: '';
+        position: absolute;
+        top: -50px; right: -50px;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(245,158,11,0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .detail-card {
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 18px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    .section-title {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1.5px solid var(--border-subtle);
+    }
+    .section-title i { font-size: 0.9rem; }
+
+    .ticket-id-badge {
+        background: rgba(245,158,11,0.12);
+        color: #f59e0b;
+        border: 1px solid rgba(245,158,11,0.3);
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 5px 14px;
+        border-radius: 8px;
+    }
+    .priority-badge-detail, .status-badge-detail {
+        border-radius: 50px;
+        padding: 4px 14px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+    .category-badge-detail {
+        background: var(--bg-surface-secondary);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-subtle);
+        border-radius: 50px;
+        padding: 4px 14px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .submitter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .submitter-field { background: var(--bg-surface-secondary); border-radius: 12px; padding: 0.8rem 1rem; }
+    .submitter-field .label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 4px; }
+    .submitter-field .value { font-size: 0.88rem; font-weight: 600; color: var(--text-main); }
+
+    .description-box {
+        background: var(--bg-surface-secondary);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+        font-size: 0.92rem;
+        line-height: 1.75;
+        white-space: pre-wrap;
+        color: var(--text-main);
+    }
+    .resolution-box {
+        background: rgba(34,197,94,0.06);
+        border: 1.5px solid rgba(34,197,94,0.25);
+        border-radius: 14px;
+        padding: 1.25rem 1.4rem;
+    }
+    .anon-badge {
+        background: rgba(168,85,247,0.1);
+        color: #c084fc;
+        border: 1px solid rgba(168,85,247,0.2);
+        border-radius: 50px;
+        padding: 4px 14px;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .action-panel {
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 18px;
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+        position: sticky;
+        top: 80px;
+    }
+    .action-panel .form-control, .action-panel .form-select {
+        border-radius: 10px !important;
+        border: 1.5px solid var(--border-subtle) !important;
+        background: var(--bg-surface-secondary) !important;
+        color: var(--text-main) !important;
+        font-size: 0.85rem !important;
+    }
+    .action-panel .form-control:focus, .action-panel .form-select:focus {
+        border-color: #f59e0b !important;
+        box-shadow: 0 0 0 3px rgba(245,158,11,0.12) !important;
+    }
+    .action-panel label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 5px; display: block; }
+    .btn-save-action {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 11px 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        width: 100%;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(245,158,11,0.3);
+    }
+    .btn-save-action:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(245,158,11,0.4); color: #fff; }
+    .danger-zone {
+        background: rgba(239,68,68,0.04);
+        border: 1.5px solid rgba(239,68,68,0.2);
+        border-radius: 14px;
+        padding: 1.25rem;
+    }
+</style>
+
+<!-- Success Alert -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm mb-3 rounded-3" role="alert">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div>@TempData["Success"]</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Hero Case Header -->
+<div class="case-hero mb-4">
+    <div class="position-relative" style="z-index: 2;">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb small mb-0" style="background: none; padding: 0;">
+                <li class="breadcrumb-item"><a asp-action="Index" class="text-decoration-none opacity-75 text-white-50"><i class="bi bi-shield-lock me-1"></i>HR Grievances</a></li>
+                <li class="breadcrumb-item active text-white-50">Case File #@Model.TicketNumber</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2 mt-1">
+            <span class="ticket-id-badge"><i class="bi bi-ticket-perforated-fill me-1"></i>#@Model.TicketNumber</span>
+            <span class="priority-badge-detail" style="background: @priorityBg; color: @priorityColor; border-color: @priorityColor + '40';">@Model.Priority Priority</span>
+            <span class="status-badge-detail" style="background: @statusBg; color: @statusColor; border-color: @statusColor;">
+                <i class="bi @statusIcon me-1"></i>@Model.Status
+            </span>
+            <span class="category-badge-detail"><i class="bi bi-tag-fill me-1"></i>@Model.Category</span>
+            @if (Model.IsAnonymous) { <span class="anon-badge"><i class="bi bi-incognito me-1"></i>Anonymous</span> }
+        </div>
+
+        <h1 class="text-white fw-bold mb-1" style="font-size: 1.5rem; font-family: 'Outfit', sans-serif; line-height: 1.3;">@Model.Subject</h1>
+        <div class="text-white-50" style="font-size: 0.8rem;">
+            <i class="bi bi-clock-history me-1"></i>Logged on @Model.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left: Case Details -->
+    <div class="col-12 col-lg-8">
+        <!-- Submitter Profile -->
+        <div class="detail-card">
+            <div class="section-title"><i class="bi bi-person-badge-fill text-primary"></i> Submitter Profile</div>
+            @if (Model.IsAnonymous)
+            {
+                <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background: rgba(168,85,247,0.08); border: 1.5px solid rgba(168,85,247,0.2);">
+                    <i class="bi bi-incognito fs-3" style="color: #c084fc;"></i>
+                    <div>
+                        <div class="fw-bold" style="color: #c084fc;">Anonymous Submission — Identity Shield Activated</div>
+                        <div class="small text-secondary">No employee profile or email is linked to this ticket.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="submitter-grid">
+                    <div class="submitter-field">
+                        <div class="label">Full Name</div>
+                        <div class="value">@(Model.SubmitterName ?? Model.Employee?.Name ?? "Employee")</div>
+                    </div>
+                    <div class="submitter-field">
+                        <div class="label">Contact Email</div>
+                        <div class="value">@(Model.SubmitterEmail ?? "Not provided")</div>
+                    </div>
+                    <div class="submitter-field">
+                        <div class="label">Department / Role</div>
+                        <div class="value">@(Model.Department ?? "General Organization")</div>
+                    </div>
+                    <div class="submitter-field">
+                        <div class="label">Employee Profile</div>
+                        <div class="value">@(Model.Employee != null ? Model.Employee.Name : "None linked")</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Grievance Statement -->
+        <div class="detail-card">
+            <div class="section-title"><i class="bi bi-chat-square-text-fill text-warning"></i> Grievance Statement &amp; Particulars</div>
+            <div class="description-box">@Model.Description</div>
+        </div>
+
+        <!-- Attachment -->
+        @if (!string.IsNullOrWhiteSpace(Model.AttachmentPath))
+        {
+            <div class="detail-card">
+                <div class="section-title"><i class="bi bi-paperclip text-warning"></i> Attached Supporting Evidence</div>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="@Model.AttachmentPath" target="_blank" class="btn btn-outline-warning btn-sm d-inline-flex align-items-center gap-2" style="border-radius: 10px;">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        <span>View / Download Attachment</span>
+                    </a>
+                    <span class="small text-muted font-monospace">@System.IO.Path.GetFileName(Model.AttachmentPath)</span>
+                </div>
+            </div>
+        }
+
+        <!-- HR Resolution Notes -->
+        @if (!string.IsNullOrWhiteSpace(Model.HrResponseNotes))
+        {
+            <div class="detail-card">
+                <div class="section-title"><i class="bi bi-check-circle-fill text-success"></i> HR Official Resolution Notes</div>
+                <div class="resolution-box">
+                    <p class="mb-2 text-body" style="white-space: pre-wrap; font-size: 0.92rem;">@Model.HrResponseNotes</p>
+                    <div class="d-flex align-items-center gap-3 mt-2" style="font-size: 0.78rem; color: var(--text-secondary);">
+                        @if (!string.IsNullOrWhiteSpace(Model.HrInvestigatorName))
+                        {
+                            <span><i class="bi bi-person-badge me-1"></i><strong>Investigator:</strong> @Model.HrInvestigatorName</span>
+                        }
+                        @if (Model.ResolvedAt.HasValue)
+                        {
+                            <span><i class="bi bi-calendar-check me-1"></i><strong>Resolved:</strong> @Model.ResolvedAt.Value.ToString("MMM dd, yyyy · hh:mm tt")</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Back Button -->
+        <a asp-action="Index" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2" style="border-radius: 12px;">
+            <i class="bi bi-arrow-left"></i> Back to All Tickets
+        </a>
+    </div>
+
+    <!-- Right: HR Action Panel -->
+    <div class="col-12 col-lg-4">
+        <div class="action-panel">
+            <div class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+                <i class="bi bi-gear-wide-connected text-warning"></i> HR Action &amp; Status Panel
+            </div>
+
+            <form asp-action="UpdateStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label>Update Ticket Status</label>
+                    <select name="status" class="form-select">
+                        <option value="Submitted"       selected="@(Model.Status == "Submitted")">Submitted (Pending Review)</option>
+                        <option value="Under Review"    selected="@(Model.Status == "Under Review")">Under Review</option>
+                        <option value="In Investigation"selected="@(Model.Status == "In Investigation")">In Investigation</option>
+                        <option value="Resolved"        selected="@(Model.Status == "Resolved")">Resolved &amp; Closed</option>
+                        <option value="Dismissed"       selected="@(Model.Status == "Dismissed")">Dismissed</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label>Assigned HR Officer / Lead</label>
+                    <input type="text" name="investigatorName" value="@Model.HrInvestigatorName" class="form-control" placeholder="e.g. HR Director / Lead Officer" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Investigation &amp; Resolution Remarks</label>
+                    <textarea name="notes" class="form-control" rows="4" placeholder="Document findings, corrective measures, or resolution summary...">@Model.HrResponseNotes</textarea>
+                </div>
+
+                <button type="submit" class="btn-save-action">
+                    <i class="bi bi-check2-circle"></i>
+                    <span>Save HR Action &amp; Notes</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="danger-zone">
+            <div class="fw-bold text-danger mb-1 d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+                <i class="bi bi-trash3-fill"></i> Delete Case File
+            </div>
+            <p class="small text-secondary mb-3" style="font-size: 0.78rem;">Permanently remove this grievance case and all attached documents.</p>
+            <form asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to permanently delete this grievance case file?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-outline-danger btn-sm w-100" style="border-radius: 10px;">
+                    <i class="bi bi-trash3 me-1"></i> Delete Permanently
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

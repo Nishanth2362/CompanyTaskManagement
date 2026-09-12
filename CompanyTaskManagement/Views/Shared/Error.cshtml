@@ -1,0 +1,33 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "System Error";
+}
+
+<div class="form-shell-card my-4 text-center p-4 p-md-5">
+    <div class="mb-4">
+        <img src="~/images/error_illustration.jpg" 
+             alt="System Error Illustration" 
+             class="img-fluid rounded-4 shadow-lg border border-subtle" 
+             style="max-width: 580px; width: 100%; object-fit: cover;" />
+    </div>
+
+    <h2 class="fw-bold mb-2 text-dark">Something Went Wrong</h2>
+    <p class="text-muted mb-4 max-w-md mx-auto">
+        An unexpected error occurred while processing your request. Our system administrators have been notified.
+    </p>
+
+    @if (Model != null && Model.ShowRequestId)
+    {
+        <div class="p-3 bg-body-tertiary rounded-3 d-inline-block mb-4 border">
+            <span class="text-muted small me-2">Request Tracking ID:</span> 
+            <code class="fw-bold text-danger">@Model.RequestId</code>
+        </div>
+    }
+
+    <div class="d-flex justify-content-center gap-2">
+        <a asp-controller="Task" asp-action="Index" class="btn btn-primary-gradient px-4 py-2 d-inline-flex align-items-center gap-2">
+            <i class="bi bi-house-door-fill"></i>
+            <span>Return to Tasks Dashboard</span>
+        </a>
+    </div>
+</div>

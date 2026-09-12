@@ -1,0 +1,1228 @@
+@model IEnumerable<CompanyTaskManagement.Models.Team>
+@using CompanyTaskManagement.Models
+@inject CompanyTaskManagement.Services.IUserSessionService UserSession
+
+@{
+    ViewData["Title"] = "Teams of Auxinzio";
+    var allEmployees = ViewBag.AllEmployees as List<Employee> ?? new List<Employee>();
+    var allProjects = ViewBag.AllProjects as List<Project> ?? new List<Project>();
+    var allReviews = ViewBag.AllReviews as List<TeamLeaderReview> ?? new List<TeamLeaderReview>();
+    var isAdmin = UserSession.IsAdmin();
+    var currentRole = UserSession.GetCurrentRole();
+    var currentEmployeeId = UserSession.GetCurrentEmployeeId();
+
+    var incompleteTasksList = ViewBag.IncompleteTasksList as List<TeamTask> ?? new List<TeamTask>();
+    int totalTeams = ViewBag.TotalTeams ?? 0;
+    int totalLeaders = ViewBag.TotalLeaders ?? 0;
+    int totalMembers = ViewBag.TotalMembers ?? 0;
+    int totalTasks = ViewBag.TotalTasks ?? 0;
+    int completedTasks = ViewBag.CompletedTasks ?? 0;
+    int incompleteTasks = ViewBag.IncompleteTasks ?? 0;
+    double completionRate = totalTasks > 0 ? Math.Round((double)completedTasks / totalTasks * 100, 1) : 0;
+}
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Alerts -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-3 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-3 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- ── Hero Banner Header ── -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4" style="background: linear-gradient(135deg, #0f172a, #1e1b4b, #311042); color: white;">
+        <div class="card-body p-4 p-lg-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-10 backdrop-blur mb-3 border border-white border-opacity-10">
+                        <i class="bi bi-shield-check text-warning"></i>
+                        <span class="small fw-semibold text-uppercase tracking-wider">Auxinzio Enterprise Team Hub</span>
+                    </div>
+                    <h1 class="display-5 fw-extrabold mb-2 font-heading text-white">Teams of Auxinzio</h1>
+                    <p class="lead text-white-50 mb-0">
+                        Empowering **Team Leaders** to assign & manage tasks, tracking completion reasons, and giving comments & appreciations to improve employee performance.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end d-flex flex-wrap gap-2 justify-content-lg-end">
+                    <button type="button" class="btn btn-warning btn-lg rounded-pill fw-bold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                        <i class="bi bi-plus-circle-fill me-2"></i> Create Team
+                    </button>
+                    <button type="button" class="btn btn-outline-light btn-lg rounded-pill fw-bold px-4 backdrop-blur" data-bs-toggle="modal" data-bs-target="#addLeaderReviewModal">
+                        <i class="bi bi-award-fill text-warning me-2"></i> Give Employee Review
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Summary Statistics Cards ── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background: rgba(124, 58, 237, 0.05); border: 1px solid rgba(124, 58, 237, 0.15) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold font-monospace" style="color: #7c3aed;">@totalTeams</div>
+                        <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;">Total Teams</div>
+                    </div>
+                    <div class="rounded-3 p-2 text-white" style="background: linear-gradient(135deg,#7c3aed,#4c1d95);">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.15) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold font-monospace" style="color: #3b82f6;">@totalLeaders</div>
+                        <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;">Team Leaders</div>
+                    </div>
+                    <div class="rounded-3 p-2 text-white" style="background: linear-gradient(135deg,#3b82f6,#1d4ed8);">
+                        <i class="bi bi-person-badge-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.15) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold font-monospace" style="color: #10b981;">@totalMembers</div>
+                        <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;">Employees</div>
+                    </div>
+                    <div class="rounded-3 p-2 text-white" style="background: linear-gradient(135deg,#10b981,#047857);">
+                        <i class="bi bi-diagram-3-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.15) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold font-monospace" style="color: #f59e0b;">@totalTasks</div>
+                        <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;">Assigned Tasks</div>
+                    </div>
+                    <div class="rounded-3 p-2 text-white" style="background: linear-gradient(135deg,#f59e0b,#b45309);">
+                        <i class="bi bi-kanban-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.15) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold font-monospace" style="color: #22c55e;">@completionRate%</div>
+                        <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;">Completed Rate</div>
+                    </div>
+                    <div class="rounded-3 p-2 text-white" style="background: linear-gradient(135deg,#22c55e,#15803d);">
+                        <i class="bi bi-check2-square fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-3" style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15) !important;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="fs-4 fw-bold font-monospace" style="color: #ef4444;">@incompleteTasks</div>
+                        <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;">Incomplete & Delayed</div>
+                    </div>
+                    <div class="rounded-3 p-2 text-white" style="background: linear-gradient(135deg,#ef4444,#b91c1c);">
+                        <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ── Teams Cards Grid ── -->
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 bg-body-tertiary rounded-4 shadow-sm my-4">
+            <i class="bi bi-people display-1 text-muted opacity-50 d-block mb-3"></i>
+            <h4 class="fw-bold text-secondary">No Teams Found</h4>
+            <p class="text-muted max-w-md mx-auto">Create the first team in Auxinzio and assign a Team Leader to start managing tasks.</p>
+            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                <i class="bi bi-plus-lg me-1"></i> Create First Team
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 mb-5 align-items-start">
+            @foreach (var team in Model)
+            {
+                var leader = team.TeamLeader;
+                var leaderInitials = leader != null && leader.Name.Length > 0 ? leader.Name[0].ToString().ToUpper() : "TL";
+                var leaderReviews = leader != null ? allReviews.Where(r => r.TeamLeaderId == leader.Id).ToList() : new List<TeamLeaderReview>();
+                double avgRating = leaderReviews.Any() ? Math.Round(leaderReviews.Average(r => r.Rating), 1) : 5.0;
+
+                <div class="col-12 col-xl-6">
+                    <div class="card border-0 shadow-sm rounded-4" id="team-card-@team.Id" style="border: 1px solid rgba(0,0,0,0.08) !important; transition: box-shadow 0.2s ease, transform 0.2s ease; max-height: 620px; display: flex; flex-direction: column;" onmouseenter="this.style.boxShadow='0 12px 32px rgba(0,0,0,0.13)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.boxShadow='';this.style.transform=''">
+                        <!-- Team Header -->
+                        <div class="card-header border-0 py-2 px-3 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #3b82f6 100%); border-bottom: none !important;">
+                            <div>
+                                <h4 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
+                                    <i class="bi bi-diagram-3 text-white-50"></i> @team.Name
+                                </h4>
+                                <p class="small text-white-50 mb-0" style="font-size:0.78rem;">@team.Description</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge rounded-pill fw-bold px-3 d-inline-flex align-items-center gap-1 shadow-sm" style="background: rgba(255,255,255,0.2); color: #ffffff !important; font-size: 0.8rem; letter-spacing: 0.02em; border: 1px solid rgba(255,255,255,0.35); backdrop-filter: blur(4px);">
+                                    <i class="bi bi-people-fill"></i> @team.Members.Count @(team.Members.Count == 1 ? "Employee" : "Employees")
+                                </span>
+                                <div class="dropdown">
+                                <button class="btn btn-sm btn-light btn-outline-white rounded-circle shadow-none opacity-75" type="button" data-bs-toggle="dropdown" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3">
+                                        <li>
+                                            <button class="dropdown-item small" type="button" onclick="openAssignLeaderModal(@team.Id, '@team.Name', @(team.TeamLeaderId ?? 0))">
+                                                <i class="bi bi-person-gear text-primary me-2"></i> Allocate Team Leader
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item small" type="button" onclick="openManageMembersModal(@team.Id, '@team.Name')">
+                                                <i class="bi bi-person-plus text-success me-2"></i> Manage Employees
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-action="DeleteTeam" method="post" onsubmit="return confirm('Are you sure you want to delete team @team.Name?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@team.Id" />
+                                                <button type="submit" class="dropdown-item small text-danger">
+                                                    <i class="bi bi-trash me-2"></i> Delete Team
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-3" style="overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(124,58,237,0.3) transparent; flex: 1;">
+                            <!-- Team Leader Profile Card -->
+                            <div class="p-2 rounded-3 mb-3" style="background: rgba(124, 58, 237, 0.04); border: 1px solid rgba(124, 58, 237, 0.12);">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 48px; height: 48px; background: linear-gradient(135deg, #7c3aed, #3b82f6); font-size: 1.2rem;">
+                                            @leaderInitials
+                                        </div>
+                                        <div>
+                                            <div class="small text-uppercase fw-bold text-purple tracking-wider" style="font-size:0.65rem;">Team Leader</div>
+                                            <h5 class="fw-bold mb-0 text-body">
+                                                @(leader != null ? leader.Name : "No Team Leader Assigned")
+                                            </h5>
+                                            <div class="small text-muted">
+                                                @(leader != null ? leader.Designation : "Pending Admin Allocation")
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        @if (leader != null)
+                                        {
+                                            <div class="d-flex align-items-center gap-1 text-warning fw-bold small">
+                                                <i class="bi bi-award-fill text-warning"></i>
+                                                <span class="text-muted fw-normal" style="font-size:0.75rem;">Leader Appreciations: @leaderReviews.Count</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 mt-1" style="font-size: 0.72rem;" onclick="openReviewLeaderModal(@leader.Id, '@leader.Name')">
+                                                <i class="bi bi-award me-1"></i> Give Review
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Employees in Team -->
+                            <div class="mb-2">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="fw-bold mb-0 text-body small text-uppercase tracking-wider">
+                                        <i class="bi bi-people-fill text-info me-1"></i> Team Members (@team.Members.Count)
+                                    </h6>
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openManageMembersModal(@team.Id, '@team.Name')">
+                                        <i class="bi bi-person-plus-fill me-1"></i> Manage Members
+                                    </button>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1" style="max-height: 64px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin;">
+                                    @if (!team.Members.Any())
+                                    {
+                                        <div class="small text-muted fst-italic">No employees assigned yet. Click 'Manage Members' to allocate team members.</div>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var m in team.Members)
+                                        {
+                                            var emp = m.Employee;
+                                            if (emp == null) continue;
+                                            var initials = emp.Name.Length > 0 ? emp.Name[0].ToString().ToUpper() : "?";
+
+                                            <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-body-tertiary border" style="font-size: 0.8rem;">
+                                                <span class="badge rounded-circle bg-secondary text-white" style="width: 22px; height: 22px; line-height: 14px; font-size: 0.65rem;">@initials</span>
+                                                <span class="fw-medium">@emp.Name</span>
+                                                <span class="text-muted" style="font-size:0.68rem;">(@emp.Designation)</span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Team Leader Tasks Board -->
+                            <div>
+                                @{
+                                    var teamMembersList = team.Members
+                                        .Where(m => m.Employee != null)
+                                        .Select(m => new { id = m.EmployeeId, name = m.Employee!.Name, designation = m.Employee.Designation ?? "Team Member" })
+                                        .ToList();
+
+                                    if (team.TeamLeader != null && !teamMembersList.Any(m => m.id == team.TeamLeaderId))
+                                    {
+                                        teamMembersList.Insert(0, new { id = team.TeamLeader.Id, name = team.TeamLeader.Name + " (Team Leader)", designation = team.TeamLeader.Designation ?? "Team Leader" });
+                                    }
+                                    var teamMembersJson = System.Text.Json.JsonSerializer.Serialize(teamMembersList);
+                                }
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <button class="btn btn-link p-0 text-decoration-none text-body fw-bold small text-uppercase tracking-wider d-flex align-items-center gap-1 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#assignedTasksCollapse-@team.Id" aria-expanded="true" aria-controls="assignedTasksCollapse-@team.Id">
+                                        <i class="bi bi-card-checklist text-success me-1"></i> Assigned Tasks (@team.TeamTasks.Count)
+                                        <i class="bi bi-chevron-down ms-1 text-muted small"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm" style="font-size: 0.82rem;" onclick='openAssignTaskModal(@team.Id, "@team.Name.Replace("\"", "\\\"")", @(team.TeamLeaderId ?? 0), @Html.Raw(teamMembersJson))'>
+                                        <i class="bi bi-plus-circle-fill me-1"></i> Assign Task
+                                    </button>
+                                </div>
+
+                                <div class="collapse show" id="assignedTasksCollapse-@team.Id">
+                                    @if (!team.TeamTasks.Any())
+                                    {
+                                        <div class="text-center py-4 text-muted bg-body-tertiary rounded-3 small">
+                                            <i class="bi bi-clipboard-x fs-4 d-block opacity-50 mb-1"></i>
+                                            No tasks assigned to this team yet. Team Leaders can assign tasks to employees above.
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex flex-column gap-3 pb-1">
+                                            @foreach (var task in team.TeamTasks.OrderByDescending(tk => tk.CreatedAt))
+                                            {
+                                                var isCompleted = task.Status == TeamTaskStatus.Completed;
+                                                var isOverdue = (task.EndDate.HasValue && task.EndDate.Value <= DateTime.Now) || (task.DueDate.HasValue && task.DueDate.Value <= DateTime.Now);
+                                                var isIncomplete = task.Status == TeamTaskStatus.NotCompleted || (isOverdue && !isCompleted);
+                                                var isInProgress = task.Status == TeamTaskStatus.InProgress;
+
+                                                <div class="rounded-3 border @(isIncomplete ? "border-danger border-opacity-25 bg-danger-subtle" : isCompleted ? "border-success border-opacity-25 bg-success-subtle" : "bg-body-tertiary")" style="padding: 10px 12px;">
+                                                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                            <span class="badge @(task.Priority == TaskPriority.Urgent ? "bg-danger" : task.Priority == TaskPriority.High ? "bg-warning text-dark" : "bg-info")" style="font-size: 0.7rem;">
+                                                                @task.Priority Priority
+                                                            </span>
+                                                            <span class="badge @(isCompleted ? "bg-success" : isIncomplete ? "bg-danger" : isInProgress ? "bg-primary" : "bg-secondary")" style="font-size: 0.7rem;">
+                                                                @(isOverdue && !isCompleted ? "Overdue (Incomplete)" : task.Status.ToString())
+                                                            </span>
+                                                            @if (!string.IsNullOrEmpty(task.TaskDurationType))
+                                                            {
+                                                                <span class="badge bg-purple-subtle text-purple fw-bold" style="font-size: 0.7rem;">
+                                                                    <i class="bi bi-clock me-1"></i> @task.TaskDurationType
+                                                                </span>
+                                                            }
+                                                            @if (task.Project != null)
+                                                            {
+                                                                <span class="badge bg-info-subtle text-info fw-bold" style="font-size: 0.7rem;">
+                                                                    <i class="bi bi-folder2-open me-1"></i> @task.Project.ProjectName
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                        <form asp-action="DeleteTask" method="post" class="d-inline" onsubmit="return confirm('Delete task @task.Title?');">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@task.Id" />
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle border-0 p-1" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;" title="Delete Task">
+                                                                <i class="bi bi-trash fs-6"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+
+                                                    <h6 class="fw-bold mb-1 text-body" style="font-size: 0.95rem; line-height: 1.4;">@task.Title</h6>
+                                                    <p class="text-muted mb-2" style="font-size: 0.82rem; line-height: 1.5;">@task.Description</p>
+
+                                                    <div class="d-flex flex-wrap text-muted mb-2" style="font-size: 0.75rem; row-gap: 4px; column-gap: 12px; line-height: 1.5;">
+                                                        <div>
+                                                            <i class="bi bi-person-fill text-primary me-1"></i> Assigned To: <strong>@(task.AssignedToEmployee != null ? task.AssignedToEmployee.Name : "Employee")</strong>
+                                                        </div>
+                                                        <div>
+                                                            <i class="bi bi-person-badge text-purple me-1"></i> By Leader: <strong>@(task.AssignedByLeader != null ? task.AssignedByLeader.Name : "Leader")</strong>
+                                                        </div>
+                                                        @if (task.StartDate.HasValue)
+                                                        {
+                                                            <div>
+                                                                <i class="bi bi-clock text-info me-1"></i> Start: <strong>@task.StartDate.Value.ToString("MMM dd, h:mm tt")</strong>
+                                                            </div>
+                                                        }
+                                                        @if (task.EndDate.HasValue)
+                                                        {
+                                                            <div>
+                                                                <i class="bi bi-clock-history text-danger me-1"></i> End: <strong>@task.EndDate.Value.ToString("MMM dd, h:mm tt")</strong>
+                                                            </div>
+                                                        }
+                                                        else if (task.DueDate.HasValue)
+                                                        {
+                                                            <div>
+                                                                <i class="bi bi-calendar-event text-warning me-1"></i> Due: @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                                            </div>
+                                                        }
+                                                    </div>
+
+                                                    <!-- Incomplete Reason Warning Box -->
+                                                    @if (isIncomplete && !string.IsNullOrEmpty(task.IncompleteReason))
+                                                    {
+                                                        <div class="mt-2 mb-2 p-2 rounded-3 bg-white border border-danger border-opacity-50 text-danger small">
+                                                            <strong><i class="bi bi-exclamation-triangle-fill me-1"></i> Reason for Non-Completion:</strong>
+                                                            <p class="mb-0 text-dark mt-1" style="font-size:0.78rem;">@task.IncompleteReason</p>
+                                                        </div>
+                                                    }
+
+                                                    <!-- Team Leader Suggestion / Guidance Box -->
+                                                    @if (!string.IsNullOrEmpty(task.LeaderSuggestion))
+                                                    {
+                                                        <div class="mt-2 mb-2 p-2 rounded-3 bg-primary bg-opacity-10 border border-primary border-opacity-50 text-primary small">
+                                                            <strong><i class="bi bi-lightbulb-fill me-1"></i> Team Leader Suggestion / Guidance:</strong>
+                                                            <p class="mb-0 text-dark mt-1" style="font-size:0.78rem;">@task.LeaderSuggestion</p>
+                                                        </div>
+                                                    }
+
+                                                    <!-- Prominent Quick Action Buttons Bar -->
+                                                    <div class="d-flex flex-wrap align-items-center gap-2 pt-2 mt-2 border-top border-secondary border-opacity-15">
+                                                        <span class="text-muted fw-bold me-1" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Actions:
+                                                        </span>
+                                                        @if (isCompleted)
+                                                        {
+                                                            <button class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openReviewTaskModal(@(task.AssignedByLeaderId ?? team.TeamLeaderId ?? 0), @task.AssignedToEmployeeId, @task.Id, '@task.Title.Replace("'", "\\'")')">
+                                                                <i class="bi bi-star-fill text-warning me-1"></i> Review &amp; Remove Task
+                                                            </button>
+                                                        }
+                                                        @if (isIncomplete)
+                                                        {
+                                                            <button class="btn btn-sm btn-danger rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openProvideJustificationModal(@task.Id, '@task.Title.Replace("'", "\\'")', '@(task.IncompleteReason != null ? task.IncompleteReason.Replace("'", "\\'") : "")')">
+                                                                <i class="bi bi-chat-left-dots-fill me-1"></i> Justification
+                                                            </button>
+                                                            @if (isAdmin || (team.TeamLeaderId.HasValue && currentEmployeeId.HasValue && team.TeamLeaderId.Value == currentEmployeeId.Value))
+                                                        {
+                                                            <button class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openGrantExtraTimeModal(@task.Id, '@task.Title.Replace("'", "\\'")', '@(task.EndDate.HasValue ? task.EndDate.Value.ToString("yyyy-MM-ddTHH:mm") : "")', '@(task.LeaderSuggestion?.Replace("'", "\\'") ?? "")')">
+                                                                <i class="bi bi-clock-history me-1"></i> Extra Time / Suggestion
+                                                            </button>
+                                                        }
+                                                        }
+                                                        <button class="btn btn-sm btn-dark rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openUpdateStatusModal(@task.Id, '@task.Title.Replace("'", "\\'")', @((int)task.Status), '@(task.IncompleteReason != null ? task.IncompleteReason.Replace("'", "\\'") : "")')">
+                                                            <i class="bi bi-arrow-repeat me-1"></i> Update Status
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ── Incomplete & Overdue Tasks List Section (Employee Justification) ── -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5" id="incomplete-tasks-section">
+        <div class="card-header border-0 py-3 px-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: linear-gradient(135deg, #7f1d1d, #991b1b, #450a0a);">
+            <div>
+                <h4 class="fw-bold mb-1 text-white font-heading d-flex align-items-center gap-2 flex-wrap">
+                    <i class="bi bi-exclamation-octagon-fill text-warning"></i> Incomplete &amp; Overdue Tasks List
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem;">
+                        <i class="bi bi-shield-exclamation me-1"></i> Requires Employee Justification (@incompleteTasksList.Count)
+                    </span>
+                </h4>
+                <p class="small text-white-50 mb-0">Tasks where end time has elapsed without completion, or marked incomplete. Employees must provide delay justification.</p>
+            </div>
+        </div>
+
+        <div class="card-body p-4 bg-body-tertiary">
+            @if (!incompleteTasksList.Any())
+            {
+                <div class="text-center py-4 text-muted small">
+                    <i class="bi bi-check-circle-fill fs-3 d-block text-success opacity-75 mb-1"></i>
+                    <strong>All assigned tasks are on track or completed!</strong> No incomplete or overdue tasks pending justification.
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var task in incompleteTasksList)
+                    {
+                        var taskOverdue = (task.EndDate.HasValue && task.EndDate.Value <= DateTime.Now) || (task.DueDate.HasValue && task.DueDate.Value <= DateTime.Now);
+                        var hasReason = !string.IsNullOrWhiteSpace(task.IncompleteReason);
+
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white border-danger border-opacity-25" style="border-left: 4px solid #ef4444 !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge bg-danger text-white fw-bold rounded-pill px-2.5">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> @(taskOverdue ? "End Time Overdue" : "Not Completed")
+                                    </span>
+                                    <span class="badge @(task.Priority == TaskPriority.Urgent ? "bg-danger" : task.Priority == TaskPriority.High ? "bg-warning text-dark" : "bg-info")" style="font-size: 0.65rem;">
+                                        @task.Priority Priority
+                                    </span>
+                                </div>
+
+                                <h6 class="fw-bold mb-1 text-body">@task.Title</h6>
+                                <p class="small text-muted mb-2" style="font-size: 0.8rem; line-height: 1.4;">@task.Description</p>
+
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 text-muted mb-3" style="font-size: 0.72rem;">
+                                    <div><i class="bi bi-person-fill text-primary me-1"></i> Employee: <strong>@(task.AssignedToEmployee != null ? task.AssignedToEmployee.Name : "Employee")</strong></div>
+                                    <div><i class="bi bi-person-badge text-purple me-1"></i> Leader: <strong>@(task.AssignedByLeader != null ? task.AssignedByLeader.Name : "Leader")</strong></div>
+                                    @if (task.EndDate.HasValue)
+                                    {
+                                        <div class="text-danger fw-semibold"><i class="bi bi-clock-history me-1"></i> End: @task.EndDate.Value.ToString("MMM dd, h:mm tt")</div>
+                                    }
+                                </div>
+
+                                @if (hasReason)
+                                {
+                                    <div class="p-2.5 rounded-3 bg-danger-subtle border border-danger border-opacity-25 text-dark small mb-2">
+                                        <strong class="text-danger d-block mb-1" style="font-size:0.75rem;"><i class="bi bi-chat-left-text-fill me-1"></i> Employee Justification Note:</strong>
+                                        <div style="font-size:0.8rem; line-height: 1.4;">"@task.IncompleteReason"</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="p-2 rounded-3 bg-warning bg-opacity-10 border border-warning text-dark small mb-2" style="font-size: 0.75rem;">
+                                        <i class="bi bi-exclamation-circle-fill text-warning me-1"></i> End time passed without task completion. Employee justification required.
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(task.LeaderSuggestion))
+                                {
+                                    <div class="p-2.5 rounded-3 bg-primary-subtle border border-primary border-opacity-25 text-dark small mb-2">
+                                        <strong class="text-primary d-block mb-1" style="font-size:0.75rem;"><i class="bi bi-lightbulb-fill me-1"></i> Team Leader Suggestion / Guidance:</strong>
+                                        <div style="font-size:0.8rem; line-height: 1.4;">"@task.LeaderSuggestion"</div>
+                                    </div>
+                                }
+
+                                <div class="d-flex gap-2 mt-auto pt-3 border-top border-danger border-opacity-15">
+                                    @if (hasReason)
+                                    {
+                                        <button class="btn btn-sm btn-danger rounded-pill px-3 py-2 fw-bold flex-fill shadow-sm" style="font-size: 0.82rem;" onclick="openProvideJustificationModal(@task.Id, '@task.Title.Replace("'", "\\'")', '@(task.IncompleteReason?.Replace("'", "\\'") ?? "")')">
+                                            <i class="bi bi-pencil-square me-1"></i> Justification
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-danger rounded-pill px-3 py-2 fw-bold flex-fill shadow-sm" style="font-size: 0.82rem;" onclick="openProvideJustificationModal(@task.Id, '@task.Title.Replace("'", "\\'")', '')">
+                                            <i class="bi bi-chat-left-dots-fill me-1"></i> Justification
+                                        </button>
+                                    }
+                                    @if (isAdmin || (task.Team != null && task.Team.TeamLeaderId.HasValue && currentEmployeeId.HasValue && task.Team.TeamLeaderId.Value == currentEmployeeId.Value))
+                                    {
+                                        <button class="btn btn-sm btn-primary rounded-pill px-3 py-2 fw-bold flex-fill shadow-sm" style="font-size: 0.82rem;" onclick="openGrantExtraTimeModal(@task.Id, '@task.Title.Replace("'", "\\'")', '@(task.EndDate.HasValue ? task.EndDate.Value.ToString("yyyy-MM-ddTHH:mm") : "")', '@(task.LeaderSuggestion?.Replace("'", "\\'") ?? "")')">
+                                            <i class="bi bi-clock-history me-1"></i> Extra Time
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ── Leader Appreciation & Employee Reviews Wall Section (12-Hour Active Cycle) ── -->
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="card-header border-0 py-3 px-4 text-white d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: linear-gradient(135deg, #1e1b4b, #311042);">
+            <div>
+                <h4 class="fw-bold mb-1 text-white font-heading d-flex align-items-center gap-2 flex-wrap">
+                    <i class="bi bi-award-fill text-warning"></i> Employee Performance & Leader Appreciation Wall
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem;">
+                        <i class="bi bi-clock-history me-1"></i> Active 12-Hour Cycle
+                    </span>
+                </h4>
+                <p class="small text-white-50 mb-0">Showing task completion reviews and employee appreciations submitted within the last 12 hours. Automatically updates every 12 hours for fresh shift achievements.</p>
+            </div>
+            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold px-3" data-bs-toggle="modal" data-bs-target="#addLeaderReviewModal">
+                <i class="bi bi-plus-circle-fill me-1"></i> Give Appreciation & Review
+            </button>
+        </div>
+
+        <div class="card-body p-4 bg-body-tertiary">
+            @if (!allReviews.Any())
+            {
+                <div class="text-center py-4 text-muted small">
+                    <i class="bi bi-clock-history fs-3 d-block opacity-50 mb-1 text-warning"></i>
+                    <strong>No task reviews or appreciations submitted in the last 12 hours.</strong>
+                    <div class="mt-1">Complete a task and click 'Review &amp; Remove' or 'Give Appreciation' to feature on today's wall!</div>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var rev in allReviews)
+                    {
+                        var leaderName = rev.TeamLeader != null ? rev.TeamLeader.Name : rev.LeaderName;
+                        var empName = rev.Employee != null ? rev.Employee.Name : rev.EmployeeName;
+                        var timeSpan = DateTime.UtcNow - rev.CreatedAt;
+                        string timeAgo = timeSpan.TotalMinutes < 60
+                            ? $"{Math.Max(1, (int)timeSpan.TotalMinutes)}m ago"
+                            : $"{Math.Floor(timeSpan.TotalHours)}h ago";
+
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-3">
+                                        <i class="bi bi-person-fill me-1"></i> Employee: @empName
+                                    </span>
+                                    <span class="text-warning fw-bold">
+                                        @for (int i = 1; i <= 5; i++) { <span>@(i <= rev.Rating ? "★" : "☆")</span> }
+                                    </span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(rev.Category))
+                                {
+                                    <div class="mb-2">
+                                        <span class="badge bg-warning-subtle text-warning-emphasis fw-semibold" style="font-size:0.75rem;">@rev.Category</span>
+                                    </div>
+                                }
+                                <p class="small text-body mb-3" style="line-height: 1.5; font-size: 0.85rem;">"@rev.Comments"</p>
+                                <div class="d-flex align-items-center justify-content-between text-muted border-top pt-2" style="font-size: 0.73rem;">
+                                    <div><i class="bi bi-person-badge-fill text-purple me-1"></i> By Team Leader: <strong>@leaderName</strong></div>
+                                    <div class="badge bg-light text-secondary border fw-normal" style="font-size:0.68rem;"><i class="bi bi-clock me-1 text-warning"></i> @timeAgo</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     MODALS
+============================================================ -->
+
+<!-- 1. Create Team Modal -->
+<div class="modal fade" id="createTeamModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #1e1b4b, #7c3aed);">
+                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-people-fill me-2"></i> Create New Auxinzio Team</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="CreateTeam" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Team Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Frontend Innovators, Backend Architects" required maxlength="150" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Description</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Briefly describe the team's mission and scope..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Assign Team Leader</label>
+                        <select name="teamLeaderId" class="form-select">
+                            <option value="">-- Select Team Leader (Optional) --</option>
+                            @foreach (var emp in allEmployees)
+                            {
+                                <option value="@emp.Id">@emp.Name (@emp.Designation)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4">Create Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Assign Team Leader Modal -->
+<div class="modal fade" id="assignLeaderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #1e1b4b, #3b82f6);">
+                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-person-gear me-2"></i> Allocate Team Leader</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AssignLeader" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="teamId" id="assignLeaderTeamId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Team:</label>
+                        <div id="assignLeaderTeamName" class="fw-bold fs-5 text-purple mb-3">-</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Select Employee as Team Leader <span class="text-danger">*</span></label>
+                        <select name="teamLeaderId" id="assignLeaderSelect" class="form-select" required>
+                            <option value="">-- Select Employee --</option>
+                            @foreach (var emp in allEmployees)
+                            {
+                                <option value="@emp.Id">@emp.Name (@emp.Designation)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4">Save Allocation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Manage Team Members Modal -->
+<div class="modal fade" id="manageMembersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #1e1b4b, #10b981);">
+                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-person-plus-fill me-2"></i> Manage Team Employees</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AddTeamMember" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="teamId" id="manageMembersTeamId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Team:</label>
+                        <div id="manageMembersTeamName" class="fw-bold fs-5 text-success mb-3">-</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Add Employee to Team <span class="text-danger">*</span></label>
+                        <select name="employeeId" class="form-select" required>
+                            <option value="">-- Select Employee to Assign --</option>
+                            @foreach (var emp in allEmployees)
+                            {
+                                <option value="@emp.Id">@emp.Name (@emp.Designation - @emp.Department)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4">Add Member</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Assign Task Modal (Team Leader) -->
+<div class="modal fade" id="assignTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #0f172a, #10b981);">
+                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-card-checklist me-2"></i> Team Leader: Assign Task to Employee</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AssignTask" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="teamId" id="assignTaskTeamId" />
+                <input type="hidden" name="assignedByLeaderId" id="assignTaskLeaderId" />
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small">Target Employee <span class="text-danger">*</span></label>
+                            <select name="assignedToEmployeeId" id="assignTaskEmployeeSelect" class="form-select" required>
+                                <option value="">-- Select Team Member --</option>
+                            </select>
+                            <div class="form-text text-muted" style="font-size: 0.7rem;"><i class="bi bi-shield-check text-success me-1"></i> Showing allocated members for this team only.</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small">Priority</label>
+                            <select name="priority" class="form-select">
+                                <option value="0">Low</option>
+                                <option value="1" selected>Medium</option>
+                                <option value="2">High</option>
+                                <option value="3">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small">Shifts <span class="text-danger">*</span></label>
+                            <select name="taskDurationType" id="assignTaskDurationSelect" class="form-select fw-semibold border-primary" onchange="autoFillShiftTimes(this.value)">
+                                <option value="Full Day" selected>🌅 Full Day</option>
+                                <option value="First Half">☀️ First Half</option>
+                                <option value="Second Half">🌙 Second Half</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small">Project <span class="text-muted">(Optional)</span></label>
+                            <select name="projectId" class="form-select">
+                                <option value="">-- Select Project --</option>
+                                @foreach (var proj in allProjects)
+                                {
+                                    <option value="@proj.Id">@proj.ProjectName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Task Title <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control" placeholder="e.g. Implement Glassmorphism Dashboard Cards" required maxlength="200" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Task Description <span class="text-danger">*</span></label>
+                            <textarea name="description" class="form-control" rows="3" placeholder="Provide detailed task requirements and deliverables..." required></textarea>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small">Start Time / Date</label>
+                            <input type="datetime-local" name="startDate" class="form-control" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small">End Time / Target Completion</label>
+                            <input type="datetime-local" name="endDate" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4">Assign Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 5. Update Task Status & Report Non-Completion Reason Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #1e1b4b, #f59e0b);">
+                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-arrow-repeat me-2"></i> Update Task Status</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="UpdateTaskStatus" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="taskId" id="updateStatusTaskId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Task Title:</label>
+                        <div id="updateStatusTaskTitle" class="fw-bold text-body mb-2">-</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Select New Status <span class="text-danger">*</span></label>
+                        <select name="status" id="statusSelect" class="form-select" onchange="toggleIncompleteReasonBox()" required>
+                            <option value="0">Pending</option>
+                            <option value="1">In Progress</option>
+                            <option value="2">Completed</option>
+                            <option value="3">Not Completed (Delayed / Blocked)</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic Non-Completion Reason Textarea -->
+                    <div class="mb-3" id="incompleteReasonContainer" style="display: none;">
+                        <label class="form-label fw-semibold small text-danger">Reason for Non-Completion <span class="text-danger">*</span></label>
+                        <textarea name="incompleteReason" id="incompleteReasonInput" class="form-control border-danger" rows="3" placeholder="Explain why the task was not completed (e.g., dependency blockage, technical issue, scope change)..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning fw-bold rounded-pill px-4">Save Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@{
+    var teamLeadersOnly = Model
+        .Where(t => t.TeamLeader != null)
+        .Select(t => t.TeamLeader!)
+        .GroupBy(e => e.Id)
+        .Select(g => g.First())
+        .OrderBy(e => e.Name)
+        .ToList();
+
+    if (!teamLeadersOnly.Any())
+    {
+        teamLeadersOnly = allEmployees;
+    }
+
+    var leaderMembersDict = new Dictionary<int, List<object>>();
+    foreach (var team in Model)
+    {
+        if (team.TeamLeaderId.HasValue)
+        {
+            var leaderId = team.TeamLeaderId.Value;
+            if (!leaderMembersDict.ContainsKey(leaderId))
+            {
+                leaderMembersDict[leaderId] = new List<object>();
+            }
+            foreach (var m in team.Members)
+            {
+                if (m.Employee != null && !leaderMembersDict[leaderId].Any(x => ((dynamic)x).id == m.Employee.Id))
+                {
+                    leaderMembersDict[leaderId].Add(new {
+                        id = m.Employee.Id,
+                        name = m.Employee.Name,
+                        designation = m.Employee.Designation ?? "Team Member",
+                        department = m.Employee.Department ?? "Engineering"
+                    });
+                }
+            }
+        }
+    }
+    var leaderMembersJson = System.Text.Json.JsonSerializer.Serialize(leaderMembersDict);
+    var allEmployeesJson = System.Text.Json.JsonSerializer.Serialize(allEmployees.Select(e => new { id = e.Id, name = e.Name, designation = e.Designation ?? "Employee", department = e.Department ?? "Engineering" }));
+}
+
+<!-- 6. Give Employee Review & Appreciation Modal (Team Leaders Only) -->
+<div class="modal fade" id="addLeaderReviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #1e1b4b, #7c3aed);">
+                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-award-fill text-warning me-2"></i> Review Employee & Give Appreciation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AddLeaderReview" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="taskId" id="reviewTaskId" value="" />
+                <div class="modal-body p-4">
+                    <div class="p-3 mb-3 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-25 text-dark small">
+                        <i class="bi bi-shield-check text-warning me-1"></i> <strong>Team Leader Exclusive:</strong> Select Team Leader to load their allocated team employees, then submit feedback and appreciations.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Team Leader (Reviewer / Giving Appreciation) <span class="text-danger">*</span></label>
+                        <select name="teamLeaderId" id="reviewLeaderSelect" class="form-select" onchange="onReviewLeaderChanged()" required>
+                            <option value="">-- Select Team Leader --</option>
+                            @foreach (var leader in teamLeadersOnly)
+                            {
+                                <option value="@leader.Id">@leader.Name (@leader.Designation)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Target Employee (Recipient) <span class="text-danger">*</span></label>
+                        <select name="employeeId" id="reviewEmployeeSelect" class="form-select" required disabled>
+                            <option value="">-- Select Team Leader First --</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small">Appreciation Category</label>
+                            <select name="category" class="form-select">
+                                <option value="🌟 Outstanding Performance & Praise">🌟 Outstanding Performance</option>
+                                <option value="🚀 Key Achievement & Milestone">🚀 Key Achievement</option>
+                                <option value="💡 Growth Guidance & Constructive Feedback">💡 Growth Guidance</option>
+                                <option value="🎯 Quality & Dedication Excellence">🎯 Quality Excellence</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold small">Star Rating <span class="text-danger">*</span></label>
+                            <select name="rating" class="form-select" required>
+                                <option value="5" selected>★★★★★ (5 Stars - Exceptional)</option>
+                                <option value="4">★★★★☆ (4 Stars - Great Work)</option>
+                                <option value="3">★★★☆☆ (3 Stars - Good)</option>
+                                <option value="2">★★☆☆☆ (2 Stars - Needs Improvement)</option>
+                                <option value="1">★☆☆☆☆ (1 Star - Below Expectations)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Comments & Appreciation Notes <span class="text-danger">*</span></label>
+                        <textarea name="comments" class="form-control" rows="3" placeholder="Write constructive feedback, appreciation notes, or praise to motivate and improve employee performance..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning fw-bold rounded-pill px-4"><i class="bi bi-send-fill me-1"></i> Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 7. Provide Incomplete Task Justification Modal -->
+<div class="modal fade" id="provideJustificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #7f1d1d, #ef4444);">
+                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-chat-left-dots-fill me-2"></i> Provide Task Justification</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="ProvideJustification" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="taskId" id="justificationTaskId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Task Title:</label>
+                        <div id="justificationTaskTitle" class="fw-bold text-danger fs-6 mb-2">-</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-danger">Employee Delay Justification / Reason <span class="text-danger">*</span></label>
+                        <textarea name="justificationReason" id="justificationReasonInput" class="form-control border-danger" rows="4" placeholder="Explain the reasons why the task was not completed by the end time (e.g. dependency blockage, technical issue, scope change, server downtime)..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger fw-bold rounded-pill px-4"><i class="bi bi-send-fill me-1"></i> Submit Justification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 8. Grant Extra Time & Leader Suggestion Modal -->
+<div class="modal fade" id="grantExtraTimeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #1e1b4b, #2563eb);">
+                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-clock-history me-2"></i> Team Leader: Grant Extra Time &amp; Suggestion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="GrantExtraTime" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="taskId" id="extraTimeTaskId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Task Title:</label>
+                        <div id="extraTimeTaskTitle" class="fw-bold text-primary fs-6 mb-2">-</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">New Extended End Time / Date</label>
+                        <input type="datetime-local" name="newEndDate" id="extraTimeEndDateInput" class="form-control border-primary border-opacity-50" />
+                        <small class="text-muted d-block mt-1" style="font-size:0.75rem;"><i class="bi bi-info-circle me-1"></i> Setting a future end time will extend task deadline and allow employee to resume work.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-primary">Team Leader Suggestion / Guidance / Feedback</label>
+                        <textarea name="leaderSuggestion" id="extraTimeSuggestionInput" class="form-control border-primary border-opacity-50" rows="4" placeholder="Provide helpful suggestion, guidance, technical tips, or resolution steps for the employee..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4"><i class="bi bi-check-circle-fill me-1"></i> Save Extra Time &amp; Suggestion</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const leaderMembersMap = @Html.Raw(leaderMembersJson);
+    const allEmployeesList = @Html.Raw(allEmployeesJson);
+
+    function openProvideJustificationModal(taskId, title, reason) {
+        document.getElementById('justificationTaskId').value = taskId;
+        document.getElementById('justificationTaskTitle').textContent = title;
+        document.getElementById('justificationReasonInput').value = reason || '';
+        new bootstrap.Modal(document.getElementById('provideJustificationModal')).show();
+    }
+
+    function openGrantExtraTimeModal(taskId, title, currentEndDate, suggestion) {
+        document.getElementById('extraTimeTaskId').value = taskId;
+        document.getElementById('extraTimeTaskTitle').textContent = title;
+        document.getElementById('extraTimeEndDateInput').value = currentEndDate || '';
+        document.getElementById('extraTimeSuggestionInput').value = suggestion || '';
+        new bootstrap.Modal(document.getElementById('grantExtraTimeModal')).show();
+    }
+
+    function onReviewLeaderChanged() {
+        const leaderSelect = document.getElementById('reviewLeaderSelect');
+        const empSelect = document.getElementById('reviewEmployeeSelect');
+        const selectedLeaderId = parseInt(leaderSelect.value) || 0;
+
+        empSelect.innerHTML = '';
+
+        if (!selectedLeaderId) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '-- Select Team Leader First --';
+            empSelect.appendChild(opt);
+            empSelect.disabled = true;
+            return;
+        }
+
+        const members = leaderMembersMap[selectedLeaderId];
+
+        if (members && members.length > 0) {
+            empSelect.disabled = false;
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '-- Select Team Member / Employee --';
+            empSelect.appendChild(defaultOpt);
+
+            members.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = `${m.name} (${m.designation} - ${m.department})`;
+                empSelect.appendChild(opt);
+            });
+        } else {
+            empSelect.disabled = false;
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '-- Select Employee --';
+            empSelect.appendChild(defaultOpt);
+
+            allEmployeesList.forEach(e => {
+                if (e.id !== selectedLeaderId) {
+                    const opt = document.createElement('option');
+                    opt.value = e.id;
+                    opt.textContent = `${e.name} (${e.designation} - ${e.department})`;
+                    empSelect.appendChild(opt);
+                }
+            });
+        }
+    }
+
+    function openAssignLeaderModal(teamId, teamName, currentLeaderId) {
+        document.getElementById('assignLeaderTeamId').value = teamId;
+        document.getElementById('assignLeaderTeamName').textContent = teamName;
+        if (currentLeaderId > 0) {
+            document.getElementById('assignLeaderSelect').value = currentLeaderId;
+        }
+        new bootstrap.Modal(document.getElementById('assignLeaderModal')).show();
+    }
+
+    function openManageMembersModal(teamId, teamName) {
+        document.getElementById('manageMembersTeamId').value = teamId;
+        document.getElementById('manageMembersTeamName').textContent = teamName;
+        new bootstrap.Modal(document.getElementById('manageMembersModal')).show();
+    }
+
+    function openAssignTaskModal(teamId, teamName, leaderId, members) {
+        document.getElementById('assignTaskTeamId').value = teamId;
+        document.getElementById('assignTaskLeaderId').value = leaderId;
+
+        const select = document.getElementById('assignTaskEmployeeSelect');
+        select.innerHTML = '';
+
+        if (!members || members.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '-- No members allocated to this team yet (Allocate employees first) --';
+            select.appendChild(opt);
+            select.disabled = true;
+        } else {
+            select.disabled = false;
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '-- Select Team Member --';
+            select.appendChild(defaultOpt);
+
+            members.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = `${m.name} (${m.designation})`;
+                select.appendChild(opt);
+            });
+        }
+
+        const durationSelect = document.getElementById('assignTaskDurationSelect');
+        if (durationSelect) {
+            durationSelect.value = 'Full Day';
+            autoFillShiftTimes('Full Day');
+        }
+
+        new bootstrap.Modal(document.getElementById('assignTaskModal')).show();
+    }
+
+    function autoFillShiftTimes(duration) {
+        const startDateInput = document.querySelector('#assignTaskModal input[name="startDate"]');
+        const endDateInput = document.querySelector('#assignTaskModal input[name="endDate"]');
+        if (!startDateInput || !endDateInput) return;
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const datePrefix = `${year}-${month}-${day}`;
+
+        if (duration === 'First Half') {
+            startDateInput.value = `${datePrefix}T09:00`;
+            endDateInput.value = `${datePrefix}T13:30`;
+        } else if (duration === 'Second Half') {
+            startDateInput.value = `${datePrefix}T13:30`;
+            endDateInput.value = `${datePrefix}T18:00`;
+        } else {
+            startDateInput.value = `${datePrefix}T09:00`;
+            endDateInput.value = `${datePrefix}T18:00`;
+        }
+    }
+
+    function openUpdateStatusModal(taskId, title, status, reason) {
+        document.getElementById('updateStatusTaskId').value = taskId;
+        document.getElementById('updateStatusTaskTitle').textContent = title;
+        document.getElementById('statusSelect').value = status;
+        document.getElementById('incompleteReasonInput').value = reason || '';
+        toggleIncompleteReasonBox();
+        new bootstrap.Modal(document.getElementById('updateStatusModal')).show();
+    }
+
+    function toggleIncompleteReasonBox() {
+        const statusVal = document.getElementById('statusSelect').value;
+        const container = document.getElementById('incompleteReasonContainer');
+        const input = document.getElementById('incompleteReasonInput');
+        // 3 is NotCompleted
+        if (statusVal === '3') {
+            container.style.display = 'block';
+            input.setAttribute('required', 'required');
+        } else {
+            container.style.display = 'none';
+            input.removeAttribute('required');
+        }
+    }
+
+    function openReviewLeaderModal(leaderId, leaderName) {
+        document.getElementById('reviewTaskId').value = '';
+        if (leaderId > 0) {
+            const leaderSelect = document.getElementById('reviewLeaderSelect');
+            leaderSelect.value = leaderId;
+            onReviewLeaderChanged();
+        }
+        new bootstrap.Modal(document.getElementById('addLeaderReviewModal')).show();
+    }
+
+    function openReviewTaskModal(leaderId, employeeId, taskId, taskTitle) {
+        document.getElementById('reviewTaskId').value = taskId;
+        const leaderSelect = document.getElementById('reviewLeaderSelect');
+        if (leaderId > 0) {
+            leaderSelect.value = leaderId;
+            onReviewLeaderChanged();
+        }
+        const empSelect = document.getElementById('reviewEmployeeSelect');
+        if (employeeId > 0) {
+            empSelect.value = employeeId;
+        }
+        const commentsBox = document.querySelector('#addLeaderReviewModal textarea[name="comments"]');
+        if (commentsBox) {
+            commentsBox.value = `Great performance on completing task: "${taskTitle}". Outstanding craftsmanship and timely delivery!`;
+        }
+        new bootstrap.Modal(document.getElementById('addLeaderReviewModal')).show();
+    }
+</script>
+}

@@ -1,0 +1,315 @@
+@model IEnumerable<CompanyTaskManagement.Models.Project>
+@inject CompanyTaskManagement.Services.IUserSessionService UserSession
+
+@{
+    ViewData["Title"] = "Projects Portfolio";
+    var projectList = Model?.ToList() ?? new List<CompanyTaskManagement.Models.Project>();
+    var isAdmin = UserSession.IsAdmin();
+    var isHr = UserSession.IsHr();
+    var isEmployee = UserSession.IsEmployee();
+    var selectedStatus = ViewBag.SelectedStatus as string ?? "all";
+    var search = ViewBag.Search as string ?? "";
+}
+
+<!-- Notification Alerts -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill fs-5 text-success"></i>
+        <div class="fw-semibold">@TempData["Success"]</div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+        <div class="fw-semibold">@TempData["Error"]</div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Page Header & Actions -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="h2 fw-bold mb-0">Projects Portfolio</h1>
+        </div>
+        <p class="text-muted mb-0">High-level management of enterprise deliverables, milestones, client accounts, and lead allocations.</p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        @if (isAdmin)
+        {
+            <!-- Admin-Only: Add Project Button -->
+            <a asp-action="Create" class="btn btn-royal-gold d-flex align-items-center gap-2 shadow-sm">
+                <i class="bi bi-plus-lg"></i>
+                <span class="fw-bold">Add Project</span>
+                <span class="badge bg-danger text-white rounded-pill ms-1 small" style="font-size: 0.65rem;">Admin Only</span>
+            </a>
+        }
+        else
+        {
+            <div class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill d-flex align-items-center gap-1.5 border">
+                <i class="bi bi-lock-fill"></i>
+                <span>Creation Restricted to Admin</span>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Executive Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number text-gold">@ViewBag.TotalProjects</div>
+                <div class="stat-label">Total Projects</div>
+            </div>
+            <div class="stat-icon stat-icon-amber">
+                <i class="bi bi-kanban-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number text-sky">@ViewBag.InProgressCount</div>
+                <div class="stat-label">In Active Execution</div>
+            </div>
+            <div class="stat-icon stat-icon-sky">
+                <i class="bi bi-gear-wide-connected"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number text-emerald">@ViewBag.CompletedCount</div>
+                <div class="stat-label">Delivered &amp; Complete</div>
+            </div>
+            <div class="stat-icon stat-icon-emerald">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number text-amethyst">₹@(((decimal)ViewBag.TotalBudget).ToString("N0"))</div>
+                <div class="stat-label">Portfolio Budget</div>
+            </div>
+            <div class="stat-icon stat-icon-amethyst">
+                <i class="bi bi-currency-rupee"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Filter & Search Bar -->
+<div class="card border-0 shadow-sm mb-4 p-3 glass-card">
+    <form method="get" asp-action="Index" class="row g-2 align-items-center">
+        <div class="col-12 col-lg-8">
+            <div class="d-flex flex-wrap gap-1">
+                <a asp-action="Index" asp-route-status="all" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "all" ? "btn-royal-gold shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3">
+                    All (@ViewBag.TotalProjects)
+                </a>
+                <a asp-action="Index" asp-route-status="In Progress" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "in progress" ? "btn-info text-white shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3">
+                    <i class="bi bi-play-circle me-1"></i> In Progress (@ViewBag.InProgressCount)
+                </a>
+                <a asp-action="Index" asp-route-status="Planning" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "planning" ? "btn-primary text-white shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3">
+                    <i class="bi bi-compass me-1"></i> Planning (@ViewBag.PlanningCount)
+                </a>
+                <a asp-action="Index" asp-route-status="Completed" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "completed" ? "btn-success shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3">
+                    <i class="bi bi-check-circle-fill me-1"></i> Completed (@ViewBag.CompletedCount)
+                </a>
+                <a asp-action="Index" asp-route-status="On Hold" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "on hold" ? "btn-warning text-dark shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3">
+                    <i class="bi bi-pause-circle me-1"></i> On Hold (@ViewBag.OnHoldCount)
+                </a>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="input-group input-group-sm rounded-pill overflow-hidden border shadow-sm bg-body p-0.5">
+                <input type="hidden" name="status" value="@selectedStatus" />
+                <span class="input-group-text bg-transparent border-0 ps-3 pe-2"><i class="bi bi-search text-primary"></i></span>
+                <input type="text" name="search" value="@search" class="form-control border-0 shadow-none ps-0" placeholder="Search project, client..." />
+                <button class="btn btn-royal-gold rounded-pill px-3 fw-medium" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Projects Grid -->
+@if (!projectList.Any())
+{
+    <div class="glass-card p-5 text-center rounded-4 shadow-sm border">
+        <i class="bi bi-kanban text-muted display-4 mb-3"></i>
+        <h5 class="fw-bold">No Projects Found</h5>
+        <p class="text-muted mb-3">No project matching the selected filters was found in the portfolio.</p>
+        @if (isAdmin)
+        {
+            <div>
+                <a asp-action="Create" class="btn btn-royal-gold px-4 py-2">
+                    <i class="bi bi-plus-circle me-1"></i> Create First Project
+                </a>
+            </div>
+        }
+    </div>
+}
+else
+{
+    var taskStats = ViewBag.ProjectTaskStats as Dictionary<int, (int Total, int Completed)>;
+
+    <div class="row g-4">
+        @foreach (var p in projectList)
+        {
+            var statusSlug = (p.Status ?? "In Progress").ToLower().Replace(" ", "-");
+            var accentClass = statusSlug switch {
+                "in-progress" => "accent-in-progress",
+                "planning" => "accent-planning",
+                "completed" => "accent-completed",
+                _ => "accent-on-hold"
+            };
+
+            var statusBadgeClass = statusSlug switch {
+                "completed" => "status-completed",
+                "in-progress" => "status-inprogress",
+                "planning" => "status-inreview",
+                _ => "status-todo"
+            };
+
+            var priorityClass = p.Priority == "Critical" ? "priority-urgent" :
+                                p.Priority == "High" ? "priority-high" :
+                                p.Priority == "Medium" ? "priority-medium" : "priority-low";
+
+            var totalTasks = 0;
+            var completedTasks = 0;
+            if (taskStats != null && taskStats.ContainsKey(p.Id))
+            {
+                totalTasks = taskStats[p.Id].Total;
+                completedTasks = taskStats[p.Id].Completed;
+            }
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="project-card-premium h-100">
+                    <!-- Status Top Accent Stripe -->
+                    <div class="project-card-top-accent @accentClass"></div>
+
+                    <div class="p-4 d-flex flex-column flex-grow-1">
+                        <!-- Top Header: Company Pill, Priority & Status Badges -->
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                            <span class="company-badge-chip shadow-2xs">
+                                <i class="bi bi-buildings text-sky"></i>
+                                <span>@(string.IsNullOrWhiteSpace(p.ClientCompany) ? "Internal / Global" : p.ClientCompany)</span>
+                            </span>
+                            <div class="d-flex align-items-center gap-1.5">
+                                <span class="priority-badge @priorityClass">@p.Priority</span>
+                                <span class="status-pill @statusBadgeClass">@p.Status</span>
+                            </div>
+                        </div>
+
+                        <!-- Project Title & Description -->
+                        <h4 class="fw-bold mb-2">
+                            <a asp-action="Details" asp-route-id="@p.Id" class="task-title-link fs-5 text-decoration-none">
+                                <i class="bi bi-folder2-open text-sky me-1.5 opacity-90"></i>@p.ProjectName
+                            </a>
+                        </h4>
+
+                        <p class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.55; font-size: 0.86rem;">
+                            @(string.IsNullOrWhiteSpace(p.Description) ? "No detailed project brief provided." : p.Description)
+                        </p>
+
+                        @if (totalTasks > 0)
+                        {
+                            var pct = (int)Math.Round((double)completedTasks * 100 / totalTasks);
+                            <div class="mb-3.5 p-2.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-10">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5" style="font-size: 0.78rem;">
+                                    <span class="text-muted fw-bold"><i class="bi bi-check2-all me-1 text-sky"></i>Task Progress</span>
+                                    <span class="fw-bold text-sky">@completedTasks/@totalTasks (@pct%)</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background-color: rgba(226, 232, 240, 0.8); border-radius: 10px;">
+                                    <div class="progress-bar bg-sky rounded-pill" role="progressbar" style="width: @pct%;" aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Project Metadata Grid (Clean, High-Contrast & Beautiful Fonts) -->
+                        <div class="project-meta-grid mb-3.5">
+                            <div class="row g-2.5">
+                                <!-- Lead Manager -->
+                                <div class="col-6">
+                                    <span class="project-meta-label">Lead Manager</span>
+                                    <div class="project-meta-value d-flex align-items-center gap-1.5 text-truncate">
+                                        <i class="bi bi-person-circle text-sky fs-6"></i>
+                                        <span class="text-truncate">@(string.IsNullOrWhiteSpace(p.LeadManagerName) ? "Unassigned" : p.LeadManagerName)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Budget Allocation -->
+                                <div class="col-6">
+                                    <span class="project-meta-label">Budget Allocation</span>
+                                    <div class="project-meta-value text-gold d-flex align-items-center gap-1">
+                                        @if (p.Budget.HasValue)
+                                        {
+                                            <i class="bi bi-currency-rupee text-gold"></i>
+                                            <span>@p.Budget.Value.ToString("N0")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fw-semibold" style="font-size: 0.82rem;">Flexible / TBD</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Target Deadline -->
+                                <div class="col-6">
+                                    <span class="project-meta-label">Target Deadline</span>
+                                    <div class="project-meta-value d-flex align-items-center gap-1.5 text-truncate">
+                                        <i class="bi bi-calendar-event text-amber"></i>
+                                        <span>@(p.TargetEndDate.HasValue ? p.TargetEndDate.Value.ToString("MMM dd, yyyy") : "Open Ended")</span>
+                                    </div>
+                                </div>
+
+                                <!-- Created Date -->
+                                <div class="col-6">
+                                    <span class="project-meta-label">Created Date</span>
+                                    <div class="project-meta-value text-secondary d-flex align-items-center gap-1.5 text-truncate">
+                                        <i class="bi bi-clock-history text-muted"></i>
+                                        <span>@p.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Controls -->
+                        <div class="d-flex align-items-center justify-content-between pt-3 border-top border-secondary border-opacity-15 mt-auto">
+                            <a asp-action="Details" asp-route-id="@p.Id" class="btn-project-overview text-decoration-none">
+                                <span>View Project Hub</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+
+                            @if (isAdmin)
+                            {
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-action-custom rounded-circle" title="Edit Project">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete project \'@p.ProjectName\'?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-action-custom text-danger rounded-circle" title="Delete Project">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

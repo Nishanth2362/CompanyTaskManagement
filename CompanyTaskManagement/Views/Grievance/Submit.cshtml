@@ -1,0 +1,410 @@
+@model CompanyTaskManagement.Models.HrComplaint
+
+@{
+    ViewData["Title"] = "File Confidential Grievance - HR Portal";
+    var employees = ViewBag.Employees as List<CompanyTaskManagement.Models.Employee> ?? new List<CompanyTaskManagement.Models.Employee>();
+}
+
+<style>
+    .submit-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e293b 100%);
+        border-radius: 18px;
+        padding: 2rem 2.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(148,163,184,0.12);
+    }
+    .submit-hero::after {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 220px; height: 220px;
+        background: radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .form-card {
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 20px;
+        padding: 2rem 2.5rem;
+    }
+    .section-title {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1.5px solid var(--border-subtle);
+    }
+    .section-title i { color: #f59e0b; font-size: 1rem; }
+
+    .form-control, .form-select {
+        border-radius: 12px !important;
+        border: 1.5px solid var(--border-subtle) !important;
+        background: var(--bg-surface-secondary) !important;
+        color: var(--text-main) !important;
+        font-size: 0.88rem !important;
+        padding: 0.65rem 1rem !important;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #f59e0b !important;
+        box-shadow: 0 0 0 3px rgba(245,158,11,0.15) !important;
+        outline: none !important;
+    }
+    .form-label {
+        font-size: 0.8rem !important;
+        font-weight: 700 !important;
+        color: var(--text-secondary) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px !important;
+    }
+
+    .anon-toggle-card {
+        background: linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(99,102,241,0.06) 100%);
+        border: 1.5px solid rgba(168,85,247,0.2);
+        border-radius: 16px;
+        padding: 1.2rem 1.4rem;
+    }
+    .form-check-input[type=checkbox]:checked { background-color: #a855f7 !important; border-color: #a855f7 !important; }
+    .form-check-input.form-switch { width: 2.8em !important; height: 1.5em !important; }
+
+    .privacy-box {
+        background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(251,191,36,0.05));
+        border: 1.5px solid rgba(245,158,11,0.25);
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+    }
+    .attach-zone {
+        background: var(--bg-surface-secondary);
+        border: 2px dashed var(--border-medium);
+        border-radius: 14px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+    }
+    .attach-zone:hover { border-color: #f59e0b; background: rgba(245,158,11,0.04); }
+    .attach-zone input[type=file] { border: none !important; background: transparent !important; padding: 0 !important; font-size: 0.84rem; }
+
+    .btn-submit-grievance {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: #fff;
+        border: none;
+        border-radius: 14px;
+        padding: 14px 36px;
+        font-weight: 800;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.25s ease;
+        box-shadow: 0 6px 20px rgba(245,158,11,0.35);
+    }
+    .btn-submit-grievance:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(245,158,11,0.45); color: #fff; }
+
+    .info-card {
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 1.4rem;
+    }
+    .step-item {
+        display: flex;
+        gap: 0.9rem;
+        align-items: flex-start;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+    .step-item:last-child { border-bottom: none; }
+    .step-num {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .severity-selector {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .severity-option { display: none; }
+    .severity-label {
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 12px;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex; align-items: center; gap: 8px;
+        font-size: 0.82rem; font-weight: 700;
+        background: var(--bg-surface-secondary);
+        color: var(--text-secondary);
+    }
+    .severity-option:checked + .severity-label { border-color: #f59e0b; background: rgba(245,158,11,0.1); color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.12); }
+    .severity-option[value=Urgent]:checked + .severity-label { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+    .severity-option[value=High]:checked + .severity-label   { border-color: #f59e0b; background: rgba(245,158,11,0.1); color: #d97706; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
+    .severity-option[value=Low]:checked + .severity-label    { border-color: #94a3b8; background: rgba(148,163,184,0.1); color: #94a3b8; box-shadow: 0 0 0 3px rgba(148,163,184,0.08); }
+    .severity-label:hover { border-color: var(--border-medium); transform: translateY(-1px); }
+</style>
+
+<!-- Hero breadcrumb -->
+<div class="submit-hero mb-4">
+    <div class="position-relative" style="z-index: 2;">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb small mb-0" style="background: none; padding: 0;">
+                <li class="breadcrumb-item"><a asp-action="Index" class="text-warning-50 text-decoration-none opacity-75"><i class="bi bi-shield-lock me-1"></i>HR Grievance Portal</a></li>
+                <li class="breadcrumb-item active text-white-50">Submit Confidential Complaint</li>
+            </ol>
+        </nav>
+        <h1 class="text-white fw-bold mb-1" style="font-size: 1.6rem; font-family: 'Outfit', sans-serif;">
+            <i class="bi bi-envelope-plus-fill text-warning me-2"></i>File a Confidential Grievance
+        </h1>
+        <p class="text-white-50 mb-0" style="font-size: 0.85rem;">Your submission is encrypted and routed directly to Executive HR leadership for confidential investigation.</p>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <!-- Main Form -->
+    <div class="col-12 col-lg-8">
+        <div class="form-card">
+            <!-- Privacy Guarantee -->
+            <div class="privacy-box mb-4 d-flex align-items-start gap-3">
+                <i class="bi bi-shield-check text-warning fs-4 flex-shrink-0"></i>
+                <div class="small">
+                    <strong class="text-warning">Zero Retaliation &amp; Privacy Policy:</strong>
+                    <span class="text-secondary"> AUXINZ.io guarantees complete confidentiality for all submitted grievances. Submit anonymously or provide details so HR can follow up privately.</span>
+                </div>
+            </div>
+
+            <form asp-action="Submit" method="post" enctype="multipart/form-data" id="grievanceForm">
+                @Html.AntiForgeryToken()
+
+                <!-- Anonymous Toggle -->
+                <div class="anon-toggle-card mb-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-bold d-flex align-items-center gap-2" style="font-size: 0.92rem;">
+                                <i class="bi bi-incognito text-purple" style="color: #c084fc;"></i>
+                                Submit Anonymously
+                            </div>
+                            <small class="text-secondary" style="font-size: 0.78rem;">Your name, email, and identity will not be attached to this complaint ticket.</small>
+                        </div>
+                        <div class="form-check form-switch m-0 p-0">
+                            <input class="form-check-input" type="checkbox" role="switch" asp-for="IsAnonymous" id="isAnonymousSwitch" style="width: 3em; height: 1.6em; cursor: pointer; margin: 0;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submitter Identity -->
+                <div class="section-title">
+                    <i class="bi bi-person-badge-fill"></i> Your Identity
+                </div>
+                <div id="submitterIdentitySection" class="row g-3 mb-4">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Select Employee Profile <span class="text-muted fw-normal">(Optional)</span></label>
+                        <select asp-for="EmployeeId" class="form-select" id="employeeSelect">
+                            <option value="">— I am an Employee / Intern —</option>
+                            @foreach (var emp in employees)
+                            {
+                                <option value="@emp.Id">@emp.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="SubmitterName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input asp-for="SubmitterName" id="inputSubmitterName" class="form-control" placeholder="e.g. Karthikeyan R." />
+                        <span asp-validation-for="SubmitterName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="SubmitterEmail" class="form-label">Contact Email</label>
+                        <input asp-for="SubmitterEmail" type="email" class="form-control" placeholder="employee@auxinz.io" />
+                        <span asp-validation-for="SubmitterEmail" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Department" class="form-label">Department / Domain</label>
+                        <input asp-for="Department" class="form-control" placeholder="e.g. Engineering, QA, Internship 2026" />
+                        <span asp-validation-for="Department" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Classification -->
+                <div class="section-title">
+                    <i class="bi bi-tags-fill"></i> Grievance Classification
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-7">
+                        <label asp-for="Category" class="form-label">Category <span class="text-danger">*</span></label>
+                        <select asp-for="Category" class="form-select">
+                            <option value="Workplace Environment">Workplace Environment &amp; Facilities</option>
+                            <option value="Workload & Deadlines">Workload, Deadlines &amp; Stress</option>
+                            <option value="Interpersonal Conflict">Interpersonal / Team Conflict</option>
+                            <option value="Internship Experience">Internship Learning &amp; Mentorship</option>
+                            <option value="Compensation & Payroll">Compensation, Stipend &amp; Benefits</option>
+                            <option value="Technical & Hardware Issue">Technical, Server &amp; Equipment</option>
+                            <option value="Harassment & Conduct">Harassment, Conduct or Policy Breach</option>
+                            <option value="Process & Management">Process, Direction &amp; Leadership</option>
+                            <option value="General Feedback">General Constructive Feedback</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label">Severity / Urgency <span class="text-danger">*</span></label>
+                        <div class="severity-selector">
+                            <div>
+                                <input type="radio" asp-for="Priority" value="Low" id="sev-low" class="severity-option" />
+                                <label for="sev-low" class="severity-label w-100">
+                                    <i class="bi bi-arrow-down-circle-fill" style="color: #94a3b8;"></i> Low
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" asp-for="Priority" value="Medium" id="sev-medium" class="severity-option" checked />
+                                <label for="sev-medium" class="severity-label w-100">
+                                    <i class="bi bi-dash-circle-fill" style="color: #6366f1;"></i> Medium
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" asp-for="Priority" value="High" id="sev-high" class="severity-option" />
+                                <label for="sev-high" class="severity-label w-100">
+                                    <i class="bi bi-arrow-up-circle-fill" style="color: #f59e0b;"></i> High
+                                </label>
+                            </div>
+                            <div>
+                                <input type="radio" asp-for="Priority" value="Urgent" id="sev-urgent" class="severity-option" />
+                                <label for="sev-urgent" class="severity-label w-100">
+                                    <i class="bi bi-exclamation-octagon-fill" style="color: #ef4444;"></i> Urgent
+                                </label>
+                            </div>
+                        </div>
+                        <input type="hidden" asp-for="Priority" id="priorityHidden" />
+                    </div>
+                </div>
+
+                <!-- Subject -->
+                <div class="section-title">
+                    <i class="bi bi-chat-square-text-fill"></i> Grievance Details
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Subject" class="form-label">Subject / Headline <span class="text-danger">*</span></label>
+                    <input asp-for="Subject" class="form-control" style="font-size: 1rem !important; padding: 0.8rem 1rem !important; font-weight: 600;" placeholder="Brief summary of the issue or concern..." maxlength="200" />
+                    <span asp-validation-for="Subject" class="text-danger small"></span>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <label asp-for="Description" class="form-label">Detailed Description &amp; Incident Particulars <span class="text-danger">*</span></label>
+                    <textarea asp-for="Description" class="form-control" rows="6" placeholder="Please describe the issue thoroughly. Include dates, circumstances, impact on your work, and any desired outcomes or resolutions..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <!-- Attachment -->
+                <div class="attach-zone mb-4">
+                    <label class="form-label d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-paperclip" style="color: #f59e0b; font-size: 1.1rem;"></i>
+                        Supporting Document / Screenshot <span class="text-muted fw-normal">(Optional)</span>
+                    </label>
+                    <input type="file" name="attachmentFile" class="form-control" accept=".jpg,.jpeg,.png,.pdf,.docx,.txt" />
+                    <small class="text-secondary d-block mt-2" style="font-size: 0.75rem;"><i class="bi bi-info-circle me-1"></i>Supported: PNG, JPG, PDF, DOCX (Max 10MB)</small>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex align-items-center justify-content-between pt-3" style="border-top: 1.5px solid var(--border-subtle);">
+                    <a asp-action="Index" class="btn btn-outline-secondary d-flex align-items-center gap-2" style="border-radius: 12px;">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn-submit-grievance">
+                        <i class="bi bi-send-fill"></i>
+                        <span>Submit Grievance to HR</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Info Panel -->
+    <div class="col-12 col-lg-4">
+        <div class="info-card mb-3">
+            <div class="fw-bold mb-3 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+                <i class="bi bi-shield-check text-success"></i> How HR Handles Your Ticket
+            </div>
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="small">
+                    <strong class="d-block" style="font-size: 0.82rem;">Immediate Routing</strong>
+                    <span class="text-secondary">Transmitted directly to HR director inbox within seconds.</span>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="small">
+                    <strong class="d-block" style="font-size: 0.82rem;">Confidential Assessment</strong>
+                    <span class="text-secondary">HR representative reviews details discreetly within 24 business hours.</span>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="small">
+                    <strong class="d-block" style="font-size: 0.82rem;">Resolution Plan</strong>
+                    <span class="text-secondary">Appropriate actions and neutral mediation are initiated.</span>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="small">
+                    <strong class="d-block" style="font-size: 0.82rem;">Feedback &amp; Closure</strong>
+                    <span class="text-secondary">Status is updated with resolution notes visible to you.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="fw-bold mb-2 d-flex align-items-center gap-2" style="font-size: 0.9rem;">
+                <i class="bi bi-telephone-inbound-fill text-warning"></i> Urgent HR Contact
+            </div>
+            <p class="small text-secondary mb-2" style="font-size: 0.8rem;">If you require immediate personal assistance or emergency support:</p>
+            <div class="p-3 rounded-3 text-center" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);">
+                <i class="bi bi-envelope-fill text-warning me-1"></i>
+                <strong class="font-monospace" style="font-size: 0.88rem; color: #f59e0b;">hr@auxinz.io</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const anonymousSwitch = document.getElementById('isAnonymousSwitch');
+            const identitySection = document.getElementById('submitterIdentitySection');
+            const employeeSelect  = document.getElementById('employeeSelect');
+            const inputName       = document.getElementById('inputSubmitterName');
+
+            function toggleIdentity() {
+                if (anonymousSwitch.checked) {
+                    identitySection.style.opacity = '0.3';
+                    identitySection.style.pointerEvents = 'none';
+                } else {
+                    identitySection.style.opacity = '1';
+                    identitySection.style.pointerEvents = 'auto';
+                }
+            }
+            if (anonymousSwitch) { anonymousSwitch.addEventListener('change', toggleIdentity); toggleIdentity(); }
+
+            if (employeeSelect && inputName) {
+                employeeSelect.addEventListener('change', function() {
+                    const txt = employeeSelect.options[employeeSelect.selectedIndex].text;
+                    if (employeeSelect.value) inputName.value = txt;
+                });
+            }
+        });
+    </script>
+}

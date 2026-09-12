@@ -1,0 +1,426 @@
+@model IEnumerable<CompanyTaskManagement.Models.HrComplaint>
+
+@{
+    ViewData["Title"] = "HR Confidential Grievance Portal";
+    var complaintList = Model?.ToList() ?? new List<CompanyTaskManagement.Models.HrComplaint>();
+    var currentFilter = ViewBag.CurrentFilter as string ?? "all";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var selectedCategory = ViewBag.SelectedCategory as string;
+    var search = ViewBag.Search as string;
+}
+
+<style>
+    .grievance-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #1a1040 100%);
+        border-radius: 20px;
+        padding: 2.5rem;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+        border: 1px solid rgba(148,163,184,0.12);
+    }
+    .grievance-hero::before {
+        content: '';
+        position: absolute;
+        top: -80px; right: -80px;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(239,68,68,0.18) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .grievance-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: -60px;
+        width: 240px; height: 240px;
+        background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .grievance-hero-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #f8fafc 0%, #fbbf24 80%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+    .gstat-card {
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 1.25rem 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .gstat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+    .gstat-icon {
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+    .gstat-icon-red   { background: rgba(239,68,68,0.12);  color: #ef4444; }
+    .gstat-icon-amber { background: rgba(251,191,36,0.12);  color: #f59e0b; }
+    .gstat-icon-violet{ background: rgba(167,139,250,0.12); color: #a78bfa; }
+    .gstat-icon-green { background: rgba(34,197,94,0.12);   color: #22c55e; }
+    .gstat-number { font-size: 2rem; font-weight: 800; line-height: 1; font-family: 'Outfit', sans-serif; }
+    .gstat-label  { font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); font-weight: 600; margin-top: 2px; }
+
+    .filter-toolbar {
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .filter-pill { border-radius: 50px !important; padding: 5px 16px !important; font-size: 0.8rem !important; font-weight: 700 !important; border: 1.5px solid transparent; transition: all 0.2s ease; }
+    .filter-pill.active-amber  { background: linear-gradient(135deg, #f59e0b, #d97706) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(245,158,11,0.35); }
+    .filter-pill.active-coral  { background: linear-gradient(135deg, #f87171, #dc2626) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
+    .filter-pill.active-violet { background: linear-gradient(135deg, #a78bfa, #7c3aed) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(139,92,246,0.35); }
+    .filter-pill.active-green  { background: linear-gradient(135deg, #4ade80, #16a34a) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(34,197,94,0.35); }
+    .filter-pill.inactive { background: var(--bg-surface-secondary) !important; color: var(--text-secondary) !important; border-color: var(--border-subtle) !important; }
+    .filter-pill:hover { transform: translateY(-1px); }
+
+    .ticket-row {
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-subtle);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .ticket-row::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 4px;
+        border-radius: 4px 0 0 4px;
+    }
+    .ticket-row.priority-urgent::before { background: #ef4444; }
+    .ticket-row.priority-high::before   { background: #f59e0b; }
+    .ticket-row.priority-medium::before { background: #6366f1; }
+    .ticket-row.priority-low::before    { background: #94a3b8; }
+    .ticket-row:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.1); border-color: var(--border-medium); }
+
+    .ticket-number-badge {
+        background: rgba(251,191,36,0.12);
+        color: #f59e0b;
+        border: 1px solid rgba(251,191,36,0.3);
+        font-family: 'JetBrains Mono', 'Courier New', monospace;
+        font-weight: 700;
+        font-size: 0.78rem;
+        padding: 3px 10px;
+        border-radius: 6px;
+    }
+    .priority-chip-urgent { background: rgba(239,68,68,0.12);  color: #ef4444;  border: 1px solid rgba(239,68,68,0.25);  border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .priority-chip-high   { background: rgba(245,158,11,0.12); color: #d97706;  border: 1px solid rgba(245,158,11,0.25); border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .priority-chip-medium { background: rgba(99,102,241,0.12); color: #818cf8;  border: 1px solid rgba(99,102,241,0.25); border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .priority-chip-low    { background: rgba(148,163,184,0.1); color: #94a3b8;  border: 1px solid rgba(148,163,184,0.2); border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .status-chip-resolved    { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25);  border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .status-chip-investigating{ background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.25); border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .status-chip-review      { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .status-chip-submitted   { background: rgba(148,163,184,0.12);color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .status-chip-dismissed   { background: rgba(239,68,68,0.08);  color: #f87171; border: 1px solid rgba(239,68,68,0.2);  border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 700; }
+    .category-chip { background: var(--bg-surface-secondary); color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 50px; padding: 2px 12px; font-size: 0.73rem; font-weight: 600; }
+    .anon-chip { background: rgba(168,85,247,0.1); color: #c084fc; border: 1px solid rgba(168,85,247,0.2); border-radius: 50px; padding: 2px 10px; font-size: 0.71rem; font-weight: 700; }
+
+    .ticket-subject-link {
+        color: var(--text-main);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.05rem;
+        line-height: 1.3;
+        transition: color 0.2s;
+    }
+    .ticket-subject-link:hover { color: #f59e0b; }
+    .btn-review-case {
+        background: var(--bg-surface-secondary);
+        border: 1.5px solid var(--border-medium);
+        color: var(--text-main);
+        border-radius: 10px;
+        padding: 7px 18px;
+        font-size: 0.83rem;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-review-case:hover {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border-color: transparent;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(245,158,11,0.35);
+    }
+    .empty-state-card {
+        background: var(--bg-surface);
+        border: 1.5px dashed var(--border-subtle);
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+    .confidential-seal {
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(168,85,247,0.15));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        border: 2px solid rgba(239,68,68,0.25);
+    }
+    .btn-file-grievance {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 28px;
+        font-weight: 700;
+        font-size: 0.92rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        box-shadow: 0 6px 20px rgba(245,158,11,0.35);
+    }
+    .btn-file-grievance:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(245,158,11,0.45); color: #fff; }
+</style>
+
+<!-- HERO BANNER -->
+<div class="grievance-hero mb-4">
+    <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+        <div class="col-12 col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge" style="background: rgba(239,68,68,0.2); color:#f87171; border: 1px solid rgba(239,68,68,0.3); border-radius: 50px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700;">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Strict Confidentiality
+                </span>
+                <span class="badge" style="background: rgba(251,191,36,0.15); color:#fbbf24; border: 1px solid rgba(251,191,36,0.3); border-radius: 50px; padding: 5px 14px; font-size: 0.75rem; font-weight: 700; font-family: monospace;">
+                    HR Private Channel
+                </span>
+            </div>
+            <div class="grievance-hero-title mb-2">HR Grievance &amp;<br>Personal Complaints Portal</div>
+            <p class="text-white-50 mb-0" style="font-size: 0.9rem; max-width: 520px; line-height: 1.6;">
+                A safe, confidential environment for employees and interns to express concerns, resolve workplace conflicts, or report sensitive issues directly to Executive HR.
+            </p>
+        </div>
+        <div class="col-12 col-lg-5 text-lg-end d-flex align-items-center justify-content-lg-end gap-3">
+            <div class="text-center text-lg-end">
+                <a asp-action="Submit" class="btn-file-grievance">
+                    <i class="bi bi-envelope-plus-fill"></i>
+                    <span>File Confidential Grievance</span>
+                </a>
+                <div class="mt-2 text-white-50" style="font-size: 0.73rem;"><i class="bi bi-lock-fill me-1"></i>End-to-end encrypted submission</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm mb-4 rounded-3" role="alert">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div>@TempData["Success"]</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="gstat-card">
+            <div class="gstat-icon gstat-icon-amber"><i class="bi bi-folder2-open"></i></div>
+            <div>
+                <div class="gstat-number text-gold">@ViewBag.AllCount</div>
+                <div class="gstat-label">Total Tickets</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="gstat-card">
+            <div class="gstat-icon gstat-icon-red"><i class="bi bi-hourglass-split"></i></div>
+            <div>
+                <div class="gstat-number" style="color:#f87171;">@ViewBag.SubmittedCount</div>
+                <div class="gstat-label">Pending Review</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="gstat-card">
+            <div class="gstat-icon gstat-icon-violet"><i class="bi bi-search"></i></div>
+            <div>
+                <div class="gstat-number" style="color:#a78bfa;">@ViewBag.InReviewCount</div>
+                <div class="gstat-label">Investigating</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="gstat-card">
+            <div class="gstat-icon gstat-icon-green"><i class="bi bi-patch-check-fill"></i></div>
+            <div>
+                <div class="gstat-number" style="color:#4ade80;">@ViewBag.ResolvedCount</div>
+                <div class="gstat-label">Resolved &amp; Closed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FILTER TOOLBAR -->
+<div class="filter-toolbar">
+    <form method="get" asp-action="Index">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <!-- Status pills -->
+            <div class="d-flex flex-wrap gap-1 flex-grow-1">
+                <a asp-action="Index" asp-route-filter="all" asp-route-category="@selectedCategory"
+                   class="btn filter-pill @(currentFilter == "all" ? "active-amber" : "inactive")">
+                    <i class="bi bi-grid-3x3-gap me-1"></i> All (@ViewBag.AllCount)
+                </a>
+                <a asp-action="Index" asp-route-filter="submitted" asp-route-category="@selectedCategory"
+                   class="btn filter-pill @(currentFilter == "submitted" ? "active-coral" : "inactive")">
+                    <i class="bi bi-hourglass-split me-1"></i> New (@ViewBag.SubmittedCount)
+                </a>
+                <a asp-action="Index" asp-route-filter="inreview" asp-route-category="@selectedCategory"
+                   class="btn filter-pill @(currentFilter == "inreview" ? "active-violet" : "inactive")">
+                    <i class="bi bi-search me-1"></i> In Review (@ViewBag.InReviewCount)
+                </a>
+                <a asp-action="Index" asp-route-filter="resolved" asp-route-category="@selectedCategory"
+                   class="btn filter-pill @(currentFilter == "resolved" ? "active-green" : "inactive")">
+                    <i class="bi bi-check-circle me-1"></i> Resolved (@ViewBag.ResolvedCount)
+                </a>
+                <a asp-action="Index" asp-route-filter="urgent" asp-route-category="@selectedCategory"
+                   class="btn filter-pill @(currentFilter == "urgent" ? "active-coral" : "inactive")">
+                    <i class="bi bi-exclamation-octagon-fill me-1"></i> Urgent (@ViewBag.UrgentCount)
+                </a>
+            </div>
+
+            <!-- Category + Search -->
+            <div class="d-flex gap-2">
+                <select name="category" class="form-select form-select-sm" onchange="this.form.submit()" style="min-width: 180px; border-radius: 10px; font-weight: 600; font-size: 0.82rem;">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in categories)
+                    {
+                        <option value="@cat" selected="@(selectedCategory == cat)">@cat</option>
+                    }
+                </select>
+                <div class="input-group input-group-sm rounded-pill overflow-hidden border shadow-sm bg-body p-0.5" style="min-width: 240px;">
+                    <span class="input-group-text bg-transparent border-0 ps-3 pe-2"><i class="bi bi-search text-warning"></i></span>
+                    <input type="text" name="search" value="@search" class="form-control border-0 shadow-none ps-0" style="font-size: 0.82rem;" placeholder="Search subject, ticket #..." />
+                    @if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(selectedCategory))
+                    {
+                        <a asp-action="Index" class="btn border-0 bg-transparent text-muted pe-1" title="Clear Filters"><i class="bi bi-x-circle-fill"></i></a>
+                    }
+                    <button class="btn btn-warning text-dark fw-bold rounded-pill px-3" type="submit">Search</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- TICKET LIST -->
+@if (!complaintList.Any())
+{
+    <div class="empty-state-card">
+        <div class="confidential-seal"><i class="bi bi-shield-check"></i></div>
+        <h4 class="fw-bold mb-2">No Grievance Cases Found</h4>
+        <p class="text-muted mb-4">No complaint tickets match your current filter or search criteria.</p>
+        <a asp-action="Submit" class="btn-file-grievance">
+            <i class="bi bi-plus-circle"></i> Submit a Confidential Grievance
+        </a>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-column gap-3">
+        @foreach (var item in complaintList)
+        {
+            var rowClass = item.Priority == "Urgent" ? "priority-urgent" :
+                           item.Priority == "High"   ? "priority-high"   :
+                           item.Priority == "Medium" ? "priority-medium"  : "priority-low";
+
+            var priorityChip = item.Priority == "Urgent" ? "priority-chip-urgent" :
+                               item.Priority == "High"   ? "priority-chip-high"   :
+                               item.Priority == "Medium" ? "priority-chip-medium"  : "priority-chip-low";
+
+            var statusChip = item.Status == "Resolved"        ? "status-chip-resolved"     :
+                             item.Status == "In Investigation" ? "status-chip-investigating" :
+                             item.Status == "Under Review"     ? "status-chip-review"        :
+                             item.Status == "Dismissed"        ? "status-chip-dismissed"     : "status-chip-submitted";
+
+            <div class="ticket-row @rowClass">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
+                    <div class="flex-grow-1">
+                        <!-- Badges Row -->
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <span class="ticket-number-badge"><i class="bi bi-ticket-perforated-fill me-1"></i>#@item.TicketNumber</span>
+                            <span class="@priorityChip">@item.Priority</span>
+                            <span class="@statusChip">@item.Status</span>
+                            <span class="category-chip"><i class="bi bi-tag-fill me-1"></i>@item.Category</span>
+                            @if (item.IsAnonymous)
+                            {
+                                <span class="anon-chip"><i class="bi bi-incognito me-1"></i>Anonymous</span>
+                            }
+                        </div>
+
+                        <!-- Subject -->
+                        <a asp-action="Details" asp-route-id="@item.Id" class="ticket-subject-link d-block mb-2">
+                            @item.Subject
+                        </a>
+
+                        <!-- Description preview -->
+                        <p class="text-secondary small mb-3" style="max-width: 800px; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                            @item.Description
+                        </p>
+
+                        <!-- Meta row -->
+                        <div class="d-flex flex-wrap align-items-center gap-3" style="font-size: 0.78rem; color: var(--text-secondary);">
+                            <span>
+                                <i class="bi bi-person-fill me-1 text-primary opacity-75"></i>
+                                @if (item.IsAnonymous)
+                                {
+                                    <em>Anonymous</em>
+                                }
+                                else
+                                {
+                                    <strong>@(item.SubmitterName ?? item.Employee?.Name ?? "Employee")</strong>
+                                    @if (!string.IsNullOrWhiteSpace(item.Department))
+                                    {
+                                        <span> · @item.Department</span>
+                                    }
+                                }
+                            </span>
+                            <span><i class="bi bi-clock-history me-1 opacity-75"></i>@item.CreatedAt.ToString("MMM dd, yyyy · hh:mm tt")</span>
+                            @if (!string.IsNullOrWhiteSpace(item.AttachmentPath))
+                            {
+                                <span class="text-info"><i class="bi bi-paperclip me-1"></i>Attachment</span>
+                            }
+                            @if (item.ResolvedAt.HasValue)
+                            {
+                                <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Resolved @item.ResolvedAt.Value.ToString("MMM dd, yyyy")</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Action -->
+                    <div class="flex-shrink-0">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn-review-case">
+                            <i class="bi bi-folder2-open"></i>
+                            <span>Review Case</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

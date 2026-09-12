@@ -1,0 +1,1776 @@
+@model IEnumerable<CompanyTaskManagement.Models.TaskItem>
+@inject CompanyTaskManagement.Services.IUserSessionService UserSession
+
+@{
+    ViewData["Title"] = "Tasks Dashboard";
+    var taskList = Model?.ToList() ?? new List<CompanyTaskManagement.Models.TaskItem>();
+    var totalTasks = taskList.Count;
+    var inProgressCount = taskList.Count(t => t.Status == CompanyTaskManagement.Models.TaskStatus.InProgress);
+    var completedCount = taskList.Count(t => t.Status == CompanyTaskManagement.Models.TaskStatus.Completed);
+    var overdueUncompletedCount = taskList.Count(t => t.Status != CompanyTaskManagement.Models.TaskStatus.Completed && ((t.EndDate.HasValue && t.EndDate.Value <= DateTime.Now) || (t.DueDate.HasValue && (t.DueDate.Value <= DateTime.Now || t.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(t.DelayReason)));
+    var tasksWithErrorsCount = taskList.Count(t => !string.IsNullOrEmpty(t.ErrorScreenshotPath) || !string.IsNullOrEmpty(t.DelayReason) || !string.IsNullOrEmpty(t.ErrorDetails));
+    var isCanAssign = UserSession.IsAdminOrHr();
+    var isEmployee = UserSession.IsEmployee();
+    var currentFilter = ViewBag.CurrentFilter as string ?? "all";
+}
+
+<!-- Dashboard Header & Title -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="h2 fw-bold mb-0">Task Dashboard</h1>
+        </div>
+        <p class="text-muted mb-0">Manage, organize, and monitor cross-company tasks, priorities, and team assignments.</p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- Notify HR Escalation Button with Direct Gmail Redirection -->
+        <div class="btn-group shadow-sm rounded-3">
+            <button type="button" class="btn btn-coral-gradient d-inline-flex align-items-center gap-2" id="openHrModalBtn" title="Notify HR of Overdue Tasks">
+                <i class="bi bi-bell-fill text-white fs-6"></i>
+                <span>Notify HR</span>
+            </button>
+            <button type="button" class="btn btn-coral-gradient dropdown-toggle dropdown-toggle-split px-2.5" data-bs-toggle="dropdown" aria-expanded="false" title="Notification Options">
+                <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 glass-card">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" id="directGmailRedirectBtn">
+                        <i class="bi bi-google text-danger fs-6"></i>
+                        <span class="fw-semibold">Compose in Gmail</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" id="directMailtoRedirectBtn">
+                        <i class="bi bi-envelope-fill text-primary fs-6"></i>
+                        <span class="fw-semibold">Open Default Mail App</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" id="openModalFromDropdownBtn">
+                        <i class="bi bi-list-check text-success fs-6"></i>
+                        <span>Preview Overdue Tasks List</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Export Daily Tasksheet (Excel) Button -->
+        <a asp-action="ExportDailyTasksheet" asp-route-filter="@currentFilter" class="btn btn-emerald d-inline-flex align-items-center gap-2 shadow-sm" id="exportExcelTasksheetBtn" title="Export Daily Tasksheet to Microsoft Excel">
+            <i class="bi bi-file-earmark-excel-fill text-white fs-6"></i>
+            <span>Daily Tasksheet (Excel)</span>
+        </a>
+
+        <!-- Export CSV Button -->
+        <button type="button" class="btn btn-modern-csv shadow-sm" id="exportCsvBtn" title="Export tasks to CSV">
+            <i class="bi bi-file-earmark-spreadsheet-fill text-emerald fs-6"></i>
+            <span>Export CSV</span>
+        </button>
+
+        @if (isCanAssign)
+        {
+            <!-- Create Task Button (Admin & HR Only) -->
+            <a asp-action="Create" class="btn btn-royal-gold d-flex align-items-center gap-2 shadow-sm">
+                <i class="bi bi-plus-lg"></i>
+                <span>Create Task</span>
+            </a>
+        }
+    </div>
+</div>
+
+@if (isEmployee)
+{
+    <!-- Employee Persona Context Banner -->
+    <div class="card border-0 shadow-sm mb-4 p-3 glass-card border-start border-4 border-info">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-info-subtle text-info rounded-circle" style="width: 42px; height: 42px;">
+                    <i class="bi bi-person-badge-fill fs-5"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0">Logged in as Employee: <span class="text-primary">@UserSession.GetCurrentEmployeeName()</span></h6>
+                    <small class="text-muted">You can view your assigned tasks and update status / report delays. Task creation and assignment is restricted to Admin & HR.</small>
+                </div>
+            </div>
+            @if (ViewBag.MyTasksCount != null)
+            {
+                <span class="badge bg-primary rounded-pill px-3 py-2 font-monospace">@ViewBag.MyTasksCount Assigned Tasks</span>
+            }
+        </div>
+    </div>
+}
+
+<!-- Success Notification Alert -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 shadow-sm rounded-3 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+        <div>@TempData["Success"]</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Stat Metric Cards Row -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number text-gold" id="statTotalTasks">@totalTasks</div>
+                <div class="stat-label">TOTAL TASKS</div>
+            </div>
+            <div class="stat-icon stat-icon-amber">
+                <i class="bi bi-journal-check"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number text-amethyst">@inProgressCount</div>
+                <div class="stat-label">IN PROGRESS</div>
+            </div>
+            <div class="stat-icon stat-icon-amethyst">
+                <i class="bi bi-calendar-event-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number text-emerald">@completedCount</div>
+                <div class="stat-label">COMPLETED</div>
+            </div>
+            <div class="stat-icon stat-icon-emerald">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="stat-card">
+            <div>
+                <div class="stat-number text-coral">@tasksWithErrorsCount</div>
+                <div class="stat-label">REPORTED ERRORS / DELAYS</div>
+            </div>
+            <div class="stat-icon stat-icon-coral">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- UNIFIED INSTANT FILTER COMMAND BAR -->
+<div class="filter-toolbar-card mb-4" id="unifiedFilterBar">
+    <!-- Top Row: Interactive Live Filter Tabs -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 border-bottom border-secondary border-opacity-15">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="fw-bold small text-uppercase text-muted me-1 d-inline-flex align-items-center">
+                <i class="bi bi-funnel-fill text-gold me-1.5"></i> TASK VIEW:
+            </span>
+            <div class="unified-filter-tabs" role="tablist" aria-label="Task Dashboard Instant Filters">
+                <button type="button" class="filter-tab-btn @(currentFilter == "all" ? "active" : "")" data-filter="all" id="filterTabAll">
+                    <i class="bi bi-grid-fill"></i>
+                    <span>All Tasks</span>
+                    <span class="badge filter-badge" id="badgeCountAll">@ViewBag.AllCount</span>
+                </button>
+                <button type="button" class="filter-tab-btn @(currentFilter == "today" ? "active" : "")" data-filter="today" id="filterTabToday">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Today's Tasks</span>
+                    <span class="badge filter-badge" id="badgeCountToday">@ViewBag.TodayCount</span>
+                </button>
+                <button type="button" class="filter-tab-btn @(currentFilter == "inprogress" ? "active" : "")" data-filter="inprogress" id="filterTabInProgress">
+                    <i class="bi bi-clock-history"></i>
+                    <span>In Progress</span>
+                    <span class="badge filter-badge" id="badgeCountInProgress">@ViewBag.InProgressCount</span>
+                </button>
+                <button type="button" class="filter-tab-btn @(currentFilter == "overdue" || currentFilter == "incomplete" ? "active" : "")" data-filter="overdue" id="filterTabOverdue">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>Overdue / Rolled Over</span>
+                    <span class="badge filter-badge" id="badgeCountOverdue">@ViewBag.OverdueCount</span>
+                </button>
+                <button type="button" class="filter-tab-btn @(currentFilter == "completed" ? "active" : "")" data-filter="completed" id="filterTabCompleted">
+                    <i class="bi bi-check2-circle"></i>
+                    <span>Completed</span>
+                    <span class="badge filter-badge" id="badgeCountCompleted">@ViewBag.CompletedCount</span>
+                </button>
+                <button type="button" class="filter-tab-btn @(currentFilter == "urgent" ? "active" : "")" data-filter="urgent" id="filterTabUrgent">
+                    <i class="bi bi-fire"></i>
+                    <span>High / Urgent</span>
+                    <span class="badge filter-badge" id="badgeCountUrgent">@ViewBag.UrgentCount</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="small text-muted font-monospace d-flex align-items-center gap-2">
+            <i class="bi bi-calendar3 text-primary"></i>
+            <span>Today: <strong>@DateTime.Today.ToString("MMM dd, yyyy")</strong></span>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Search, Dropdowns, Reset & View Switcher -->
+    <div class="row g-2 align-items-center pt-3">
+        <!-- Live Instant Search -->
+        <div class="col-12 col-md-4 col-lg-3">
+            <div class="search-input-group">
+                <i class="bi bi-search search-icon-inside"></i>
+                <input type="text" id="taskSearchInput" class="form-control search-input" placeholder="Search tasks, descriptions, members..." autocomplete="off" />
+                <button type="button" id="searchClearBtn" class="search-clear-btn" title="Clear search">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter by Company -->
+        <div class="col-6 col-md-2">
+            <select id="companyFilterSelect" class="form-select filter-select">
+                <option value="">All Companies</option>
+            </select>
+        </div>
+
+        <!-- Filter by Employee / Assignee -->
+        <div class="col-6 col-md-2">
+            <select id="employeeFilterSelect" class="form-select filter-select">
+                <option value="">All Team Members</option>
+            </select>
+        </div>
+
+        <!-- Filter by Priority -->
+        <div class="col-6 col-md-2 col-lg-1">
+            <select id="priorityFilterSelect" class="form-select filter-select">
+                <option value="">Priority</option>
+                <option value="Urgent">Urgent</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+
+        <!-- Filter by Status -->
+        <div class="col-6 col-md-2 col-lg-1">
+            <select id="statusFilterSelect" class="form-select filter-select">
+                <option value="">Status</option>
+                <option value="ToDo">To Do</option>
+                <option value="InProgress">In Progress</option>
+                <option value="InReview">In Review</option>
+                <option value="Completed">Completed</option>
+            </select>
+        </div>
+
+        <!-- Reset Filters Button -->
+        <div class="col-auto">
+            <button type="button" id="resetFilterBtn" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" title="Reset all active filters">
+                <i class="bi bi-arrow-counterclockwise"></i>
+                <span class="d-none d-lg-inline">Reset</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (!taskList.Any())
+{
+    <!-- Empty State when no tasks exist -->
+    <div class="table-card p-5 text-center">
+        <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-3" style="width: 72px; height: 72px;">
+            <i class="bi bi-clipboard-plus fs-1"></i>
+        </div>
+        <h4 class="fw-bold mb-1">No tasks created yet</h4>
+        <p class="text-muted mb-4 max-w-sm mx-auto">Get started by creating your first company task and assigning team members.</p>
+        <a asp-action="Create" class="btn btn-primary-gradient px-4">
+            <i class="bi bi-plus-lg me-1"></i> Create First Task
+        </a>
+    </div>
+}
+else
+{
+    <!-- 1. TABLE VIEW (Desktop & Tablet) -->
+    <div id="taskTableView" class="table-card d-none d-md-block">
+        <div class="table-responsive">
+            <table class="table table-custom" id="mainTaskTable">
+                <thead>
+                    <tr>
+                        <th style="min-width: 95px;" class="text-center text-nowrap">TASK NO.</th>
+                        <th style="min-width: 130px;">TASK NAME</th>
+                        <th style="min-width: 85px;">PROJECT</th>
+                        <th style="min-width: 80px;" class="text-nowrap text-center">PRIORITY</th>
+                        <th style="min-width: 100px;" class="text-nowrap text-center">STATUS</th>
+                        <th style="min-width: 140px;">EMPLOYEES &amp; COMPANIES</th>
+                        <th class="text-nowrap" style="min-width: 105px;">TASK START TIME</th>
+                        <th class="text-nowrap" style="min-width: 105px;">TASK END TIME</th>
+                        <th class="text-nowrap text-center" style="min-width: 95px;">TOTAL WORKING</th>
+                        <th style="min-width: 80px;" class="text-end text-nowrap">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="taskTableBody">
+                    @{ int rowNum = 1; }
+                    @foreach (var item in taskList)
+                    {
+                        var compNames = item.TaskCompanies != null && item.TaskCompanies.Any() 
+                            ? string.Join(", ", item.TaskCompanies.Select(c => c.Company?.Name)) 
+                            : "";
+                        var empNames = item.TaskEmployees != null && item.TaskEmployees.Any() 
+                            ? string.Join(", ", item.TaskEmployees.Select(e => e.Employee?.Name)) 
+                            : "";
+
+                        var priorityCss = item.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent ? "priority-urgent" :
+                                          item.Priority == CompanyTaskManagement.Models.TaskPriority.High ? "priority-high" :
+                                          item.Priority == CompanyTaskManagement.Models.TaskPriority.Medium ? "priority-medium" : "priority-low";
+
+                        var isOverdue = item.Status != CompanyTaskManagement.Models.TaskStatus.Completed && ((item.EndDate.HasValue && item.EndDate.Value <= DateTime.Now) || (item.DueDate.HasValue && (item.DueDate.Value <= DateTime.Now || item.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(item.DelayReason));
+                        var isToday = (item.StartDate.HasValue ? item.StartDate.Value.Date == DateTime.Today : item.CreatedAt.Date == DateTime.Today);
+                        var hasErrorLog = !string.IsNullOrEmpty(item.ErrorScreenshotPath) || !string.IsNullOrEmpty(item.DelayReason) || !string.IsNullOrEmpty(item.ErrorDetails);
+
+                        var startTime = item.StartDate ?? item.CreatedAt;
+                        var endTime = item.EndDate ?? item.DueDate;
+                        string totalWorkingStr = "—";
+                        if (endTime.HasValue)
+                        {
+                            var sTime = startTime.TimeOfDay;
+                            var eTime = endTime.Value.TimeOfDay;
+                            TimeSpan diff;
+                            if (endTime.Value.Date == startTime.Date)
+                            {
+                                diff = endTime.Value - startTime;
+                            }
+                            else
+                            {
+                                if (eTime >= sTime)
+                                {
+                                    diff = eTime - sTime;
+                                }
+                                else
+                                {
+                                    diff = (TimeSpan.FromHours(24) - sTime) + eTime;
+                                }
+                            }
+
+                            if (diff.TotalMinutes > 0)
+                            {
+                                int h = (int)diff.TotalHours;
+                                int m = diff.Minutes;
+                                totalWorkingStr = $"{h}:{m:D2}";
+                            }
+                            else
+                            {
+                                totalWorkingStr = "0:00";
+                            }
+                        }
+
+                        <tr class="task-row-item align-middle" 
+                            data-task-id="@item.Id"
+                            data-task-name="@item.TaskName"
+                            data-task-desc="@item.Description"
+                            data-priority="@item.Priority"
+                            data-status="@item.Status"
+                            data-progress="@item.Progress"
+                            data-duedate="@(item.DueDate?.ToString("yyyy-MM-dd") ?? "")"
+                            data-createddate="@item.CreatedAt.ToString("yyyy-MM-dd")"
+                            data-istoday="@(isToday ? "true" : "false")"
+                            data-isoverdue="@(isOverdue ? "true" : "false")"
+                            data-delayreason="@item.DelayReason"
+                            data-errordetails="@item.ErrorDetails"
+                            data-errorscreenshot="@item.ErrorScreenshotPath"
+                            data-companies="@compNames"
+                            data-employees="@empNames"
+                            data-project="@(item.Project?.ProjectName ?? "")">
+
+                            <!-- Tasksheet Number with Row Number -->
+                            <td class="text-center text-nowrap">
+                                <span class="row-number-circle">@(rowNum++)</span>
+                            </td>
+
+                            <!-- Task Name & Desc -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="task-title-link">
+                                        @item.TaskName
+                                    </a>
+                                    @if (hasErrorLog)
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2" title="Error/Delay reported">
+                                            <i class="bi bi-exclamation-circle-fill"></i> Issue
+                                        </span>
+                                    }
+                                </div>
+                                <div class="task-desc-truncate" title="@item.Description">
+                                    @(string.IsNullOrWhiteSpace(item.Description) ? "—" : item.Description)
+                                </div>
+                            </td>
+
+                            <!-- Project -->
+                            <td>
+                                @if (item.Project != null)
+                                {
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1 text-truncate" style="max-width: 170px; display: inline-block; vertical-align: middle;" title="@item.Project.ProjectName">
+                                        <i class="bi bi-briefcase-fill me-1"></i>@item.Project.ProjectName
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-muted rounded-pill px-2 py-0.5 small">General</span>
+                                }
+                            </td>
+
+                            <!-- Priority -->
+                            <td class="text-nowrap text-center" style="min-width: 120px;">
+                                <span class="priority-badge @priorityCss">
+                                    @if (item.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent)
+                                    {
+                                        <i class="bi bi-fire text-danger me-1"></i>
+                                    }
+                                    else if (item.Priority == CompanyTaskManagement.Models.TaskPriority.High)
+                                    {
+                                        <i class="bi bi-star-fill text-warning me-1"></i>
+                                    }
+                                    <span>@item.Priority</span>
+                                </span>
+                            </td>
+
+                            <!-- Status Selector -->
+                            <td class="text-nowrap text-center" style="min-width: 100px;">
+                                <select class="form-select form-select-sm quick-status-select js-quick-status d-inline-block" data-task-id="@item.Id">
+                                    <option value="ToDo" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.ToDo)">To Do</option>
+                                    <option value="InProgress" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.InProgress)">In Progress</option>
+                                    <option value="InReview" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.InReview)">In Review</option>
+                                    <option value="Completed" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.Completed)">Completed</option>
+                                </select>
+                            </td>
+
+                            <!-- Combined Employees & Companies -->
+                            <td style="min-width: 140px;">
+                                <div class="d-flex flex-column gap-1.5">
+                                    @if (item.TaskEmployees != null && item.TaskEmployees.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var emp in item.TaskEmployees)
+                                            {
+                                                var initial = !string.IsNullOrEmpty(emp.Employee?.Name) ? emp.Employee.Name.Substring(0, 1) : "?";
+                                                var colorIdx = Math.Abs((emp.Employee?.Name ?? "").GetHashCode()) % 7;
+                                                <span class="employee-badge-chip">
+                                                    <span class="avatar-initial-circle avatar-color-@colorIdx">@initial</span>
+                                                    <span>@emp.Employee?.Name</span>
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div>
+                                            <span class="empty-badge-pill" style="font-size: 0.72rem;">
+                                                <i class="bi bi-person-slash me-1 opacity-75"></i>No team assigned
+                                            </span>
+                                        </div>
+                                    }
+
+                                    @if (item.TaskCompanies != null && item.TaskCompanies.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var company in item.TaskCompanies)
+                                            {
+                                                <span class="company-badge-chip">
+                                                    <i class="bi bi-buildings"></i>
+                                                    <span>@company.Company?.Name</span>
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </td>
+
+                            <!-- Task Start Time -->
+                            <td class="text-nowrap" style="min-width: 135px;">
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <i class="bi bi-clock-fill text-success" style="font-size: 1.05rem;"></i>
+                                    <span class="fw-bold font-monospace text-body" style="font-size: 0.88rem;">@startTime.ToString("h:mm tt")</span>
+                                </div>
+                                <small class="text-muted d-block" style="font-size: 0.72rem; padding-left: 1.45rem;">@startTime.ToString("MMM dd, yyyy")</small>
+                            </td>
+
+                            <!-- Task End Time -->
+                            <td class="text-nowrap" style="min-width: 135px;">
+                                @if (endTime.HasValue)
+                                {
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-clock-fill @(isOverdue ? "text-danger" : "text-primary")" style="font-size: 1.05rem;"></i>
+                                        <span class="fw-bold font-monospace @(isOverdue ? "text-danger" : "text-body")" style="font-size: 0.88rem;">@endTime.Value.ToString("h:mm tt")</span>
+                                        @if (isOverdue)
+                                        {
+                                            <i class="bi bi-exclamation-circle-fill text-danger extra-small" title="Overdue"></i>
+                                        }
+                                    </div>
+                                    <small class="text-muted d-block" style="font-size: 0.72rem; padding-left: 1.45rem;">@endTime.Value.ToString("MMM dd, yyyy")</small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                            </td>
+
+                            <!-- Total Working -->
+                            <td class="text-center text-nowrap" style="min-width: 130px;">
+                                <span class="total-working-badge px-3 py-1 shadow-2xs d-inline-flex align-items-center gap-1.5" style="font-size: 0.84rem;">
+                                    <i class="bi bi-hourglass-split text-warning"></i>
+                                    <span class="fw-extrabold font-monospace">⌛ @totalWorkingStr</span>
+                                </span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="text-end text-nowrap" style="min-width: 90px;">
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-sm btn-creative-action dropdown-toggle d-inline-flex align-items-center gap-1 px-3 py-1.5 rounded-pill border shadow-2xs" 
+                                            type="button" 
+                                            data-bs-toggle="dropdown" 
+                                            aria-expanded="false" 
+                                            title="Task Actions Menu">
+                                        <i class="bi bi-three-dots-vertical text-primary"></i>
+                                        <span>Actions</span>
+                                        <i class="bi bi-chevron-down small opacity-75"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border border-secondary border-opacity-25 p-1 rounded-3" style="font-size: 0.84rem; min-width: 190px;">
+                                        <li>
+                                            <button type="button" 
+                                                    class="dropdown-item d-flex align-items-center gap-2 py-1.5 open-error-report-btn" 
+                                                    data-id="@item.Id"
+                                                    data-name="@item.TaskName"
+                                                    data-delayreason="@item.DelayReason"
+                                                    data-errordetails="@item.ErrorDetails"
+                                                    data-errorscreenshot="@item.ErrorScreenshotPath">
+                                                <i class="bi bi-bug-fill text-warning fs-6"></i>
+                                                <span>Report Issue / Delay</span>
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5">
+                                                <i class="bi bi-info-circle-fill text-primary fs-6"></i>
+                                                <span>View Task Details</span>
+                                            </a>
+                                        </li>
+                                        @if (isCanAssign)
+                                        {
+                                            <li><hr class="dropdown-divider my-1"></li>
+                                            <li>
+                                                <a asp-action="Edit" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5">
+                                                    <i class="bi bi-pencil-square text-warning fs-6"></i>
+                                                    <span>Edit Task</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete task \'@item.TaskName\'?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-1.5 text-danger">
+                                                        <i class="bi bi-trash3-fill text-danger fs-6"></i>
+                                                        <span>Delete Task</span>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modern Pagination Bar for Table -->
+        <div class="pagination-container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3" id="taskPaginationBar">
+            <div class="d-flex align-items-center gap-2 text-muted small">
+                <span>Showing</span>
+                <span class="fw-bold text-main" id="paginationInfoStart">1</span>
+                <span>to</span>
+                <span class="fw-bold text-main" id="paginationInfoEnd">10</span>
+                <span>of</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill fw-bold font-monospace" id="paginationInfoTotal">@taskList.Count</span>
+                <span>tasks</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <!-- Page Size Selector -->
+                <div class="d-flex align-items-center gap-1.5 text-muted small">
+                    <span class="d-none d-md-inline">Show:</span>
+                    <select id="pageSizeSelect" class="form-select form-select-sm" style="width: auto; min-width: 75px; font-weight: 600;">
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <!-- Page Navigation Buttons -->
+                <nav aria-label="Task table pagination">
+                    <ul class="pagination pagination-sm pagination-custom mb-0" id="taskPaginationNav">
+                        <!-- Injected via JS -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MOBILE CARD VIEW (Mobile Screens Only) -->
+    <div id="taskGridView" class="d-block d-md-none mt-3">
+        <div class="row g-3" id="taskGridCardsContainer">
+            @{ int cardNum = 1; }
+            @foreach (var item in taskList)
+            {
+                var compNames = item.TaskCompanies != null && item.TaskCompanies.Any() 
+                    ? string.Join(", ", item.TaskCompanies.Select(c => c.Company?.Name)) 
+                    : "";
+                var empNames = item.TaskEmployees != null && item.TaskEmployees.Any() 
+                    ? string.Join(", ", item.TaskEmployees.Select(e => e.Employee?.Name)) 
+                    : "";
+
+                var priorityCss = item.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent ? "priority-urgent" :
+                                  item.Priority == CompanyTaskManagement.Models.TaskPriority.High ? "priority-high" :
+                                  item.Priority == CompanyTaskManagement.Models.TaskPriority.Medium ? "priority-medium" : "priority-low";
+
+                var isOverdue = item.Status != CompanyTaskManagement.Models.TaskStatus.Completed && ((item.EndDate.HasValue && item.EndDate.Value <= DateTime.Now) || (item.DueDate.HasValue && (item.DueDate.Value <= DateTime.Now || item.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(item.DelayReason));
+                var isToday = (item.StartDate.HasValue ? item.StartDate.Value.Date == DateTime.Today : item.CreatedAt.Date == DateTime.Today);
+
+                <div class="col-12 task-card-item"
+                     data-task-id="@item.Id"
+                     data-task-name="@item.TaskName"
+                     data-task-desc="@item.Description"
+                     data-priority="@item.Priority"
+                     data-status="@item.Status"
+                     data-progress="@item.Progress"
+                     data-duedate="@(item.DueDate?.ToString("yyyy-MM-dd") ?? "")"
+                     data-createddate="@item.CreatedAt.ToString("yyyy-MM-dd")"
+                     data-istoday="@(isToday ? "true" : "false")"
+                     data-isoverdue="@(isOverdue ? "true" : "false")"
+                     data-companies="@compNames"
+                     data-employees="@empNames"
+                     data-project="@(item.Project?.ProjectName ?? "")">
+
+                    <div class="task-grid-card">
+                        <div class="task-grid-header">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="row-number-badge font-monospace fw-bold">Sheet #@(cardNum++)</span>
+                                <span class="priority-badge @priorityCss">@item.Priority</span>
+                            </div>
+                            
+                            <select class="form-select form-select-sm quick-status-select js-quick-status" data-task-id="@item.Id" style="width: auto;">
+                                <option value="ToDo" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.ToDo)">To Do</option>
+                                <option value="InProgress" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.InProgress)">In Progress</option>
+                                <option value="InReview" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.InReview)">In Review</option>
+                                <option value="Completed" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.Completed)">Completed</option>
+                            </select>
+                        </div>
+
+                        <a asp-action="Details" asp-route-id="@item.Id" class="task-grid-title text-decoration-none">
+                            @item.TaskName
+                        </a>
+
+                        @if (item.Project != null)
+                        {
+                            <div class="mb-2">
+                                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1 small">
+                                    <i class="bi bi-kanban me-1"></i>@item.Project.ProjectName
+                                </span>
+                            </div>
+                        }
+
+                        <p class="task-grid-desc">
+                            @(string.IsNullOrWhiteSpace(item.Description) ? "No description provided." : item.Description)
+                        </p>
+
+                        <!-- Start & End Time Schedule & Total Working -->
+                        <div class="mb-3 p-2.5 rounded-3 bg-secondary-subtle bg-opacity-25 border border-secondary border-opacity-10">
+                            <div class="row g-2 text-center" style="font-size: 0.78rem;">
+                                <div class="col-4 border-end border-secondary border-opacity-15">
+                                    <span class="d-block text-uppercase fw-bold text-muted" style="font-size: 0.65rem;">Start Time</span>
+                                    <span class="fw-bold font-monospace text-success">@((item.StartDate ?? item.CreatedAt).ToString("h:mm tt"))</span>
+                                </div>
+                                <div class="col-4 border-end border-secondary border-opacity-15">
+                                    <span class="d-block text-uppercase fw-bold text-muted" style="font-size: 0.65rem;">End Time</span>
+                                    <span class="fw-bold font-monospace @(isOverdue ? "text-danger" : "text-main")">@((item.EndDate ?? item.DueDate)?.ToString("h:mm tt") ?? "—")</span>
+                                </div>
+                                <div class="col-4">
+                                    <span class="d-block text-uppercase fw-bold text-muted" style="font-size: 0.65rem;">Total Working</span>
+                                    <span class="total-working-badge px-2 py-0.5" style="font-size: 0.76rem;">
+                                        @{
+                                            var mStart = item.StartDate ?? item.CreatedAt;
+                                            var mEnd = item.EndDate ?? item.DueDate;
+                                            string mTotal = "—";
+                                            if (mEnd.HasValue)
+                                            {
+                                                var msTime = mStart.TimeOfDay;
+                                                var meTime = mEnd.Value.TimeOfDay;
+                                                TimeSpan mDiff;
+                                                if (mEnd.Value.Date == mStart.Date)
+                                                {
+                                                    mDiff = mEnd.Value - mStart;
+                                                }
+                                                else
+                                                {
+                                                    if (meTime >= msTime)
+                                                    {
+                                                        mDiff = meTime - msTime;
+                                                    }
+                                                    else
+                                                    {
+                                                        mDiff = (TimeSpan.FromHours(24) - msTime) + meTime;
+                                                    }
+                                                }
+
+                                                if (mDiff.TotalMinutes > 0)
+                                                {
+                                                    mTotal = $"{(int)mDiff.TotalHours}:{mDiff.Minutes:D2}";
+                                                }
+                                                else
+                                                {
+                                                    mTotal = "0:00";
+                                                }
+                                            }
+                                        }
+                                        @mTotal
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Companies Tags -->
+                        <div class="mb-2">
+                            <small class="text-muted d-block mb-1 fw-bold" style="font-size: 0.72rem; text-transform: uppercase;">Companies</small>
+                            @if (item.TaskCompanies != null && item.TaskCompanies.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var company in item.TaskCompanies)
+                                    {
+                                        <span class="company-badge-chip">
+                                            <i class="bi bi-buildings"></i>
+                                            <span>@company.Company?.Name</span>
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="empty-badge-pill">No companies</span>
+                            }
+                        </div>
+
+                        <!-- Team Members Tags -->
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1 fw-bold" style="font-size: 0.72rem; text-transform: uppercase;">Team Members</small>
+                            @if (item.TaskEmployees != null && item.TaskEmployees.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var emp in item.TaskEmployees)
+                                    {
+                                        var initial = !string.IsNullOrEmpty(emp.Employee?.Name) ? emp.Employee.Name.Substring(0, 1) : "?";
+                                        var colorIdx = Math.Abs((emp.Employee?.Name ?? "").GetHashCode()) % 7;
+                                        <span class="employee-badge-chip">
+                                            <span class="avatar-initial-circle avatar-color-@colorIdx">@initial</span>
+                                            <span>@emp.Employee?.Name</span>
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="empty-badge-pill">No team assigned</span>
+                            }
+                        </div>
+
+                        <!-- Footer Actions -->
+                        <div class="task-grid-footer">
+                            <span class="due-date-badge @(isOverdue ? "due-date-overdue" : "")">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>@(item.DueDate.HasValue ? item.DueDate.Value.ToString("MMM dd") : "No Due Date")</span>
+                            </span>
+
+                            <div class="d-flex gap-1">
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-warning open-error-report-btn" 
+                                        title="Report Delay / Error Screenshot"
+                                        data-id="@item.Id"
+                                        data-name="@item.TaskName"
+                                        data-delayreason="@item.DelayReason"
+                                        data-errordetails="@item.ErrorDetails"
+                                        data-errorscreenshot="@item.ErrorScreenshotPath">
+                                    <i class="bi bi-bug-fill"></i>
+                                </button>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+
+                                @if (isCanAssign)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Edit Task">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Mobile Card View Pagination -->
+        <div class="pagination-container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 mt-3 rounded-3" id="taskMobilePaginationBar">
+            <div class="d-flex align-items-center gap-2 text-muted small">
+                <span>Showing</span>
+                <span class="fw-bold text-main" id="mobilePaginationInfoStart">1</span>
+                <span>to</span>
+                <span class="fw-bold text-main" id="mobilePaginationInfoEnd">10</span>
+                <span>of</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill fw-bold font-monospace" id="mobilePaginationInfoTotal">@taskList.Count</span>
+                <span>tasks</span>
+            </div>
+
+            <nav aria-label="Task card pagination">
+                <ul class="pagination pagination-sm pagination-custom mb-0" id="taskMobilePaginationNav">
+                    <!-- Injected via JS -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- No Search Results Alert Container -->
+    <div id="noSearchResultsAlert" class="table-card p-5 text-center d-none mt-3">
+        <div class="d-inline-flex align-items-center justify-content-center bg-secondary-subtle text-secondary rounded-circle mb-3" style="width: 60px; height: 60px;">
+            <i class="bi bi-search fs-3"></i>
+        </div>
+        <h5 class="fw-bold mb-1">No matching tasks found</h5>
+        <p class="text-muted mb-3">Try adjusting your search terms or clearing the active filters.</p>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="resetFilterBtn">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+        </button>
+    </div>
+}
+
+<!-- Quick View Task Modal -->
+<div class="modal fade modal-custom" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge-task-id" id="modalTaskId">#000</span>
+                    <span class="priority-badge priority-medium" id="modalTaskPriority">Medium</span>
+                    <h5 class="modal-title fw-bold mb-0 ms-2" id="quickViewModalLabel">Task Overview</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <h4 class="fw-bold mb-2 text-white" id="modalTaskName">Task Name</h4>
+                <p class="text-white-50 mb-4" id="modalTaskDesc" style="white-space: pre-line;">Description goes here...</p>
+
+                <!-- Status & Progress Summary Bar -->
+                <div class="p-3 rounded-3 bg-dark-subtle mb-4 border border-secondary border-opacity-25">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-12 col-md-6">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Status</label>
+                            <select class="form-select form-select-sm" id="modalTaskStatusSelect">
+                                <option value="ToDo">To Do</option>
+                                <option value="InProgress">In Progress</option>
+                                <option value="InReview">In Review</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Due Date</label>
+                            <div class="fw-bold text-white" id="modalTaskDueDate"><i class="bi bi-calendar-event me-1"></i> —</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error & Delay Log Summary Box -->
+                <div id="modalErrorContainer" class="p-3 rounded-3 bg-dark-subtle border border-warning border-opacity-50 mb-4 d-none">
+                    <h6 class="fw-bold text-warning d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Delay Reason & Technical Error
+                    </h6>
+                    <p class="small text-white mb-2" id="modalDelayReason"></p>
+                    <p class="small text-white-50 font-monospace mb-2" id="modalErrorDetails"></p>
+                    <div id="modalScreenshotWrapper" class="d-none">
+                        <img id="modalScreenshotImg" src="#" alt="Error Screenshot" class="img-fluid rounded border border-secondary" style="max-height: 160px;" />
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-dark-subtle rounded-3 h-100 border border-secondary border-opacity-25">
+                            <h6 class="fw-bold text-info small text-uppercase mb-2">
+                                <i class="bi bi-buildings me-1"></i> Assigned Companies
+                            </h6>
+                            <div id="modalTaskCompanies" class="d-flex flex-wrap gap-1">
+                                <!-- Dynamic chips -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-dark-subtle rounded-3 h-100 border border-secondary border-opacity-25">
+                            <h6 class="fw-bold text-purple small text-uppercase mb-2">
+                                <i class="bi bi-people me-1"></i> Assigned Team
+                            </h6>
+                            <div id="modalTaskEmployees" class="d-flex flex-wrap gap-1">
+                                <!-- Dynamic chips -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" id="modalCopySummaryBtn">
+                    <i class="bi bi-clipboard me-1"></i> Copy Summary
+                </button>
+                <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-warning" id="modalEditLink">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Task
+                    </a>
+                    <a href="#" class="btn btn-primary" id="modalDetailsLink">
+                        <i class="bi bi-info-circle me-1"></i> Full Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Report Error & Upload Screenshot Modal -->
+<div class="modal fade modal-custom" id="reportErrorModal" tabindex="-1" aria-labelledby="reportErrorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-warning">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-bug-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="reportErrorModalLabel">Report Task Delay / Technical Error</h5>
+                        <small class="text-white-50" id="reportErrorTaskTitle">Task #000</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickErrorForm" enctype="multipart/form-data">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="quickErrorTaskId" name="id" />
+
+                    <!-- Delay Reason Input -->
+                    <div class="mb-3">
+                        <label class="form-label-custom text-white mb-1">Reason for Project Delay / Pending</label>
+                        <input type="text" id="quickDelayReason" name="delayReason" class="form-control form-control-custom" placeholder="e.g., Blocked by API integration, pending review..." />
+                    </div>
+
+                    <!-- Error Details Textarea -->
+                    <div class="mb-3">
+                        <label class="form-label-custom text-white mb-1">Technical Error Details</label>
+                        <textarea id="quickErrorDetails" name="errorDetails" class="form-control form-control-custom" rows="2" placeholder="Describe the error or blocker in detail..."></textarea>
+                    </div>
+
+                    <!-- Error Screenshot Upload -->
+                    <div>
+                        <label class="form-label-custom text-white mb-1">Upload Error Screenshot Image</label>
+                        <input type="file" id="quickScreenshotFile" name="screenshotFile" accept="image/*" class="form-control form-control-custom" />
+                        
+                        <div id="quickScreenshotPreviewContainer" class="mt-2 text-center p-2 bg-dark rounded border border-secondary d-none">
+                            <small class="text-muted d-block mb-1">Screenshot Preview:</small>
+                            <img id="quickScreenshotPreviewImg" src="#" alt="Selected Error Screenshot" class="img-fluid rounded" style="max-height: 180px;" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning d-flex align-items-center gap-2 fw-semibold" id="saveQuickErrorBtn">
+                        <i class="bi bi-upload"></i>
+                        <span>Upload & Save Report</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- HR Overdue Notification Escalation Modal -->
+<div class="modal fade modal-custom" id="hrEscalationModal" tabindex="-1" aria-labelledby="hrEscalationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-danger">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-envelope-at-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="hrEscalationModalLabel">Notify HR - Uncompleted Tasks</h5>
+                        <small class="text-white-50">Escalate overdue tasks to HR (hr@companytask.com)</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="hrModalLoading" class="text-center py-4">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">Loading overdue tasks...</span>
+                    </div>
+                    <p class="text-white-50 mt-2 mb-0">Checking uncompleted overdue tasks...</p>
+                </div>
+
+                <div id="hrModalEmpty" class="text-center py-4 d-none">
+                    <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
+                    <h5 class="fw-bold text-white">All Assigned Tasks On Track!</h5>
+                    <p class="text-white-50 mb-0">There are currently no overdue uncompleted tasks requiring HR escalation.</p>
+                </div>
+
+                <div id="hrModalContent" class="d-none">
+                    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3 py-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                        <div>Found <strong id="hrOverdueCount">0</strong> uncompleted task(s) past their due date.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Destination HR Email</label>
+                        <input type="email" class="form-control form-control-sm font-monospace" id="hrDestinationEmailInput" value="hr@auxinz.io" placeholder="hr@company.com" />
+                    </div>
+
+                    <div id="hrOverdueList" class="d-flex flex-column gap-2 mb-3" style="max-height: 250px; overflow-y: auto;">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary d-flex align-items-center gap-2" id="redirectToGmailBtn">
+                        <i class="bi bi-google"></i>
+                        <span>Redirect to Gmail (Compose)</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger d-flex align-items-center gap-2" id="sendHrEmailBtn">
+                        <i class="bi bi-send-fill"></i>
+                        <span>Send System Email</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document.body).ready(function () {
+            let activeTaskModalId = null;
+
+            // Populate Company & Employee filter dropdowns dynamically
+            const companiesSet = new Set();
+            const employeesSet = new Set();
+
+            $('.task-row-item, .task-card-item').each(function () {
+                const comps = $(this).data('companies');
+                const emps = $(this).data('employees');
+
+                if (comps) {
+                    comps.split(',').forEach(c => {
+                        const trimmed = c.trim();
+                        if (trimmed) companiesSet.add(trimmed);
+                    });
+                }
+                if (emps) {
+                    emps.split(',').forEach(e => {
+                        const trimmed = e.trim();
+                        if (trimmed) employeesSet.add(trimmed);
+                    });
+                }
+            });
+
+            Array.from(companiesSet).sort().forEach(c => {
+                $('#companyFilterSelect').append(new Option(c, c));
+            });
+
+            Array.from(employeesSet).sort().forEach(e => {
+                $('#employeeFilterSelect').append(new Option(e, e));
+            });
+
+            // ----------------------------------------------------
+            // View Mode Switcher (Table vs Grid vs Kanban)
+            // ----------------------------------------------------
+            $('#tableViewBtn').on('click', function () {
+                $('.view-toggle-btn-group .btn').removeClass('active');
+                $(this).addClass('active');
+                $('#taskTableView').removeClass('d-none');
+                $('#taskGridView, #taskKanbanView').addClass('d-none');
+                filterTasks();
+            });
+
+            $('#gridViewBtn').on('click', function () {
+                $('.view-toggle-btn-group .btn').removeClass('active');
+                $(this).addClass('active');
+                $('#taskGridView').removeClass('d-none');
+                $('#taskTableView, #taskKanbanView').addClass('d-none');
+                filterTasks();
+            });
+
+            $('#kanbanViewBtn').on('click', function () {
+                $('.view-toggle-btn-group .btn').removeClass('active');
+                $(this).addClass('active');
+                $('#taskKanbanView').removeClass('d-none');
+                $('#taskTableView, #taskGridView').addClass('d-none');
+                filterTasks();
+            });
+
+            // ----------------------------------------------------
+            // Filter & Pagination Engine (10 items per page)
+            // ----------------------------------------------------
+            let currentPage = 1;
+            let pageSize = 10;
+
+            function filterTasks(resetPage = false) {
+                if (resetPage) {
+                    currentPage = 1;
+                }
+
+                const tabFilter = ($('.unified-filter-tabs .filter-tab-btn.active').data('filter') || 'all').toString().toLowerCase();
+                const searchTerm = $('#taskSearchInput').val().toLowerCase().trim();
+                const companyFilter = $('#companyFilterSelect').val().toLowerCase();
+                const employeeFilter = $('#employeeFilterSelect').val().toLowerCase();
+                const priorityFilter = $('#priorityFilterSelect').val().toLowerCase();
+                const statusFilter = $('#statusFilterSelect').val().toLowerCase();
+
+                const matchedRowElements = [];
+                const matchedCardElements = [];
+
+                $('.task-row-item').each(function () {
+                    const name = ($(this).data('task-name') || '').toString().toLowerCase();
+                    const desc = ($(this).data('task-desc') || '').toString().toLowerCase();
+                    const priority = ($(this).data('priority') || '').toString().toLowerCase();
+                    const status = ($(this).data('status') || '').toString().toLowerCase();
+                    const companies = ($(this).data('companies') || '').toString().toLowerCase();
+                    const employees = ($(this).data('employees') || '').toString().toLowerCase();
+                    const isToday = String($(this).data('istoday')) === 'true';
+                    const isOverdue = String($(this).data('isoverdue')) === 'true';
+
+                    let matchesTab = true;
+                    if (tabFilter === 'today') {
+                        matchesTab = isToday;
+                    } else if (tabFilter === 'inprogress') {
+                        matchesTab = (status === 'inprogress');
+                    } else if (tabFilter === 'overdue' || tabFilter === 'incomplete') {
+                        matchesTab = isOverdue;
+                    } else if (tabFilter === 'completed') {
+                        matchesTab = (status === 'completed');
+                    } else if (tabFilter === 'urgent') {
+                        matchesTab = (priority === 'urgent' || priority === 'high');
+                    }
+
+                    const matchesSearch = !searchTerm || name.includes(searchTerm) || desc.includes(searchTerm) || companies.includes(searchTerm) || employees.includes(searchTerm);
+                    const matchesCompany = !companyFilter || companies.includes(companyFilter);
+                    const matchesEmployee = !employeeFilter || employees.includes(employeeFilter);
+                    const matchesPriority = !priorityFilter || priority === priorityFilter;
+                    const matchesStatus = !statusFilter || status === statusFilter;
+
+                    if (matchesSearch && matchesCompany && matchesEmployee && matchesPriority && matchesStatus && matchesTab) {
+                        matchedRowElements.push(this);
+                    } else {
+                        $(this).addClass('d-none');
+                    }
+                });
+
+                $('.task-card-item').each(function () {
+                    const name = ($(this).data('task-name') || '').toString().toLowerCase();
+                    const desc = ($(this).data('task-desc') || '').toString().toLowerCase();
+                    const priority = ($(this).data('priority') || '').toString().toLowerCase();
+                    const status = ($(this).data('status') || '').toString().toLowerCase();
+                    const companies = ($(this).data('companies') || '').toString().toLowerCase();
+                    const employees = ($(this).data('employees') || '').toString().toLowerCase();
+                    const isToday = String($(this).data('istoday')) === 'true';
+                    const isOverdue = String($(this).data('isoverdue')) === 'true';
+
+                    let matchesTab = true;
+                    if (tabFilter === 'today') {
+                        matchesTab = isToday;
+                    } else if (tabFilter === 'inprogress') {
+                        matchesTab = (status === 'inprogress');
+                    } else if (tabFilter === 'overdue' || tabFilter === 'incomplete') {
+                        matchesTab = isOverdue;
+                    } else if (tabFilter === 'completed') {
+                        matchesTab = (status === 'completed');
+                    } else if (tabFilter === 'urgent') {
+                        matchesTab = (priority === 'urgent' || priority === 'high');
+                    }
+
+                    const matchesSearch = !searchTerm || name.includes(searchTerm) || desc.includes(searchTerm) || companies.includes(searchTerm) || employees.includes(searchTerm);
+                    const matchesCompany = !companyFilter || companies.includes(companyFilter);
+                    const matchesEmployee = !employeeFilter || employees.includes(employeeFilter);
+                    const matchesPriority = !priorityFilter || priority === priorityFilter;
+                    const matchesStatus = !statusFilter || status === statusFilter;
+
+                    if (matchesSearch && matchesCompany && matchesEmployee && matchesPriority && matchesStatus && matchesTab) {
+                        matchedCardElements.push(this);
+                    } else {
+                        $(this).addClass('d-none');
+                    }
+                });
+
+                const totalMatched = matchedRowElements.length;
+                const totalPages = Math.ceil(totalMatched / pageSize) || 1;
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+                if (currentPage < 1) {
+                    currentPage = 1;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = Math.min(startIndex + pageSize, totalMatched);
+
+                // Paginate Table Rows
+                matchedRowElements.forEach((el, index) => {
+                    if (index >= startIndex && index < endIndex) {
+                        $(el).removeClass('d-none');
+                    } else {
+                        $(el).addClass('d-none');
+                    }
+                });
+
+                // Paginate Mobile Card Items
+                matchedCardElements.forEach((el, index) => {
+                    if (index >= startIndex && index < endIndex) {
+                        $(el).removeClass('d-none');
+                    } else {
+                        $(el).addClass('d-none');
+                    }
+                });
+
+                // Update Pagination Info Bar
+                if (totalMatched === 0) {
+                    $('#paginationInfoStart, #mobilePaginationInfoStart').text(0);
+                    $('#paginationInfoEnd, #mobilePaginationInfoEnd').text(0);
+                    $('#paginationInfoTotal, #mobilePaginationInfoTotal').text(0);
+                    $('#taskPaginationBar, #taskMobilePaginationBar').addClass('d-none');
+                    $('#noSearchResultsAlert').removeClass('d-none');
+                } else {
+                    $('#paginationInfoStart, #mobilePaginationInfoStart').text(startIndex + 1);
+                    $('#paginationInfoEnd, #mobilePaginationInfoEnd').text(endIndex);
+                    $('#paginationInfoTotal, #mobilePaginationInfoTotal').text(totalMatched);
+                    $('#taskPaginationBar, #taskMobilePaginationBar').removeClass('d-none');
+                    $('#noSearchResultsAlert').addClass('d-none');
+                }
+
+                renderPaginationControls(totalPages);
+
+                if (searchTerm || companyFilter || employeeFilter || priorityFilter || statusFilter || tabFilter !== 'all') {
+                    $('#searchClearBtn').show();
+                } else {
+                    $('#searchClearBtn').hide();
+                }
+            }
+
+            function renderPaginationControls(totalPages) {
+                const nav = $('#taskPaginationNav').empty();
+                const mobileNav = $('#taskMobilePaginationNav').empty();
+
+                if (totalPages <= 1) {
+                    return;
+                }
+
+                function buildButtons(targetNav) {
+                    // Prev Button
+                    targetNav.append(`
+                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <button class="page-link" data-page="${currentPage - 1}" aria-label="Previous">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </li>
+                    `);
+
+                    // Page Numbers
+                    let startPage = Math.max(1, currentPage - 2);
+                    let endPage = Math.min(totalPages, currentPage + 2);
+
+                    if (startPage > 1) {
+                        targetNav.append(`<li class="page-item"><button class="page-link" data-page="1">1</button></li>`);
+                        if (startPage > 2) {
+                            targetNav.append(`<li class="page-item disabled"><span class="page-link">…</span></li>`);
+                        }
+                    }
+
+                    for (let p = startPage; p <= endPage; p++) {
+                        targetNav.append(`
+                            <li class="page-item ${p === currentPage ? 'active' : ''}">
+                                <button class="page-link" data-page="${p}">${p}</button>
+                            </li>
+                        `);
+                    }
+
+                    if (endPage < totalPages) {
+                        if (endPage < totalPages - 1) {
+                            targetNav.append(`<li class="page-item disabled"><span class="page-link">…</span></li>`);
+                        }
+                        targetNav.append(`<li class="page-item"><button class="page-link" data-page="${totalPages}">${totalPages}</button></li>`);
+                    }
+
+                    // Next Button
+                    targetNav.append(`
+                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <button class="page-link" data-page="${currentPage + 1}" aria-label="Next">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </li>
+                    `);
+                }
+
+                buildButtons(nav);
+                buildButtons(mobileNav);
+            }
+
+            $(document).on('click', '#taskPaginationNav .page-link, #taskMobilePaginationNav .page-link', function (e) {
+                e.preventDefault();
+                const page = parseInt($(this).data('page'));
+                if (!isNaN(page) && page !== currentPage) {
+                    currentPage = page;
+                    filterTasks(false);
+                    // Smooth scroll to top of table
+                    const tableEl = document.getElementById('taskTableView');
+                    if (tableEl && window.innerWidth >= 768) {
+                        tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+
+            $('#pageSizeSelect').on('change', function () {
+                pageSize = parseInt($(this).val()) || 10;
+                currentPage = 1;
+                filterTasks(true);
+            });
+
+            $('.unified-filter-tabs').on('click', '.filter-tab-btn', function (e) {
+                e.preventDefault();
+                $('.filter-tab-btn').removeClass('active');
+                $(this).addClass('active');
+                filterTasks(true);
+            });
+
+            $('#taskSearchInput').on('keyup input', function () { filterTasks(true); });
+            $('#companyFilterSelect, #employeeFilterSelect, #priorityFilterSelect, #statusFilterSelect').on('change', function () { filterTasks(true); });
+
+            $('#searchClearBtn, #resetFilterBtn').on('click', function () {
+                $('#taskSearchInput').val('');
+                $('#companyFilterSelect').val('');
+                $('#employeeFilterSelect').val('');
+                $('#priorityFilterSelect').val('');
+                $('#statusFilterSelect').val('');
+                $('.filter-tab-btn').removeClass('active');
+                $('#filterTabAll').addClass('active');
+                filterTasks(true);
+            });
+
+            // Initial pagination run
+            filterTasks(true);
+
+            // ----------------------------------------------------
+            // Quick AJAX Status Change
+            // ----------------------------------------------------
+            $(document).on('change', '.js-quick-status', function () {
+                const taskId = $(this).data('task-id');
+                const newStatus = $(this).val();
+                updateTaskStatus(taskId, newStatus);
+            });
+
+            $(document).on('click', '.js-move-status', function () {
+                const taskId = $(this).data('task-id');
+                const targetStatusInt = $(this).data('target-status');
+                const statusNames = ["ToDo", "InProgress", "InReview", "Completed"];
+                if (targetStatusInt >= 0 && targetStatusInt < statusNames.length) {
+                    updateTaskStatus(taskId, statusNames[targetStatusInt]);
+                }
+            });
+
+            function updateTaskStatus(taskId, statusStr) {
+                $.ajax({
+                    url: '/Task/QuickUpdateStatus',
+                    type: 'POST',
+                    data: { id: taskId, status: statusStr },
+                    success: function (res) {
+                        if (res.success) {
+                            showToast(res.message);
+                            window.location.reload();
+                        }
+                    }
+                });
+            }
+
+            // ----------------------------------------------------
+            // HTML5 Interactive Drag and Drop Kanban Board
+            // ----------------------------------------------------
+            let draggedTaskCard = null;
+
+            $(document).on('dragstart', '.kanban-card', function (e) {
+                draggedTaskCard = this;
+                $(this).addClass('dragging');
+                if (e.originalEvent.dataTransfer) {
+                    e.originalEvent.dataTransfer.effectAllowed = 'move';
+                    e.originalEvent.dataTransfer.setData('text/plain', $(this).data('task-id'));
+                }
+            });
+
+            $(document).on('dragend', '.kanban-card', function () {
+                $(this).removeClass('dragging');
+                $('.kanban-column').removeClass('drag-over');
+                draggedTaskCard = null;
+            });
+
+            $('.kanban-column').on('dragover', function (e) {
+                e.preventDefault();
+                if (e.originalEvent.dataTransfer) {
+                    e.originalEvent.dataTransfer.dropEffect = 'move';
+                }
+                $(this).addClass('drag-over');
+            });
+
+            $('.kanban-column').on('dragleave', function () {
+                $(this).removeClass('drag-over');
+            });
+
+            $('.kanban-column').on('drop', function (e) {
+                e.preventDefault();
+                $(this).removeClass('drag-over');
+                const newStatusStr = $(this).data('kanban-status');
+                if (draggedTaskCard && newStatusStr) {
+                    const taskId = $(draggedTaskCard).data('task-id');
+                    const currentStatus = $(draggedTaskCard).data('status');
+
+                    if (currentStatus !== newStatusStr) {
+                        const targetList = $(this).find('.kanban-card-list');
+                        $(draggedTaskCard).detach().appendTo(targetList);
+                        $(draggedTaskCard).attr('data-status', newStatusStr).data('status', newStatusStr);
+                        updateTaskStatus(taskId, newStatusStr);
+                    }
+                }
+            });
+
+            // ----------------------------------------------------
+            // Quick Error Reporting & Screenshot Upload Modal
+            // ----------------------------------------------------
+            $(document).on('click', '.open-error-report-btn', function () {
+                const id = $(this).data('id');
+                const name = $(this).data('name');
+                const delayReason = $(this).data('delayreason') || '';
+                const errorDetails = $(this).data('errordetails') || '';
+                const screenshot = $(this).data('errorscreenshot') || '';
+
+                $('#quickErrorTaskId').val(id);
+                $('#reportErrorTaskTitle').text(`#${String(id).padStart(3, '0')} - ${name}`);
+                $('#quickDelayReason').val(delayReason);
+                $('#quickErrorDetails').val(errorDetails);
+                $('#quickScreenshotFile').val('');
+
+                if (screenshot) {
+                    $('#quickScreenshotPreviewImg').attr('src', screenshot);
+                    $('#quickScreenshotPreviewContainer').removeClass('d-none');
+                } else {
+                    $('#quickScreenshotPreviewContainer').addClass('d-none');
+                }
+
+                const errModal = new bootstrap.Modal(document.getElementById('reportErrorModal'));
+                errModal.show();
+            });
+
+            $('#quickScreenshotFile').on('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#quickScreenshotPreviewImg').attr('src', e.target.result);
+                        $('#quickScreenshotPreviewContainer').removeClass('d-none');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            $('#quickErrorForm').on('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const btn = $('#saveQuickErrorBtn');
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Saving...');
+
+                $.ajax({
+                    url: '/Task/QuickUploadErrorLog',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (res) {
+                        bootstrap.Modal.getInstance(document.getElementById('reportErrorModal')).hide();
+                        if (res.success) {
+                            showToast(res.message);
+                            window.location.reload();
+                        } else {
+                            showToast(res.message || 'Error saving report.');
+                        }
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false).html('<i class="bi bi-upload me-1"></i>Upload & Save Report');
+                    }
+                });
+            });
+
+            // ----------------------------------------------------
+            // HR Escalation Modal & Email Redirection
+            // ----------------------------------------------------
+            function openEmailComposer(targetEmail, overdueTasksList, forceMailto = false) {
+                const email = targetEmail || 'hr@auxinz.io';
+                const subject = `[URGENT] Overdue Tasks Escalation Report - AUXINZ.io`;
+                
+                let body = `Dear HR Team,\n\n`;
+                body += `This is an urgent escalation regarding overdue tasks requiring management attention.\n\n`;
+                
+                const count = overdueTasksList ? overdueTasksList.length : 0;
+                body += `Total Overdue Tasks: ${count}\n\n`;
+                
+                if (count > 0) {
+                    body += `Top Overdue Tasks:\n`;
+                    const limit = Math.min(count, 3);
+                    for (let i = 0; i < limit; i++) {
+                        const t = overdueTasksList[i];
+                        body += `• ${t.name} (Due: ${t.dueDate || 'Overdue'})\n`;
+                    }
+                    if (count > limit) {
+                        body += `... and ${count - limit} more overdue task(s).\n`;
+                    }
+                    body += `\n`;
+                }
+
+                body += `View details on Tasksheet Portal: ${window.location.origin}/\n\n`;
+                body += `Best regards,\nTask Management Automation`;
+
+                const encEmail = encodeURIComponent(email);
+                const encSubject = encodeURIComponent(subject);
+                const encBody = encodeURIComponent(body);
+
+                const mailtoUrl = `mailto:${encEmail}?subject=${encSubject}&body=${encBody}`;
+
+                if (forceMailto) {
+                    window.location.href = mailtoUrl;
+                } else {
+                    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=${encEmail}&su=${encSubject}&body=${encBody}`;
+                    try {
+                        const win = window.open(gmailUrl, '_blank');
+                        if (!win || win.closed || typeof win.closed === 'undefined') {
+                            window.location.href = mailtoUrl;
+                        }
+                    } catch (e) {
+                        window.location.href = mailtoUrl;
+                    }
+                }
+            }
+
+            let cachedOverdueTasks = [];
+
+            $('#openHrModalBtn, #openModalFromDropdownBtn').on('click', function (e) {
+                e.preventDefault();
+                const hrModal = new bootstrap.Modal(document.getElementById('hrEscalationModal'));
+                $('#hrModalLoading').removeClass('d-none');
+                $('#hrModalEmpty, #hrModalContent').addClass('d-none');
+                $('#sendHrEmailBtn, #redirectToGmailBtn').prop('disabled', true);
+
+                hrModal.show();
+
+                $.ajax({
+                    url: '/Task/GetOverdueTaskPreview',
+                    type: 'GET',
+                    success: function (res) {
+                        $('#hrModalLoading').addClass('d-none');
+                        cachedOverdueTasks = res.tasks || [];
+                        if (res.count === 0) {
+                            $('#hrModalEmpty').removeClass('d-none');
+                            $('#sendHrEmailBtn').prop('disabled', true);
+                            $('#redirectToGmailBtn').prop('disabled', false);
+                        } else {
+                            $('#hrModalContent').removeClass('d-none');
+                            $('#sendHrEmailBtn, #redirectToGmailBtn').prop('disabled', false);
+                            $('#hrOverdueCount').text(res.count);
+
+                            const listContainer = $('#hrOverdueList').empty();
+                            res.tasks.forEach(t => {
+                                listContainer.append(`
+                                    <div class="p-3 bg-dark-subtle rounded-3 border border-danger border-opacity-50">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <strong class="text-white">#${String(t.id).padStart(3, '0')} - ${t.name}</strong>
+                                            <span class="badge bg-danger">${t.priority}</span>
+                                        </div>
+                                        <small class="text-white-50 d-block">Assigned: ${t.employees || 'Unassigned'} | Companies: ${t.companies || 'None'}</small>
+                                        <small class="text-danger fw-bold"><i class="bi bi-calendar-event me-1"></i>Due Date: ${t.dueDate} (${t.status})</small>
+                                        ${t.delayReason ? `<div class="mt-1 small text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>Delay: ${t.delayReason}</div>` : ''}
+                                    </div>
+                                `);
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Redirect to Gmail button in Modal
+            $('#redirectToGmailBtn').on('click', function () {
+                const targetEmail = $('#hrDestinationEmailInput').val() || 'hr@auxinz.io';
+                openEmailComposer(targetEmail, cachedOverdueTasks, false);
+            });
+
+            // Direct Compose in Gmail from Header dropdown
+            $('#directGmailRedirectBtn').on('click', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/Task/GetOverdueTaskPreview',
+                    type: 'GET',
+                    success: function (res) {
+                        openEmailComposer('hr@auxinz.io', res.tasks || [], false);
+                    },
+                    error: function () {
+                        openEmailComposer('hr@auxinz.io', [], false);
+                    }
+                });
+            });
+
+            // Direct Open Default Mail App from Header dropdown
+            $('#directMailtoRedirectBtn').on('click', function (e) {
+                e.preventDefault();
+                $.ajax({
+                    url: '/Task/GetOverdueTaskPreview',
+                    type: 'GET',
+                    success: function (res) {
+                        openEmailComposer('hr@auxinz.io', res.tasks || [], true);
+                    },
+                    error: function () {
+                        openEmailComposer('hr@auxinz.io', [], true);
+                    }
+                });
+            });
+
+            $('#sendHrEmailBtn').on('click', function () {
+                const btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status"></span>Sending Email...');
+
+                $.ajax({
+                    url: '/Task/SendOverdueHrNotification',
+                    type: 'POST',
+                    success: function (res) {
+                        bootstrap.Modal.getInstance(document.getElementById('hrEscalationModal')).hide();
+                        if (res.success) {
+                            showToast(res.message);
+                        } else {
+                            showToast(res.message || 'Failed to send email.');
+                        }
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false).html('<i class="bi bi-send-fill me-1"></i>Send Email Notification to HR');
+                    }
+                });
+            });
+
+            // ----------------------------------------------------
+            // Quick View Modal
+            // ----------------------------------------------------
+            $(document).on('click', '.quick-view-btn', function () {
+                activeTaskModalId = $(this).data('id');
+                const name = $(this).data('name');
+                const desc = $(this).data('desc') || 'No description provided.';
+                const priority = $(this).data('priority');
+                const status = $(this).data('status');
+                const duedate = $(this).data('duedate');
+                const delayReason = $(this).data('delayreason');
+                const errorDetails = $(this).data('errordetails');
+                const screenshot = $(this).data('errorscreenshot');
+                const companies = $(this).data('companies') || '';
+                const employees = $(this).data('employees') || '';
+
+                $('#modalTaskId').text('#' + String(activeTaskModalId).padStart(3, '0'));
+                $('#modalTaskPriority').text(priority);
+                $('#modalTaskPriority').attr('class', 'priority-badge priority-' + String(priority).toLowerCase());
+                $('#modalTaskName').text(name);
+                $('#modalTaskDesc').text(desc);
+                $('#modalTaskDueDate').html('<i class="bi bi-calendar-event me-1"></i> ' + duedate);
+                $('#modalTaskStatusSelect').val(status);
+
+                if (delayReason || errorDetails || screenshot) {
+                    $('#modalErrorContainer').removeClass('d-none');
+                    $('#modalDelayReason').text(delayReason ? 'Delay Reason: ' + delayReason : '');
+                    $('#modalErrorDetails').text(errorDetails ? 'Error Details: ' + errorDetails : '');
+
+                    if (screenshot) {
+                        $('#modalScreenshotImg').attr('src', screenshot);
+                        $('#modalScreenshotWrapper').removeClass('d-none');
+                    } else {
+                        $('#modalScreenshotWrapper').addClass('d-none');
+                    }
+                } else {
+                    $('#modalErrorContainer').addClass('d-none');
+                }
+
+                $('#modalEditLink').attr('href', '/Task/Edit/' + activeTaskModalId);
+                $('#modalDetailsLink').attr('href', '/Task/Details/' + activeTaskModalId);
+
+                const compContainer = $('#modalTaskCompanies').empty();
+                if (companies) {
+                    companies.split(',').forEach(c => {
+                        compContainer.append(`<span class="company-badge-chip"><i class="bi bi-buildings"></i> ${c.trim()}</span>`);
+                    });
+                } else {
+                    compContainer.append('<span class="empty-badge-pill">No companies</span>');
+                }
+
+                const empContainer = $('#modalTaskEmployees').empty();
+                if (employees) {
+                    employees.split(',').forEach(e => {
+                        const trimmed = e.trim();
+                        const initial = trimmed ? trimmed.charAt(0) : '?';
+                        empContainer.append(`<span class="employee-badge-chip"><span class="avatar-initial-circle avatar-color-1">${initial}</span> ${trimmed}</span>`);
+                    });
+                } else {
+                    empContainer.append('<span class="empty-badge-pill">No team assigned</span>');
+                }
+
+                const quickModal = new bootstrap.Modal(document.getElementById('quickViewModal'));
+                quickModal.show();
+            });
+
+            $('#modalTaskStatusSelect').on('change', function () {
+                if (activeTaskModalId) {
+                    updateTaskStatus(activeTaskModalId, $(this).val());
+                }
+            });
+
+            $('#modalCopySummaryBtn').on('click', function () {
+                const title = $('#modalTaskName').text();
+                const desc = $('#modalTaskDesc').text();
+                navigator.clipboard.writeText(`Task: ${title}\nDescription: ${desc}`);
+                showToast('Summary copied to clipboard!');
+            });
+
+            // ----------------------------------------------------
+            // Export CSV
+            // ----------------------------------------------------
+            $('#exportCsvBtn').on('click', function () {
+                let csv = 'ID,Task Name,Priority,Status,Progress,DueDate,DelayReason,ErrorDetails,Companies,Employees\n';
+                $('.task-row-item:not(.d-none)').each(function () {
+                    const id = $(this).data('task-id');
+                    const name = `"${($(this).data('task-name') || '').replace(/"/g, '""')}"`;
+                    const priority = $(this).data('priority');
+                    const status = $(this).data('status');
+                    const progress = $(this).data('progress');
+                    const duedate = $(this).data('duedate');
+                    const delayReason = `"${($(this).data('delayreason') || '').replace(/"/g, '""')}"`;
+                    const errorDetails = `"${($(this).data('errordetails') || '').replace(/"/g, '""')}"`;
+                    const companies = `"${($(this).data('companies') || '').replace(/"/g, '""')}"`;
+                    const employees = `"${($(this).data('employees') || '').replace(/"/g, '""')}"`;
+
+                    csv += `${id},${name},${priority},${status},${progress}%,${duedate},${delayReason},${errorDetails},${companies},${employees}\n`;
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Auxinzio_Export_${new Date().toISOString().slice(0, 10)}.csv`;
+                link.click();
+            });
+
+            function showToast(msg) {
+                if ($('#appToast').length) {
+                    $('#appToastMessage').text(msg);
+                    const toast = new bootstrap.Toast(document.getElementById('appToast'));
+                    toast.show();
+                }
+            }
+        });
+    </script>
+}

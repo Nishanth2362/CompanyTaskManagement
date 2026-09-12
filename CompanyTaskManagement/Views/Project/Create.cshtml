@@ -1,0 +1,131 @@
+@model CompanyTaskManagement.Models.Project
+
+@{
+    ViewData["Title"] = "Create Project (Admin)";
+    var companies = ViewBag.Companies as IEnumerable<CompanyTaskManagement.Models.Company> ?? new List<CompanyTaskManagement.Models.Company>();
+    var employees = ViewBag.Employees as IEnumerable<CompanyTaskManagement.Models.Employee> ?? new List<CompanyTaskManagement.Models.Employee>();
+}
+
+<!-- Page Header Navigation -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h1 class="h3 fw-bold mb-0">Launch New Project</h1>
+            <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 small">Admin Only</span>
+        </div>
+        <p class="text-muted mb-0">Define an enterprise project portfolio item, allocate the budget, and assign a lead manager.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-9">
+        <div class="card border-0 shadow glass-card p-4 p-md-5">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger shadow-sm rounded-3 mb-4"></div>
+
+                <div class="row g-4">
+                    <!-- Project Name -->
+                    <div class="col-12 col-md-8">
+                        <label asp-for="ProjectName" class="form-label fw-bold">Project Title <span class="text-danger">*</span></label>
+                        <input asp-for="ProjectName" class="form-control form-control-lg" placeholder="e.g. Auxinzio AI Platform v2.0" autofocus />
+                        <span asp-validation-for="ProjectName" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Client / Company -->
+                    <div class="col-12 col-md-4">
+                        <label asp-for="ClientCompany" class="form-label fw-bold">Client / Company</label>
+                        <input asp-for="ClientCompany" class="form-control form-control-lg" list="companyListOptions" placeholder="e.g. Auxinzio" />
+                        <datalist id="companyListOptions">
+                            @foreach (var c in companies)
+                            {
+                                <option value="@c.Name">@c.Name</option>
+                            }
+                        </datalist>
+                        <span asp-validation-for="ClientCompany" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="col-12">
+                        <label asp-for="Description" class="form-label fw-bold">Project Scope &amp; Objectives</label>
+                        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Detail the business deliverables, architecture targets, key milestones, and high-level deliverables..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Status" class="form-label fw-bold">Initial Execution Status</label>
+                        <select asp-for="Status" class="form-select form-select-lg">
+                            <option value="Planning">Planning (Scoping &amp; Discovery)</option>
+                            <option value="In Progress" selected>In Progress (Active Development)</option>
+                            <option value="On Hold">On Hold (Awaiting Client Specs)</option>
+                            <option value="Completed">Completed (Delivered &amp; Signed Off)</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Priority -->
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Priority" class="form-label fw-bold">Strategic Priority</label>
+                        <select asp-for="Priority" class="form-select form-select-lg">
+                            <option value="Low">Low (Backlog Enhancement)</option>
+                            <option value="Medium">Medium (Standard Milestone)</option>
+                            <option value="High" selected>High (Key Deliverable)</option>
+                            <option value="Critical">Critical (Executive Priority / Blocker)</option>
+                        </select>
+                        <span asp-validation-for="Priority" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Lead Manager -->
+                    <div class="col-12 col-md-4">
+                        <label asp-for="LeadManagerName" class="form-label fw-bold">Lead Project Manager / Lead</label>
+                        <input asp-for="LeadManagerName" class="form-control" list="employeeListOptions" placeholder="e.g. Srithar" />
+                        <datalist id="employeeListOptions">
+                            @foreach (var e in employees)
+                            {
+                                <option value="@e.Name">@e.Name</option>
+                            }
+                        </datalist>
+                        <span asp-validation-for="LeadManagerName" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Start Date -->
+                    <div class="col-12 col-md-4">
+                        <label asp-for="StartDate" class="form-label fw-bold">Start Date</label>
+                        <input asp-for="StartDate" type="date" class="form-control" />
+                        <span asp-validation-for="StartDate" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Target End Date -->
+                    <div class="col-12 col-md-4">
+                        <label asp-for="TargetEndDate" class="form-label fw-bold">Target Completion Date</label>
+                        <input asp-for="TargetEndDate" type="date" class="form-control" />
+                        <span asp-validation-for="TargetEndDate" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Budget -->
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Budget" class="form-label fw-bold">Allocated Budget (₹ INR)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">₹</span>
+                            <input asp-for="Budget" type="number" step="1000" class="form-control" placeholder="500000" />
+                        </div>
+                        <span asp-validation-for="Budget" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Form Action Buttons -->
+                <div class="d-flex align-items-center justify-content-end gap-3 mt-5 pt-3 border-top border-secondary border-opacity-10">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+                    <button type="submit" class="btn btn-royal-gold px-4 py-2 shadow fw-bold">
+                        <i class="bi bi-check-circle-fill me-1"></i> Save &amp; Launch Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

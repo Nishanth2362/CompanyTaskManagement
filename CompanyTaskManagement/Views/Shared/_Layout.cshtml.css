@@ -1,0 +1,11 @@
+/* Layout scoped styling */
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+.footer {
+  width: 100%;
+}
+
