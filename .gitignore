@@ -1,0 +1,13 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Publish directories
+publish/
+**/publish/
+
+# Visual Studio files
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
