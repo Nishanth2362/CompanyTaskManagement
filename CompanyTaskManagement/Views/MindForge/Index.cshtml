@@ -5,26 +5,29 @@
 
 <style>
     :root {
-        --mf-primary: #6d28d9;
+        --mf-primary: #059669;
+        --mf-primary-dark: #047857;
         --mf-accent: #f59e0b;
-        --mf-glow: rgba(109,40,217,0.35);
+        --mf-glow: rgba(16,185,129,0.35);
         --mf-card-bg: var(--bs-body-bg);
     }
 
     .mf-hero {
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        border-radius: 14px;
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
+        border-radius: 16px;
         position: relative;
         overflow: hidden;
-        padding: 1.25rem 1.5rem;
+        padding: 1.5rem 1.75rem;
         color: white;
+        border: 1.5px solid #86efac;
+        box-shadow: 0 16px 36px -4px rgba(34, 197, 94, 0.35);
     }
     .mf-hero::before {
         content: '';
         position: absolute;
         top: -80px; right: -80px;
         width: 320px; height: 320px;
-        background: radial-gradient(circle, rgba(109,40,217,0.4) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
         pointer-events: none;
     }
     .mf-hero::after {
@@ -32,27 +35,28 @@
         position: absolute;
         bottom: -60px; left: -60px;
         width: 240px; height: 240px;
-        background: radial-gradient(circle, rgba(245,158,11,0.25) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
         pointer-events: none;
     }
 
     .game-card {
         border-radius: 14px;
-        border: 1px solid rgba(109,40,217,0.15);
+        border: 1.5px solid rgba(34,197,94,0.25);
         background: var(--mf-card-bg);
-        box-shadow: 0 3px 18px rgba(0,0,0,0.06);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         overflow: hidden;
     }
-    .game-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(109,40,217,0.14); }
+    .game-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(34,197,94,0.2); border-color: #22c55e; }
 
     .game-header {
-        background: linear-gradient(135deg, #0f0c29, #302b63);
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
         color: white;
-        padding: 0.65rem 1rem;
+        padding: 0.75rem 1.1rem;
         display: flex;
         align-items: center;
         gap: 0.6rem;
+        border-bottom: 2px solid #86efac;
     }
 
     /* ===== MEMORY GAME ===== */
@@ -77,7 +81,7 @@
     }
     .mem-card.flipped .mem-card-inner { transform: rotateY(180deg); }
     .mem-card.matched .mem-card-inner { transform: rotateY(180deg); }
-    .mem-card.matched .mem-card-front { box-shadow: 0 0 0 2px #10b981; }
+    .mem-card.matched .mem-card-front { box-shadow: 0 0 0 2px #22c55e; }
     .mem-front, .mem-back {
         position: absolute; width: 100%; height: 100%;
         border-radius: 8px;
@@ -86,7 +90,7 @@
         font-size: 1.25rem;
         user-select: none;
     }
-    .mem-front { background: linear-gradient(135deg, #6d28d9, #4f46e5); color: white; }
+    .mem-front { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
     .mem-front::after { content: '?'; font-size: 1.1rem; font-weight: bold; }
     .mem-back { background: white; transform: rotateY(180deg); border: 1px solid #e5e7eb; }
 
@@ -95,7 +99,7 @@
         font-size: 1.5rem;
         font-weight: 800;
         letter-spacing: 0.25rem;
-        color: #6d28d9;
+        color: #16a34a;
         font-family: 'JetBrains Mono', monospace;
     }
     .word-input {
@@ -104,7 +108,7 @@
         letter-spacing: 0.15rem;
         font-family: 'JetBrains Mono', monospace;
         border-radius: 8px;
-        border: 2px solid #6d28d9;
+        border: 2px solid #16a34a;
         padding: 0.35rem 0.75rem;
         max-width: 280px;
         margin: 0 auto;
@@ -112,34 +116,44 @@
         transition: border-color 0.2s, box-shadow 0.2s;
     }
     .word-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
-    .word-input.correct { border-color: #10b981; background: rgba(16,185,129,0.08); }
+    .word-input.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
     .word-input.wrong { border-color: #ef4444; background: rgba(239,68,68,0.08); animation: shake 0.4s; }
 
     /* ===== .NET CODE CHALLENGE ===== */
     .dotnet-code-block {
-        background: #0f0c29;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
         border-radius: 8px;
-        padding: 0.5rem 0.75rem;
+        padding: 0.6rem 0.85rem;
         font-family: 'JetBrains Mono', monospace;
-        font-size: 0.76rem;
-        color: #c4b5fd;
+        font-size: 0.78rem;
+        color: #14532d;
         line-height: 1.5;
         text-align: left;
-        border: 1px solid rgba(109,40,217,0.3);
+        border: 1.5px solid #86efac;
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.08);
         white-space: pre;
         overflow-x: auto;
         min-height: 55px;
         max-height: 110px;
     }
-    .dotnet-code-block .kw  { color: #818cf8; font-weight: bold; }
-    .dotnet-code-block .str { color: #34d399; }
-    .dotnet-code-block .num { color: #fb923c; }
-    .dotnet-code-block .cls { color: #fbbf24; }
+    [data-bs-theme="dark"] .dotnet-code-block {
+        background: rgba(34, 197, 94, 0.12);
+        color: #bbf7d0;
+        border-color: rgba(34, 197, 94, 0.35);
+    }
+    .dotnet-code-block .kw  { color: #15803d; font-weight: bold; }
+    .dotnet-code-block .str { color: #b45309; }
+    .dotnet-code-block .num { color: #c2410c; }
+    .dotnet-code-block .cls { color: #1d4ed8; font-weight: bold; }
+    [data-bs-theme="dark"] .dotnet-code-block .kw  { color: #86efac; }
+    [data-bs-theme="dark"] .dotnet-code-block .str { color: #fde047; }
+    [data-bs-theme="dark"] .dotnet-code-block .num { color: #fb923c; }
+    [data-bs-theme="dark"] .dotnet-code-block .cls { color: #93c5fd; }
     .dotnet-opt-btn {
         width: 100%; text-align: left;
         padding: 0.35rem 0.75rem;
         border-radius: 8px;
-        border: 1.5px solid rgba(109,40,217,0.2);
+        border: 1.5px solid rgba(34,197,94,0.25);
         background: var(--mf-card-bg);
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.78rem;
@@ -147,10 +161,10 @@
         transition: all 0.15s;
         font-weight: 600;
     }
-    .dotnet-opt-btn:hover:not(:disabled) { border-color: #6d28d9; background: rgba(109,40,217,0.07); transform: translateX(3px); }
-    .dotnet-opt-btn.opt-correct { border-color: #10b981 !important; background: rgba(16,185,129,0.12) !important; color: #10b981 !important; }
+    .dotnet-opt-btn:hover:not(:disabled) { border-color: #16a34a; background: rgba(34,197,94,0.08); transform: translateX(3px); }
+    .dotnet-opt-btn.opt-correct { border-color: #22c55e !important; background: rgba(34,197,94,0.15) !important; color: #16a34a !important; }
     .dotnet-opt-btn.opt-wrong   { border-color: #ef4444 !important; background: rgba(239,68,68,0.12) !important; color: #ef4444 !important; }
-    .dotnet-timer-bar { height: 4px; border-radius: 99px; background: linear-gradient(90deg,#6d28d9,#a78bfa); transition: width 1s linear; }
+    .dotnet-timer-bar { height: 4px; border-radius: 99px; background: linear-gradient(90deg,#22c55e,#86efac); transition: width 1s linear; }
 
     /* ===== TIC TAC TOE ===== */
     .ttt-board {
@@ -166,15 +180,15 @@
         font-size: 1.5rem;
         font-weight: 900;
         border-radius: 8px;
-        background: rgba(109,40,217,0.07);
-        border: 1.5px solid rgba(109,40,217,0.15);
+        background: rgba(34,197,94,0.08);
+        border: 1.5px solid rgba(34,197,94,0.2);
         cursor: pointer;
         transition: background 0.2s, transform 0.1s;
         user-select: none;
     }
-    .ttt-cell:hover:not(.taken) { background: rgba(109,40,217,0.15); transform: scale(1.04); }
+    .ttt-cell:hover:not(.taken) { background: rgba(34,197,94,0.18); transform: scale(1.04); }
     .ttt-cell.taken { cursor: default; }
-    .ttt-cell.win-cell { background: rgba(16,185,129,0.2); border-color: #10b981; }
+    .ttt-cell.win-cell { background: rgba(34,197,94,0.25); border-color: #22c55e; }
 
     /* ===== TYPING TEST ===== */
     .typing-passage {
@@ -183,19 +197,19 @@
         font-family: 'Plus Jakarta Sans', sans-serif;
         padding: 0.65rem 0.85rem;
         border-radius: 8px;
-        background: rgba(109,40,217,0.04);
-        border: 1px solid rgba(109,40,217,0.12);
+        background: rgba(34,197,94,0.05);
+        border: 1px solid rgba(34,197,94,0.15);
         min-height: 70px;
     }
     .typing-passage .char { transition: color 0.05s; }
-    .typing-passage .char.correct { color: #10b981; }
+    .typing-passage .char.correct { color: #16a34a; }
     .typing-passage .char.wrong   { color: #ef4444; background: rgba(239,68,68,0.12); border-radius: 2px; }
-    .typing-passage .char.current { border-bottom: 2px solid #6d28d9; }
+    .typing-passage .char.current { border-bottom: 2px solid #16a34a; }
     .typing-area {
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.88rem;
         border-radius: 8px;
-        border: 1.5px solid #6d28d9;
+        border: 1.5px solid #16a34a;
         padding: 0.5rem 0.75rem;
         resize: none;
         width: 100%;
@@ -204,16 +218,16 @@
 
     /* ===== SCORE BADGES ===== */
     .score-badge {
-        background: linear-gradient(135deg, #6d28d9, #4f46e5);
+        background: linear-gradient(135deg, #22c55e, #16a34a);
         color: white;
         border-radius: 50px;
         padding: 0.18rem 0.65rem;
         font-weight: 700;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: 'Plus Jakarta Sans', system-ui, monospace;
         font-size: 0.76rem;
     }
     .btn-mf {
-        background: linear-gradient(135deg, #6d28d9, #4f46e5);
+        background: linear-gradient(135deg, #22c55e, #16a34a);
         color: white;
         border: none;
         border-radius: 8px;
@@ -244,22 +258,22 @@
     <div class="row align-items-center position-relative" style="z-index:2;">
         <div class="col-12 col-lg-8">
             <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-warning text-dark fw-bold px-3"><i class="bi bi-controller me-1"></i>MindForge</span>
-                <span class="badge" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);">Brain Recharge Zone</span>
+                <span class="badge text-dark fw-bold px-3 py-1.5 rounded-pill shadow-xs" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);"><i class="bi bi-controller me-1"></i>MindForge</span>
+                <span class="badge rounded-pill px-3 py-1.5 shadow-sm" style="background: #ffffff; color: #047857; font-weight: 700; border: 1px solid rgba(255,255,255,0.9);">Brain Recharge Zone</span>
             </div>
             <h1 class="fw-black text-white mb-2" style="font-family:'Outfit',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);">
                 🧠 MindForge – Recharge Your Brain
             </h1>
-            <p class="text-white opacity-75 mb-0">
+            <p class="text-white opacity-90 mb-0" style="max-width: 640px; line-height: 1.6;">
                 Take a quick break and flex your mind with puzzles, word games &amp; more. Built for the Auxinzio team to refresh, refocus &amp; have fun.
             </p>
         </div>
         <div class="col-12 col-lg-4 text-lg-end mt-3 mt-lg-0">
             <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-2 fs-6">
-                    <i class="bi bi-lightning-charge-fill me-1"></i>4 Games
+                <span class="badge px-3 py-2 fs-6 rounded-pill shadow-sm" style="background: #ffffff; color: #047857; font-weight: 700; border: 1px solid rgba(255,255,255,0.9);">
+                    <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>4 Games
                 </span>
-                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-3 py-2 fs-6">
+                <span class="badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill fw-bold shadow-xs">
                     <i class="bi bi-stars me-1"></i>No logins needed
                 </span>
             </div>

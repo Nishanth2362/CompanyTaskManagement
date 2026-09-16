@@ -470,4 +470,4 @@ D:\PROJECTS\CompanyTaskManagement\CompanyTaskManagement\obj\Debug\net10.0\Compan
 D:\PROJECTS\CompanyTaskManagement\CompanyTaskManagement\obj\Debug\net10.0\CompanyTaskManagement.genruntimeconfig.cache
 D:\PROJECTS\CompanyTaskManagement\CompanyTaskManagement\obj\Debug\net10.0\ref\CompanyTaskManagement.dll
 D:\PROJECTS\CompanyTaskManagement\CompanyTaskManagement\obj\Debug\net10.0\compressed\1erlggj84l-{0}-v7xk9mfj9g-v7xk9mfj9g.gz
-D:\PROJECTS\CompanyTaskManagement\CompanyTaskManagement\obj\Debug\net10.0\compressed\sbnhb0yn9o-{0}-rmsiaqolm0-rmsiaqolm0.gz
+D:\PROJECTS\CompanyTaskManagement\CompanyTaskManagement\obj\Debug\net10.0\compressed\sbnhb0yn9o-{0}-efpi562f1t-efpi562f1t.gz

@@ -150,7 +150,7 @@
         <div class="row g-3 align-items-center">
             <!-- Department Tabs -->
             <div class="col-12 col-lg-7">
-                <div class="d-flex flex-wrap gap-1.5">
+                <div class="d-flex flex-wrap gap-2">
                     <a asp-action="Index" asp-route-department="all" asp-route-search="@search" 
                        class="btn btn-sm @(selectedDept == "all" ? "btn-primary fw-bold" : "btn-outline-secondary") rounded-pill px-3">
                         All
@@ -281,14 +281,14 @@
                         <div class="d-flex flex-column gap-2 mb-3.5 flex-grow-1">
                             <div class="p-2.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-10 d-flex align-items-center">
                                 <i class="bi bi-envelope-fill text-primary fs-6 me-2.5 flex-shrink-0"></i>
-                                <span class="text-truncate font-monospace small text-body fw-medium">@(emp.Email ?? $"{emp.Name?.ToLower().Replace(" ", ".") ?? "employee"}@auxinz.io")</span>
+                                <span class="text-truncate small text-body fw-semibold" style="font-family: var(--font-primary), system-ui, sans-serif; font-size: 0.83rem; letter-spacing: -0.01em;">@(emp.Email ?? $"{emp.Name?.ToLower().Replace(" ", ".") ?? "employee"}@auxinz.io")</span>
                             </div>
                             <div class="p-2.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-10 d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-list-check text-warning fs-6 me-2.5 flex-shrink-0"></i>
                                     <span class="small text-muted fw-semibold">Active Tasks</span>
                                 </div>
-                                <span class="badge bg-primary rounded-pill px-2.5 py-1 font-monospace fw-bold">@assignedTasksCount</span>
+                                <span class="badge bg-primary rounded-pill px-2.5 py-1 fw-bold" style="font-family: var(--font-primary), system-ui, sans-serif;">@assignedTasksCount</span>
                             </div>
                         </div>
 

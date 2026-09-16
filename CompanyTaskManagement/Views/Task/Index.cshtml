@@ -259,7 +259,7 @@ else
             <table class="table table-custom" id="mainTaskTable">
                 <thead>
                     <tr>
-                        <th style="min-width: 95px;" class="text-center text-nowrap">TASK NO.</th>
+                        <th style="width: 50px; min-width: 46px; max-width: 55px;" class="text-center text-nowrap px-1">TASK #</th>
                         <th style="min-width: 130px;">TASK NAME</th>
                         <th style="min-width: 85px;">PROJECT</th>
                         <th style="min-width: 80px;" class="text-nowrap text-center">PRIORITY</th>
@@ -345,8 +345,8 @@ else
                             data-project="@(item.Project?.ProjectName ?? "")">
 
                             <!-- Tasksheet Number with Row Number -->
-                            <td class="text-center text-nowrap">
-                                <span class="row-number-circle">@(rowNum++)</span>
+                            <td class="text-center text-nowrap px-1" style="width: 50px; min-width: 46px;">
+                                <span class="row-number-badge font-monospace">@(rowNum++)</span>
                             </td>
 
                             <!-- Task Name & Desc -->
