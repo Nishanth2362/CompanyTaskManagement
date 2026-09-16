@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\karth\\source\\repos\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj": {}
+    "D:\\PROJECTS\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj": {}
   },
   "projects": {
-    "C:\\Users\\karth\\source\\repos\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj": {
+    "D:\\PROJECTS\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\karth\\source\\repos\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj",
+        "projectUniqueName": "D:\\PROJECTS\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj",
         "projectName": "CompanyTaskManagement",
-        "projectPath": "C:\\Users\\karth\\source\\repos\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj",
+        "projectPath": "D:\\PROJECTS\\CompanyTaskManagement\\CompanyTaskManagement\\CompanyTaskManagement.csproj",
         "packagesPath": "C:\\Users\\karth\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\karth\\source\\repos\\CompanyTaskManagement\\CompanyTaskManagement\\obj\\",
+        "outputPath": "D:\\PROJECTS\\CompanyTaskManagement\\CompanyTaskManagement\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "E:\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initIndexPageFeatures();
     initFormPageFeatures();
     initGlobalCopyButtons();
+    initUniversalSearchClearButtons();
 });
 
 /* ==========================================================================
@@ -92,7 +93,6 @@ function initIndexPageFeatures() {
     const prioritySelect = document.getElementById('priorityFilterSelect');
     const statusSelect = document.getElementById('statusFilterSelect');
     const resetFilterBtn = document.getElementById('resetFilterBtn');
-    const exportBtn = document.getElementById('exportCsvBtn');
 
     const noResultsAlert = document.getElementById('noSearchResultsAlert');
 
@@ -585,5 +585,81 @@ function getAvatarColorClass(name) {
     }
     const idx = Math.abs(hash) % 7;
     return `avatar-color-${idx}`;
+}
+
+/* ==========================================================================
+   6. Universal Search Box Clear Cross Symbol Handler
+   ========================================================================== */
+function initUniversalSearchClearButtons() {
+    function setupInput(input) {
+        if (!input || input.dataset.clearAttached === 'true') return;
+        input.dataset.clearAttached = 'true';
+
+        let container = input.closest('.input-group') || input.closest('.search-input-group') || input.parentElement;
+        let existingBtn = container ? container.querySelector('.js-search-clear-btn, .search-clear-btn, a[title*="Clear"], button[title*="Clear"]') : null;
+
+        if (!existingBtn && container) {
+            const clearBtn = document.createElement('button');
+            clearBtn.type = 'button';
+            clearBtn.className = 'btn btn-link p-0 text-muted border-0 bg-transparent text-decoration-none search-clear-cross-btn me-1 d-none js-search-clear-btn';
+            clearBtn.title = 'Clear search';
+            clearBtn.innerHTML = '<i class="bi bi-x-circle-fill text-secondary opacity-75"></i>';
+            clearBtn.style.cssText = 'font-size: 1.05rem; flex-shrink: 0; outline: none; box-shadow: none;';
+
+            const submitBtn = container.querySelector('button[type="submit"], button.btn-primary, button.btn-royal-gold, button.btn-warning');
+            if (submitBtn) {
+                container.insertBefore(clearBtn, submitBtn);
+            } else {
+                container.appendChild(clearBtn);
+            }
+            existingBtn = clearBtn;
+        }
+
+        if (existingBtn) {
+            const toggleVisibility = () => {
+                const val = (input.value || '').trim();
+                if (val.length > 0) {
+                    existingBtn.classList.remove('d-none');
+                } else {
+                    existingBtn.classList.add('d-none');
+                }
+            };
+
+            input.addEventListener('input', toggleVisibility);
+            input.addEventListener('keyup', toggleVisibility);
+            input.addEventListener('change', toggleVisibility);
+            toggleVisibility();
+
+            existingBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                input.value = '';
+                toggleVisibility();
+                input.focus();
+
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+
+                if (window.jQuery) {
+                    window.$(input).trigger('input').trigger('change').trigger('keyup');
+                }
+
+                const form = input.closest('form');
+                if (form && form.method.toLowerCase() === 'get') {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has('search') || urlParams.has(input.name)) {
+                        form.submit();
+                    }
+                }
+            });
+        }
+    }
+
+    const selector = 'input[name="search"], input[id*="search"], input[id*="Search"], input[placeholder*="Search"], input[placeholder*="search"]';
+    document.querySelectorAll(selector).forEach(setupInput);
+
+    const observer = new MutationObserver(() => {
+        document.querySelectorAll(selector).forEach(setupInput);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
