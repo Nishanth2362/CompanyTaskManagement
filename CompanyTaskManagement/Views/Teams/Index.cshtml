@@ -8,6 +8,7 @@
     var allProjects = ViewBag.AllProjects as List<Project> ?? new List<Project>();
     var allReviews = ViewBag.AllReviews as List<TeamLeaderReview> ?? new List<TeamLeaderReview>();
     var isAdmin = UserSession.IsAdmin();
+    var isCanManageTeams = UserSession.IsAdminOrHr();
     var currentRole = UserSession.GetCurrentRole();
     var currentEmployeeId = UserSession.GetCurrentEmployeeId();
 
@@ -41,37 +42,45 @@
 
     <!-- ── Hero Banner Header ── -->
     <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative mb-4" 
-         style="background: linear-gradient(135deg, #0f172a 0%, #0c2a4a 45%, #0284c7 100%); color: white; border: 1px solid rgba(56, 189, 248, 0.3) !important; box-shadow: 0 16px 36px -8px rgba(2, 132, 199, 0.28) !important;">
+         style="background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 45%, #0284c7 100%); color: white; border: 1.5px solid rgba(14, 165, 233, 0.35) !important; border-left: 5px solid #f59e0b !important; box-shadow: 0 16px 36px -4px rgba(14, 165, 233, 0.25) !important; margin-bottom: 1.75rem !important;">
         
-        <!-- Ambient Glowing Background Accents -->
-        <div style="position: absolute; right: -40px; top: -60px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(2, 132, 199, 0) 70%); border-radius: 50%; pointer-events: none; z-index: 1;"></div>
-        <div style="position: absolute; left: 30%; bottom: -80px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(0, 0, 0, 0) 70%); border-radius: 50%; pointer-events: none; z-index: 1;"></div>
-        <i class="bi bi-people-fill position-absolute text-white" style="font-size: 14rem; right: 2rem; bottom: -3.5rem; opacity: 0.06; pointer-events: none; z-index: 1;"></i>
+        <div style="position: absolute; right: -60px; top: -60px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(251, 191, 36, 0.22) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 1;"></div>
+        <i class="bi bi-people-fill position-absolute text-white" style="font-size: 13rem; right: 2rem; bottom: -3rem; opacity: 0.06; pointer-events: none; z-index: 1;"></i>
 
-        <div class="card-body p-4 p-lg-5 position-relative" style="z-index: 2;">
-            <div class="row align-items-center g-4">
+        <div class="card-body p-3.5 p-lg-4 position-relative" style="z-index: 2; padding: 1.25rem 1.75rem;">
+            <div class="row align-items-center g-3">
                 <div class="col-lg-8">
-                    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                        <span class="badge text-dark fw-extrabold px-3 py-1.5 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); font-size: 0.78rem; letter-spacing: 0.04em;">
-                            <i class="bi bi-shield-check-fill me-1.5"></i>Auxinzio Enterprise Team Hub
+                    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                        <span class="badge bg-warning text-dark fw-bold px-2.5 py-1 rounded-pill shadow-xs" style="font-size: 0.75rem; letter-spacing: 0.02em;">
+                            <i class="bi bi-shield-check-fill me-1"></i>Auxinzio Enterprise Team Hub
                         </span>
-                        <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); color: #e0f2fe; font-size: 0.78rem; backdrop-filter: blur(8px);">
+                        <span class="badge rounded-pill px-2.5 py-1 fw-bold" style="background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25); color: #e0f2fe; font-size: 0.75rem; backdrop-filter: blur(8px);">
                             <i class="bi bi-diagram-3-fill me-1 text-sky-light"></i> Management &amp; Allocation Zone
                         </span>
                     </div>
-                    <h2 class="fw-extrabold mb-2.5" style="font-family: 'Outfit', sans-serif; font-size: 2.1rem; letter-spacing: -0.02em; background: linear-gradient(135deg, #ffffff 0%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    <h2 class="fw-extrabold text-white mb-1.5" style="font-family: 'Outfit', sans-serif; font-size: 1.85rem; letter-spacing: -0.02em;">
                         Teams of Auxinzio
                     </h2>
-                    <p class="text-white opacity-90 mb-0" style="font-size: 1rem; line-height: 1.65; max-width: 660px;">
+                    <p class="text-white opacity-90 mb-0" style="font-size: 0.92rem; line-height: 1.5; max-width: 680px;">
                         Empowering <span class="fw-bold text-warning">Team Leaders</span> to assign &amp; manage tasks, tracking completion reasons, and giving comments &amp; appreciations to boost employee performance.
                     </p>
                 </div>
-                <div class="col-lg-4 text-lg-end d-flex flex-wrap gap-2.5 justify-content-lg-end">
-                    <button type="button" class="btn btn-warning rounded-pill fw-bold px-4 py-2.5 shadow-md border-0 text-dark d-inline-flex align-items-center gap-2" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); font-size: 0.92rem;" data-bs-toggle="modal" data-bs-target="#createTeamModal">
-                        <i class="bi bi-plus-circle-fill fs-6"></i>
-                        <span>Create Team</span>
-                    </button>
-                    <button type="button" class="btn btn-outline-light rounded-pill fw-bold px-4 py-2.5 d-inline-flex align-items-center gap-2" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); font-size: 0.92rem; backdrop-filter: blur(10px);" data-bs-toggle="modal" data-bs-target="#addLeaderReviewModal">
+                <div class="col-lg-4 text-lg-end d-flex flex-wrap gap-2 justify-content-lg-end">
+                    @if (isCanManageTeams)
+                    {
+                        <button type="button" class="btn btn-warning rounded-pill fw-bold px-3.5 py-2 shadow-md border-0 text-dark d-inline-flex align-items-center gap-2" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); font-size: 0.88rem;" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                            <i class="bi bi-plus-circle-fill fs-6"></i>
+                            <span>Create Team</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-outline-light rounded-pill opacity-75 fw-medium px-3.5 py-2 d-inline-flex align-items-center gap-2 cursor-not-allowed" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 0.88rem;" title="Only Administrator & HR Manager have permission to create teams" disabled>
+                            <i class="bi bi-lock-fill text-warning fs-6"></i>
+                            <span>Create Team (Admin &amp; HR Only)</span>
+                        </button>
+                    }
+                    <button type="button" class="btn btn-outline-light rounded-pill fw-bold px-3.5 py-2 d-inline-flex align-items-center gap-2" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); font-size: 0.88rem; backdrop-filter: blur(10px);" data-bs-toggle="modal" data-bs-target="#addLeaderReviewModal">
                         <i class="bi bi-award-fill text-warning fs-6"></i>
                         <span>Give Employee Review</span>
                     </button>
@@ -182,7 +191,7 @@
     }
     else
     {
-        <div class="row g-4 mb-5 align-items-start">
+        <div class="teams-masonry-grid mb-5">
             @foreach (var team in Model)
             {
                 var leader = team.TeamLeader;
@@ -190,8 +199,8 @@
                 var leaderReviews = leader != null ? allReviews.Where(r => r.TeamLeaderId == leader.Id).ToList() : new List<TeamLeaderReview>();
                 double avgRating = leaderReviews.Any() ? Math.Round(leaderReviews.Average(r => r.Rating), 1) : 5.0;
 
-                <div class="col-12 col-xl-6 mb-4">
-                    <div class="card border-0 shadow-sm rounded-4 h-100" id="team-card-@team.Id" style="border: 1px solid rgba(0,0,0,0.08) !important; transition: box-shadow 0.2s ease, transform 0.2s ease; display: flex; flex-direction: column;" onmouseenter="this.style.boxShadow='0 12px 32px rgba(0,0,0,0.13)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.boxShadow='';this.style.transform=''">
+                <div class="team-card-col">
+                    <div class="card border-0 shadow-sm rounded-4" id="team-card-@team.Id" style="border: 1px solid rgba(0,0,0,0.08) !important; transition: box-shadow 0.2s ease, transform 0.2s ease;" onmouseenter="this.style.boxShadow='0 12px 32px rgba(0,0,0,0.13)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.boxShadow='';this.style.transform=''">
                         <!-- Team Header -->
                         <div class="card-header border-0 py-2.5 px-3 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%); border-bottom: none !important;">
                             <div>
