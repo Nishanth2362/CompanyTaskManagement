@@ -508,7 +508,9 @@ function memFlip(card) {
             document.getElementById('memScore').textContent = `Pairs: ${memMatched}`;
             memFlipped = []; memLock = false;
             if (memMatched === memEmojis.length) {
-                document.getElementById('memMsg').textContent = `🎉 Cleared in ${memMoves} moves!`;
+                const calcScore = Math.max(100, 300 - (memMoves * 5));
+                document.getElementById('memMsg').innerHTML = `🎉 Cleared in ${memMoves} moves! (Score: <strong>${calcScore}</strong> pts)`;
+                submitScoreToDatabase('MemoryMatch', calcScore, memMoves * 2);
             }
         } else {
             setTimeout(() => {
@@ -576,9 +578,10 @@ function checkWord() {
     if (guess === answer) {
         inp.className = 'word-input mb-3 correct';
         msg.innerHTML = `<span class="text-success">✅ Correct! The word was <strong>${answer}</strong></span>`;
-        wordScore++;
+        wordScore += 100;
         document.getElementById('wordScore').textContent = `Score: ${wordScore}`;
         document.getElementById('scrambledWord').classList.add('celebrate');
+        submitScoreToDatabase('WordScramble', 100, 15);
         setTimeout(() => { document.getElementById('scrambledWord').classList.remove('celebrate'); nextWord(); }, 1400);
     } else {
         inp.className = 'word-input mb-3 wrong';
@@ -703,8 +706,10 @@ function dotnetAnswer(chosen, correct, explain) {
         else if (b.textContent === chosen) b.classList.add('opt-wrong');
     });
     if (chosen === correct) {
-        dnScore += 10 + dnStreak * 3; dnStreak++;
-        document.getElementById('dotnetMsg').innerHTML = '<span style="color:#10b981">✅ Correct!</span>';
+        const points = 100 + (dnStreak * 25);
+        dnScore += points; dnStreak++;
+        document.getElementById('dotnetMsg').innerHTML = `<span style="color:#10b981">✅ Correct! (+${points} pts)</span>`;
+        submitScoreToDatabase('DotNetQuiz', points, 15);
     } else {
         dnStreak = 0;
         document.getElementById('dotnetMsg').innerHTML = chosen
@@ -785,6 +790,7 @@ function endTTT(winner, mark) {
     } else if (mark === 'X') {
         document.getElementById('tttStatus').textContent = '🎉 You Win!';
         tttW++;
+        submitScoreToDatabase('Tic-Tac-Toe', 150, 30);
         tttWins.filter(([a,b,c])=>tttBoard2[a]===mark && tttBoard2[b]===mark && tttBoard2[c]===mark)
             .forEach(([a,b,c])=>{ [a,b,c].forEach(i=>document.getElementById(`ttt-${i}`).classList.add('win-cell')); });
     } else {

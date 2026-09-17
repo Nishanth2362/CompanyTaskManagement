@@ -283,16 +283,22 @@
         box-shadow: var(--shadow-sm);
     }
     .roster-card-item {
-        background: var(--bg-surface-secondary);
-        border: 1.5px solid var(--border-subtle);
-        border-radius: var(--radius-lg);
-        padding: 1.2rem;
+        background: #ffffff;
+        border: 1.5px solid rgba(148, 163, 184, 0.25);
+        border-radius: 16px;
+        padding: 1.25rem 1.4rem;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        gap: 0.85rem;
+        gap: 1rem;
         height: 100%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    [data-bs-theme="dark"] .roster-card-item {
+        background: #1e293b;
+        border-color: rgba(148, 163, 184, 0.2);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
     }
     .roster-card-item:hover {
         transform: translateY(-3px);
@@ -625,51 +631,51 @@
                                          isRank3 ? "bg-warning bg-opacity-25 text-dark border border-warning" : "bg-body-secondary text-body border border-secondary border-opacity-25";
 
                     <div class="col-12 col-md-6 col-xl-4">
-                        <div class="podium-card h-100 p-3.5 d-flex flex-column justify-content-between @cardClass shadow-sm" style="border-radius: 18px; min-height: 480px;">
+                        <div class="podium-card h-100 p-4 d-flex flex-column justify-content-between @cardClass shadow-sm" style="border-radius: 20px; padding: 1.5rem !important;">
                             <div>
                                 <!-- Header Info -->
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="avatar-halo @haloClass">
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                    <div class="d-flex align-items-center gap-2.5 min-w-0">
+                                        <div class="avatar-halo @haloClass flex-shrink-0">
                                             @(string.IsNullOrEmpty(emp.EmployeeName) ? "?" : emp.EmployeeName.Substring(0, 1))
                                         </div>
-                                        <div>
-                                            <h4 class="fs-6 fw-extrabold mb-1 text-body" style="font-family: 'Outfit', sans-serif;">@emp.EmployeeName</h4>
+                                        <div class="min-w-0">
+                                            <h4 class="fs-6 fw-extrabold mb-1 text-body text-truncate" style="font-family: 'Outfit', sans-serif;">@emp.EmployeeName</h4>
                                             @if (isRank1)
                                             {
-                                                <span class="badge bg-warning text-dark fw-bold border border-warning-subtle px-2.5 py-0.5 rounded-pill" style="font-size: 0.72rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fcd34d;">
-                                                    <i class="bi bi-star-fill me-1 text-warning"></i>@emp.AwardTitle
+                                                <span class="badge bg-warning text-dark fw-bold border border-warning-subtle px-2.5 py-0.5 rounded-pill d-inline-flex align-items-center gap-1 text-nowrap" style="font-size: 0.72rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fcd34d;">
+                                                    <i class="bi bi-star-fill text-warning"></i><span>@emp.AwardTitle</span>
                                                 </span>
                                             }
                                             else if (isRank2)
                                             {
-                                                <span class="badge bg-info text-dark fw-bold border border-info-subtle px-2.5 py-0.5 rounded-pill" style="font-size: 0.72rem; background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc;">
-                                                    <i class="bi bi-award-fill me-1 text-info"></i>@emp.AwardTitle
+                                                <span class="badge bg-info text-dark fw-bold border border-info-subtle px-2.5 py-0.5 rounded-pill d-inline-flex align-items-center gap-1 text-nowrap" style="font-size: 0.72rem; background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc;">
+                                                    <i class="bi bi-award-fill text-info"></i><span>@emp.AwardTitle</span>
                                                 </span>
                                             }
                                             else if (isRank3)
                                             {
-                                                <span class="badge bg-warning text-dark fw-bold border border-warning-subtle px-2.5 py-0.5 rounded-pill" style="font-size: 0.72rem; background-color: #ffedd5; color: #c2410c; border: 1px solid #fdba74;">
-                                                    <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>@emp.AwardTitle
+                                                <span class="badge bg-warning text-dark fw-bold border border-warning-subtle px-2.5 py-0.5 rounded-pill d-inline-flex align-items-center gap-1 text-nowrap" style="font-size: 0.72rem; background-color: #ffedd5; color: #c2410c; border: 1px solid #fdba74;">
+                                                    <i class="bi bi-lightning-charge-fill text-warning"></i><span>@emp.AwardTitle</span>
                                                 </span>
                                             }
                                             else
                                             {
-                                                <span class="badge badge-royal-gold rounded-pill px-2.5 py-0.5" style="font-size: 0.72rem;">
+                                                <span class="badge badge-royal-gold rounded-pill px-2.5 py-0.5 text-nowrap" style="font-size: 0.72rem;">
                                                     @emp.AwardTitle
                                                 </span>
                                             }
                                         </div>
                                     </div>
-                                    <span class="badge @rankBadgeStyle px-3 py-1.5 rounded-pill fw-bold extra-small shadow-2xs text-nowrap">
+                                    <span class="badge @rankBadgeStyle px-3 py-1.5 rounded-pill fw-bold extra-small shadow-2xs text-nowrap flex-shrink-0">
                                         @rankBadgeText
                                     </span>
                                 </div>
 
-                                <p class="text-secondary small mb-3 d-flex align-items-center" style="line-height: 1.55; font-size: 0.84rem; min-height: 44px;">@emp.AwardDescription</p>
+                                <p class="text-secondary small mb-3 d-flex align-items-center" style="line-height: 1.55; font-size: 0.84rem; min-height: 42px;">@emp.AwardDescription</p>
 
                                 <!-- Personalized Motivational Affirmation Box -->
-                                <div class="quote-affirmation-card p-3 rounded-3 mb-3 d-flex flex-column justify-content-between" style="background: linear-gradient(135deg, rgba(254, 243, 199, 0.4) 0%, rgba(255, 255, 255, 0.95) 100%); border: 1.5px solid rgba(245, 158, 11, 0.3); border-radius: 14px !important; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08); min-height: 105px;">
+                                <div class="quote-affirmation-card p-3 rounded-3 mb-3 d-flex flex-column justify-content-between" style="background: linear-gradient(135deg, rgba(254, 243, 199, 0.45) 0%, rgba(255, 255, 255, 0.95) 100%); border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: 14px !important; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-1.5">
                                             <span class="fw-bold extra-small" style="color: #d97706; font-size: 0.74rem;"><i class="bi bi-stars me-1 text-warning"></i>@(string.IsNullOrEmpty(emp.EncouragementTag) ? "Sprint Excellence" : emp.EncouragementTag)</span>
@@ -685,7 +691,7 @@
                                 </div>
 
                                 <!-- Perfection / Velocity Meter -->
-                                <div class="p-2.5 rounded-3 mb-3" style="background: rgba(15, 23, 42, 0.03); border: 1px solid rgba(148, 163, 184, 0.15);">
+                                <div class="p-3 rounded-3 mb-3" style="background: rgba(15, 23, 42, 0.03); border: 1px solid rgba(148, 163, 184, 0.18);">
                                     <div class="d-flex justify-content-between align-items-center text-muted extra-small fw-bold mb-1.5">
                                         <span class="text-uppercase letter-spacing-1" style="font-size: 0.7rem;"><i class="bi bi-speedometer2 me-1 text-primary"></i>Sprint Quality &amp; Focus</span>
                                         <span class="fw-bold font-monospace" style="color: #d97706; font-size: 0.82rem;">@(emp.TotalAssignedTasks > 0 ? $"{emp.PerfectRate}%" : "100% Ready")</span>
@@ -696,7 +702,7 @@
                                 </div>
 
                                 <!-- Tasks List -->
-                                <div class="mb-3" style="min-height: 60px;">
+                                <div class="mb-3">
                                     @if (emp.PerfectlyCompletedTasks.Any())
                                     {
                                         <div class="extra-small fw-bold text-uppercase text-muted letter-spacing-1 mb-1.5" style="font-size: 0.7rem;">
@@ -707,7 +713,7 @@
                                             {
                                                 <span class="badge bg-white text-dark border border-emerald-subtle rounded-pill px-2.5 py-1.5 shadow-2xs d-inline-flex align-items-center gap-1.5" style="border-color: #a7f3d0 !important; font-weight: 600; font-size: 0.75rem;">
                                                     <i class="bi bi-check-circle-fill text-emerald"></i>
-                                                    <span class="text-truncate" style="max-width: 150px;">@taskName</span>
+                                                    <span class="text-truncate" style="max-width: 200px;">@taskName</span>
                                                 </span>
                                             }
                                         </div>
@@ -716,7 +722,7 @@
                             </div>
 
                             <!-- Card Footer -->
-                            <div class="pt-3 border-top border-secondary border-opacity-20 d-flex align-items-center justify-content-between small text-secondary">
+                            <div class="pt-3 border-top border-secondary border-opacity-20 d-flex align-items-center justify-content-between small text-secondary mt-auto">
                                 <div class="d-flex align-items-center gap-1.5">
                                     <i class="bi bi-check2-all text-emerald fs-6"></i>
                                     <span><strong class="text-body font-monospace">@emp.CompletedTasksCount</strong> @(emp.CompletedTasksCount == 1 ? "Task Finished" : "Tasks Finished")</span>

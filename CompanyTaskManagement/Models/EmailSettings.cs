@@ -7,7 +7,9 @@ namespace CompanyTaskManagement.Models
         public bool EnableSsl { get; set; } = true;
         public string SenderEmail { get; set; } = "noreply@companytask.com";
         public string SenderPassword { get; set; } = string.Empty;
-        public string HrEmailAddress { get; set; } = "hr@companytask.com";
+        public string HrEmailAddress { get; set; } = "mukesh@auxinz.io";
+        public string CcEmailAddress { get; set; } = "nithin@amoebatronix.com";
+        public string BccEmailAddress { get; set; } = "hr@auxinz.io";
         public bool UseSimulationMode { get; set; } = true;
     }
 }

@@ -87,6 +87,14 @@
 }
 
 @{
+    var now = DateTime.Now;
+    var sevenDaysAgo = now.AddDays(-7);
+    var fourteenDaysAgo = now.AddDays(-14);
+
+    var tasksThisWeek = taskList.Count(t => t.CreatedAt >= sevenDaysAgo);
+    var tasksLastWeek = taskList.Count(t => t.CreatedAt >= fourteenDaysAgo && t.CreatedAt < sevenDaysAgo);
+    var weeklyDiff = tasksThisWeek - tasksLastWeek;
+
     var inProgressPct = totalTasks > 0 ? (int)Math.Round((double)inProgressCount * 100 / totalTasks) : 0;
     var completedPct = totalTasks > 0 ? (int)Math.Round((double)completedCount * 100 / totalTasks) : 0;
     var errorsPct = totalTasks > 0 ? (int)Math.Round((double)tasksWithErrorsCount * 100 / totalTasks) : 0;
@@ -95,25 +103,36 @@
 <!-- Stat Metric Cards Row -->
 <div class="row g-3 mb-4">
     <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100" 
-             style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(224, 242, 254, 0.45) 100%); border: 1px solid rgba(2, 132, 199, 0.25) !important; padding: 1.25rem 1.25rem 1.15rem 1.25rem;">
-            <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="card border-0 shadow-sm rounded-3 position-relative overflow-hidden h-100" 
+             style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(224, 242, 254, 0.45) 100%); border: 1px solid rgba(2, 132, 199, 0.25) !important; padding: 0.95rem 1.15rem;">
+            <div class="d-flex align-items-center justify-content-between mb-2.5">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm text-white flex-shrink-0" 
-                         style="width: 44px; height: 44px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); font-size: 1.2rem;">
+                         style="width: 38px; height: 38px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); font-size: 1.05rem;">
                         <i class="bi bi-list-task"></i>
                     </div>
                     <div>
-                        <div class="fw-extrabold font-monospace text-dark" style="font-size: 1.85rem; line-height: 1;" id="statTotalTasks">@totalTasks</div>
-                        <div class="fw-bold text-uppercase text-secondary" style="font-size: 0.68rem; letter-spacing: 0.04em; margin-top: 3px;">TOTAL TASKS</div>
+                        <div class="fw-extrabold font-monospace text-dark" style="font-size: 1.5rem; line-height: 1;" id="statTotalTasks">@totalTasks</div>
+                        <div class="fw-bold text-uppercase text-secondary" style="font-size: 0.65rem; letter-spacing: 0.03em; margin-top: 3px;">TOTAL TASKS</div>
                     </div>
                 </div>
             </div>
             <div class="d-flex align-items-center justify-content-between mt-auto pt-1">
-                <small class="fw-bold text-success d-inline-flex align-items-center gap-1" style="font-size: 0.76rem;">
-                    <i class="bi bi-arrow-up-short fs-6"></i> 2 more <span class="text-muted fw-normal ms-1">than last week</span>
+                <small class="fw-bold @(weeklyDiff >= 0 ? "text-success" : "text-danger") d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;" id="statTotalSubtext">
+                    @if (weeklyDiff > 0)
+                    {
+                        <i class="bi bi-arrow-up-short fs-6"></i><span>@weeklyDiff more</span> <span class="text-muted fw-normal ms-0.5">than last week</span>
+                    }
+                    else if (weeklyDiff < 0)
+                    {
+                        <i class="bi bi-arrow-down-short fs-6"></i><span>@(Math.Abs(weeklyDiff)) less</span> <span class="text-muted fw-normal ms-0.5">than last week</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-dash fs-6 text-muted"></i><span>@tasksThisWeek added</span> <span class="text-muted fw-normal ms-0.5">this week</span>
+                    }
                 </small>
-                <svg width="55" height="18" viewBox="0 0 60 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.6;" class="flex-shrink-0">
+                <svg width="46" height="15" viewBox="0 0 60 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.6;" class="flex-shrink-0">
                     <path d="M2 16C12 16 16 6 26 10C36 14 42 2 58 4" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
                 </svg>
             </div>
@@ -121,81 +140,81 @@
     </div>
 
     <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100" 
-             style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.08) 0%, rgba(243, 232, 255, 0.45) 100%); border: 1px solid rgba(147, 51, 234, 0.25) !important; padding: 1.25rem 1.25rem 1.15rem 1.25rem;">
-            <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+        <div class="card border-0 shadow-sm rounded-3 position-relative overflow-hidden h-100" 
+             style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.08) 0%, rgba(243, 232, 255, 0.45) 100%); border: 1px solid rgba(147, 51, 234, 0.25) !important; padding: 0.95rem 1.15rem;">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2.5">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm text-white flex-shrink-0" 
-                         style="width: 44px; height: 44px; background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%); font-size: 1.2rem;">
+                         style="width: 38px; height: 38px; background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%); font-size: 1.05rem;">
                         <i class="bi bi-hourglass-split"></i>
                     </div>
                     <div>
-                        <div class="fw-extrabold font-monospace text-dark" style="font-size: 1.85rem; line-height: 1;">@inProgressCount</div>
-                        <div class="fw-bold text-uppercase text-secondary" style="font-size: 0.68rem; letter-spacing: 0.04em; margin-top: 3px;">IN PROGRESS</div>
+                        <div class="fw-extrabold font-monospace text-dark" style="font-size: 1.5rem; line-height: 1;" id="statInProgressTasks">@inProgressCount</div>
+                        <div class="fw-bold text-uppercase text-secondary" style="font-size: 0.65rem; letter-spacing: 0.03em; margin-top: 3px;">IN PROGRESS</div>
                     </div>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 30px; height: 30px; background: rgba(147, 51, 234, 0.12);">
-                    <i class="bi bi-clock text-purple" style="color: #9333ea; font-size: 0.85rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 26px; height: 26px; background: rgba(147, 51, 234, 0.12);">
+                    <i class="bi bi-clock text-purple" style="color: #9333ea; font-size: 0.75rem;"></i>
                 </div>
             </div>
             <div class="mt-auto pt-1">
-                <div class="fw-bold mb-1.5" style="color: #7e22ce; font-size: 0.76rem;">@inProgressPct% of total tasks</div>
-                <div class="progress overflow-hidden" style="height: 6px; background: rgba(147, 51, 234, 0.15); border-radius: 999px;">
-                    <div class="progress-bar rounded-pill" style="width: @inProgressPct%; background: #9333ea;"></div>
+                <div class="fw-bold mb-1" style="color: #7e22ce; font-size: 0.72rem;" id="statInProgressText">@inProgressPct% of total tasks</div>
+                <div class="progress overflow-hidden" style="height: 5px; background: rgba(147, 51, 234, 0.15); border-radius: 999px;">
+                    <div class="progress-bar rounded-pill" id="statInProgressBar" style="width: @inProgressPct%; background: #9333ea;"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100" 
-             style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(220, 252, 231, 0.45) 100%); border: 1px solid rgba(34, 197, 94, 0.25) !important; padding: 1.25rem 1.25rem 1.15rem 1.25rem;">
-            <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+        <div class="card border-0 shadow-sm rounded-3 position-relative overflow-hidden h-100" 
+             style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(220, 252, 231, 0.45) 100%); border: 1px solid rgba(34, 197, 94, 0.25) !important; padding: 0.95rem 1.15rem;">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2.5">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm text-white flex-shrink-0" 
-                         style="width: 44px; height: 44px; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); font-size: 1.25rem;">
+                         style="width: 38px; height: 38px; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); font-size: 1.1rem;">
                         <i class="bi bi-check-lg"></i>
                     </div>
                     <div>
-                        <div class="fw-extrabold font-monospace text-dark" style="font-size: 1.85rem; line-height: 1;">@completedCount</div>
-                        <div class="fw-bold text-uppercase text-secondary" style="font-size: 0.68rem; letter-spacing: 0.04em; margin-top: 3px;">COMPLETED</div>
+                        <div class="fw-extrabold font-monospace text-dark" style="font-size: 1.5rem; line-height: 1;" id="statCompletedTasks">@completedCount</div>
+                        <div class="fw-bold text-uppercase text-secondary" style="font-size: 0.65rem; letter-spacing: 0.03em; margin-top: 3px;">COMPLETED</div>
                     </div>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 30px; height: 30px; background: rgba(34, 197, 94, 0.15);">
-                    <i class="bi bi-graph-up-arrow text-success" style="font-size: 0.85rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 26px; height: 26px; background: rgba(34, 197, 94, 0.15);">
+                    <i class="bi bi-graph-up-arrow text-success" style="font-size: 0.75rem;"></i>
                 </div>
             </div>
             <div class="mt-auto pt-1">
-                <div class="fw-bold text-success mb-1.5" style="font-size: 0.76rem;">@completedPct% of total tasks</div>
-                <div class="progress overflow-hidden" style="height: 6px; background: rgba(34, 197, 94, 0.15); border-radius: 999px;">
-                    <div class="progress-bar rounded-pill" style="width: @completedPct%; background: #16a34a;"></div>
+                <div class="fw-bold text-success mb-1" style="font-size: 0.72rem;" id="statCompletedText">@completedPct% of total tasks</div>
+                <div class="progress overflow-hidden" style="height: 5px; background: rgba(34, 197, 94, 0.15); border-radius: 999px;">
+                    <div class="progress-bar rounded-pill" id="statCompletedBar" style="width: @completedPct%; background: #16a34a;"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="col-12 col-sm-6 col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4 position-relative overflow-hidden h-100" 
-             style="background: linear-gradient(135deg, rgba(244, 63, 94, 0.08) 0%, rgba(254, 226, 226, 0.45) 100%); border: 1px solid rgba(244, 63, 94, 0.25) !important; padding: 1.25rem 1.25rem 1.15rem 1.25rem;">
-            <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+        <div class="card border-0 shadow-sm rounded-3 position-relative overflow-hidden h-100" 
+             style="background: linear-gradient(135deg, rgba(244, 63, 94, 0.08) 0%, rgba(254, 226, 226, 0.45) 100%); border: 1px solid rgba(244, 63, 94, 0.25) !important; padding: 0.95rem 1.15rem;">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2.5">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm text-white flex-shrink-0" 
-                         style="width: 44px; height: 44px; background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); font-size: 1.2rem;">
+                         style="width: 38px; height: 38px; background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); font-size: 1.05rem;">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                     </div>
                     <div>
-                        <div class="fw-extrabold font-monospace text-dark" style="font-size: 1.85rem; line-height: 1;">@tasksWithErrorsCount</div>
-                        <div class="fw-bold text-uppercase text-secondary" style="font-size: 0.68rem; letter-spacing: 0.04em; margin-top: 3px;">REPORTED ERRORS</div>
+                        <div class="fw-extrabold font-monospace text-dark" style="font-size: 1.5rem; line-height: 1;" id="statErrorsTasks">@tasksWithErrorsCount</div>
+                        <div class="fw-bold text-uppercase text-secondary" style="font-size: 0.65rem; letter-spacing: 0.03em; margin-top: 3px;">REPORTED ERRORS</div>
                     </div>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 30px; height: 30px; background: rgba(244, 63, 94, 0.15);">
-                    <i class="bi bi-exclamation-circle-fill text-danger" style="font-size: 0.85rem;"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 26px; height: 26px; background: rgba(244, 63, 94, 0.15);">
+                    <i class="bi bi-exclamation-circle-fill text-danger" style="font-size: 0.75rem;"></i>
                 </div>
             </div>
             <div class="mt-auto pt-1">
-                <div class="fw-bold text-danger mb-1.5" style="font-size: 0.76rem;">@errorsPct% of total tasks</div>
-                <div class="progress overflow-hidden" style="height: 6px; background: rgba(244, 63, 94, 0.15); border-radius: 999px;">
-                    <div class="progress-bar rounded-pill" style="width: @errorsPct%; background: #e11d48;"></div>
+                <div class="fw-bold text-danger mb-1" style="font-size: 0.72rem;" id="statErrorsText">@errorsPct% of total tasks</div>
+                <div class="progress overflow-hidden" style="height: 5px; background: rgba(244, 63, 94, 0.15); border-radius: 999px;">
+                    <div class="progress-bar rounded-pill" id="statErrorsBar" style="width: @errorsPct%; background: #e11d48;"></div>
                 </div>
             </div>
         </div>
@@ -203,58 +222,82 @@
 </div>
 
 <!-- UNIFIED INSTANT FILTER COMMAND BAR -->
-<div class="filter-toolbar-card mb-4" id="unifiedFilterBar">
-    <!-- Row 1: Search, Dropdowns, Reset & Calendar Date -->
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-        <div class="d-flex align-items-center flex-wrap gap-2 flex-grow-1">
-            <!-- Live Instant Search -->
-            <div class="search-input-group" style="min-width: 250px; flex: 1;">
-                <i class="bi bi-search search-icon-inside"></i>
-                <input type="text" id="taskSearchInput" class="form-control search-input" placeholder="Search tasks, descriptions, members..." autocomplete="off" />
-                <button type="button" id="searchClearBtn" class="search-clear-btn" title="Clear search">
-                    <i class="bi bi-x-circle-fill"></i>
-                </button>
-            </div>
+<div class="card border-0 shadow-sm rounded-4 p-3.5 mb-4 glass-card filter-toolbar-card" id="unifiedFilterBar">
+    <!-- Row 1: Search Bar & Calendar Date -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+        <!-- Live Instant Search -->
+        <div class="search-input-group flex-grow-1" style="max-width: 650px; min-width: 280px;">
+            <i class="bi bi-search search-icon-inside fs-5 text-primary"></i>
+            <input type="text" id="taskSearchInput" class="form-control form-control-lg search-input ps-5 pe-4 rounded-pill shadow-xs" 
+                   placeholder="Search tasks by title, description, company, or team member..." autocomplete="off" 
+                   style="height: 44px; font-size: 0.92rem; border-color: rgba(2, 132, 199, 0.25);" />
+            <button type="button" id="searchClearBtn" class="search-clear-btn" title="Clear search">
+                <i class="bi bi-x-circle-fill text-muted"></i>
+            </button>
+        </div>
 
-            <!-- Filter by Company -->
-            <select id="companyFilterSelect" class="form-select filter-select" style="min-width: 140px; width: auto;">
+        <!-- Today's Date Badge -->
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-body-tertiary border border-secondary border-opacity-15 font-monospace text-secondary shadow-2xs ms-auto" style="font-size: 0.82rem;">
+            <i class="bi bi-calendar3 text-primary"></i>
+            <span>Today: <strong class="text-dark">@DateTime.Today.ToString("MMM dd, yyyy")</strong></span>
+        </div>
+    </div>
+
+    <!-- Row 2: Filter Controls & Dropdowns Bar -->
+    <div class="d-flex align-items-center flex-wrap gap-2 mb-3 pt-1">
+        <!-- Filter by Company -->
+        <div class="input-group input-group-sm flex-nowrap" style="min-width: 190px; max-width: 240px; flex: 1;">
+            <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-primary">
+                <i class="bi bi-building"></i>
+            </span>
+            <select id="companyFilterSelect" class="form-select filter-select fw-semibold">
                 <option value="">All Companies</option>
             </select>
+        </div>
 
-            <!-- Filter by Employee / Assignee -->
-            <select id="employeeFilterSelect" class="form-select filter-select" style="min-width: 160px; width: auto;">
+        <!-- Filter by Employee / Assignee -->
+        <div class="input-group input-group-sm flex-nowrap" style="min-width: 210px; max-width: 260px; flex: 1;">
+            <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-info">
+                <i class="bi bi-people-fill"></i>
+            </span>
+            <select id="employeeFilterSelect" class="form-select filter-select fw-semibold">
                 <option value="">All Team Members</option>
             </select>
+        </div>
 
-            <!-- Filter by Priority -->
-            <select id="priorityFilterSelect" class="form-select filter-select" style="min-width: 110px; width: auto;">
-                <option value="">Priority</option>
+        <!-- Filter by Priority -->
+        <div class="input-group input-group-sm flex-nowrap" style="min-width: 140px; max-width: 180px; flex: 1;">
+            <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-danger">
+                <i class="bi bi-flag-fill"></i>
+            </span>
+            <select id="priorityFilterSelect" class="form-select filter-select fw-semibold">
+                <option value="">All Priorities</option>
                 <option value="Urgent">Urgent</option>
                 <option value="High">High</option>
                 <option value="Medium">Medium</option>
                 <option value="Low">Low</option>
             </select>
+        </div>
 
-            <!-- Filter by Status -->
-            <select id="statusFilterSelect" class="form-select filter-select" style="min-width: 110px; width: auto;">
-                <option value="">Status</option>
+        <!-- Filter by Status -->
+        <div class="input-group input-group-sm flex-nowrap" style="min-width: 140px; max-width: 180px; flex: 1;">
+            <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-warning">
+                <i class="bi bi-funnel-fill"></i>
+            </span>
+            <select id="statusFilterSelect" class="form-select filter-select fw-semibold">
+                <option value="">All Statuses</option>
                 <option value="ToDo">To Do</option>
                 <option value="InProgress">In Progress</option>
                 <option value="InReview">In Review</option>
                 <option value="Completed">Completed</option>
             </select>
-
-            <!-- Reset Filters Button -->
-            <button type="button" id="resetFilterBtn" class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-inline-flex align-items-center gap-1" style="height: 38px;" title="Reset all active filters">
-                <i class="bi bi-arrow-counterclockwise"></i>
-                <span>Reset</span>
-            </button>
         </div>
 
-        <div class="small text-muted font-monospace d-flex align-items-center gap-2 ms-auto">
-            <i class="bi bi-calendar3 text-primary"></i>
-            <span>Today: <strong>@DateTime.Today.ToString("MMM dd, yyyy")</strong></span>
-        </div>
+        <!-- Reset Filters Button -->
+        <button type="button" id="resetFilterBtn" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1 shadow-2xs ms-auto" style="height: 38px; font-size: 0.82rem;" title="Reset all active filters">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span>Reset</span>
+        </button>
     </div>
 
     <!-- Row 2: Interactive Live Filter Tabs -->
@@ -393,6 +436,7 @@ else
                             data-createddate="@item.CreatedAt.ToString("yyyy-MM-dd")"
                             data-istoday="@(isToday ? "true" : "false")"
                             data-isoverdue="@(isOverdue ? "true" : "false")"
+                            data-haserror="@(hasErrorLog ? "true" : "false")"
                             data-delayreason="@item.DelayReason"
                             data-errordetails="@item.ErrorDetails"
                             data-errorscreenshot="@item.ErrorScreenshotPath"
@@ -427,7 +471,7 @@ else
                             <td>
                                 @if (item.Project != null)
                                 {
-                                    <span class="project-badge-chip text-truncate" title="@item.Project.ProjectName">
+                                    <span class="project-badge-chip" title="@item.Project.ProjectName">
                                         <i class="bi bi-briefcase-fill"></i>
                                         <span>@item.Project.ProjectName</span>
                                     </span>
@@ -677,7 +721,7 @@ else
                         @if (item.Project != null)
                         {
                             <div class="mb-2">
-                                <span class="project-badge-chip text-truncate" style="max-width: 100%;" title="@item.Project.ProjectName">
+                                <span class="project-badge-chip" title="@item.Project.ProjectName">
                                     <i class="bi bi-kanban"></i>
                                     <span>@item.Project.ProjectName</span>
                                 </span>
@@ -1033,9 +1077,19 @@ else
                         <div>Found <strong id="hrOverdueCount">0</strong> uncompleted task(s) past their due date.</div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase">Destination HR Email</label>
-                        <input type="email" class="form-control form-control-sm font-monospace" id="hrDestinationEmailInput" value="hr@auxinz.io" placeholder="hr@company.com" />
+                    <div class="row g-2 mb-3">
+                        <div class="col-12">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Destination HR Email (To)</label>
+                            <input type="email" class="form-control form-control-sm font-monospace" id="hrDestinationEmailInput" value="mukesh@auxinz.io" placeholder="mukesh@auxinz.io" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">CC Email</label>
+                            <input type="email" class="form-control form-control-sm font-monospace" id="hrCcEmailInput" value="nithin@amoebatronix.com" placeholder="nithin@amoebatronix.com" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">BCC Email</label>
+                            <input type="email" class="form-control form-control-sm font-monospace" id="hrBccEmailInput" value="hr@auxinz.io" placeholder="hr@auxinz.io" />
+                        </div>
                     </div>
 
                     <div id="hrOverdueList" class="d-flex flex-column gap-2 mb-3" style="max-height: 250px; overflow-y: auto;">
@@ -1590,8 +1644,13 @@ else
             // ----------------------------------------------------
             // HR Escalation Modal & Email Redirection
             // ----------------------------------------------------
-            function openEmailComposer(targetEmail, overdueTasksList, forceMailto = false) {
-                const email = targetEmail || 'hr@auxinz.io';
+            // ----------------------------------------------------
+            // HR Escalation Modal & Email Redirection
+            // ----------------------------------------------------
+            function openEmailComposer(targetTo, overdueTasksList, forceMailto = false, targetCc = null, targetBcc = null) {
+                const toEmail = targetTo || $('#hrDestinationEmailInput').val() || 'mukesh@auxinz.io';
+                const ccEmail = targetCc !== null ? targetCc : ($('#hrCcEmailInput').val() || 'nithin@amoebatronix.com');
+                const bccEmail = targetBcc !== null ? targetBcc : ($('#hrBccEmailInput').val() || 'hr@auxinz.io');
                 const subject = `[URGENT] Overdue Tasks Escalation Report - AUXINZ.io`;
                 
                 let body = `Dear HR Team,\n\n`;
@@ -1616,16 +1675,18 @@ else
                 body += `View details on Tasksheet Portal: ${window.location.origin}/\n\n`;
                 body += `Best regards,\nTask Management Automation`;
 
-                const encEmail = encodeURIComponent(email);
+                const encTo = encodeURIComponent(toEmail);
+                const encCc = encodeURIComponent(ccEmail);
+                const encBcc = encodeURIComponent(bccEmail);
                 const encSubject = encodeURIComponent(subject);
                 const encBody = encodeURIComponent(body);
 
-                const mailtoUrl = `mailto:${encEmail}?subject=${encSubject}&body=${encBody}`;
+                const mailtoUrl = `mailto:${encTo}?cc=${encCc}&bcc=${encBcc}&subject=${encSubject}&body=${encBody}`;
 
                 if (forceMailto) {
                     window.location.href = mailtoUrl;
                 } else {
-                    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=${encEmail}&su=${encSubject}&body=${encBody}`;
+                    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=${encTo}&cc=${encCc}&bcc=${encBcc}&su=${encSubject}&body=${encBody}`;
                     try {
                         const win = window.open(gmailUrl, '_blank');
                         if (!win || win.closed || typeof win.closed === 'undefined') {
@@ -1665,15 +1726,26 @@ else
 
                             const listContainer = $('#hrOverdueList').empty();
                             res.tasks.forEach(t => {
+                                const priorityClass = t.priority === 'Urgent' ? 'bg-danger text-white' : t.priority === 'High' ? 'bg-warning text-dark' : 'bg-primary text-white';
                                 listContainer.append(`
-                                    <div class="p-3 bg-dark-subtle rounded-3 border border-danger border-opacity-50">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <strong class="text-white">#${String(t.id).padStart(3, '0')} - ${t.name}</strong>
-                                            <span class="badge bg-danger">${t.priority}</span>
+                                    <div class="p-3 rounded-3 border border-danger border-opacity-25 shadow-sm mb-2 text-start" style="background: rgba(254, 242, 242, 0.7); border-left: 4px solid #dc2626 !important;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1.5 flex-wrap gap-1">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge bg-danger text-white fw-bold font-monospace px-2 py-1">#${String(t.id).padStart(3, '0')}</span>
+                                                <strong class="text-dark fw-bold" style="font-size: 0.95rem;">${t.name}</strong>
+                                            </div>
+                                            <span class="badge ${priorityClass} px-2 py-1 shadow-sm" style="font-size: 0.72rem; font-weight: 700;">${t.priority}</span>
                                         </div>
-                                        <small class="text-white-50 d-block">Assigned: ${t.employees || 'Unassigned'} | Companies: ${t.companies || 'None'}</small>
-                                        <small class="text-danger fw-bold"><i class="bi bi-calendar-event me-1"></i>Due Date: ${t.dueDate} (${t.status})</small>
-                                        ${t.delayReason ? `<div class="mt-1 small text-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i>Delay: ${t.delayReason}</div>` : ''}
+                                        <div class="small text-secondary mb-1.5 d-flex flex-wrap align-items-center gap-3">
+                                            <span><i class="bi bi-person-badge text-primary me-1"></i><strong>Assigned:</strong> ${t.employees || 'Unassigned'}</span>
+                                            <span><i class="bi bi-building text-info me-1"></i><strong>Companies:</strong> ${t.companies || 'None'}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1 border-top border-secondary border-opacity-10">
+                                            <small class="text-danger fw-bold d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-calendar-x-fill"></i> Due Date: ${t.dueDate} (${t.status})
+                                            </small>
+                                            ${t.delayReason ? `<small class="text-dark fw-semibold bg-warning-subtle px-2 py-0.5 rounded border border-warning border-opacity-25"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Delay: ${t.delayReason}</small>` : ''}
+                                        </div>
                                     </div>
                                 `);
                             });
@@ -1684,8 +1756,10 @@ else
 
             // Redirect to Gmail button in Modal
             $('#redirectToGmailBtn').on('click', function () {
-                const targetEmail = $('#hrDestinationEmailInput').val() || 'hr@auxinz.io';
-                openEmailComposer(targetEmail, cachedOverdueTasks, false);
+                const targetTo = $('#hrDestinationEmailInput').val() || 'mukesh@auxinz.io';
+                const targetCc = $('#hrCcEmailInput').val() || 'nithin@amoebatronix.com';
+                const targetBcc = $('#hrBccEmailInput').val() || 'hr@auxinz.io';
+                openEmailComposer(targetTo, cachedOverdueTasks, false, targetCc, targetBcc);
             });
 
             // Direct Compose in Gmail from Header dropdown
@@ -1695,10 +1769,10 @@ else
                     url: '/Task/GetOverdueTaskPreview',
                     type: 'GET',
                     success: function (res) {
-                        openEmailComposer('hr@auxinz.io', res.tasks || [], false);
+                        openEmailComposer('mukesh@auxinz.io', res.tasks || [], false, 'nithin@amoebatronix.com', 'hr@auxinz.io');
                     },
                     error: function () {
-                        openEmailComposer('hr@auxinz.io', [], false);
+                        openEmailComposer('mukesh@auxinz.io', [], false, 'nithin@amoebatronix.com', 'hr@auxinz.io');
                     }
                 });
             });
@@ -1710,10 +1784,10 @@ else
                     url: '/Task/GetOverdueTaskPreview',
                     type: 'GET',
                     success: function (res) {
-                        openEmailComposer('hr@auxinz.io', res.tasks || [], true);
+                        openEmailComposer('mukesh@auxinz.io', res.tasks || [], true, 'nithin@amoebatronix.com', 'hr@auxinz.io');
                     },
                     error: function () {
-                        openEmailComposer('hr@auxinz.io', [], true);
+                        openEmailComposer('mukesh@auxinz.io', [], true, 'nithin@amoebatronix.com', 'hr@auxinz.io');
                     }
                 });
             });
@@ -1722,9 +1796,18 @@ else
                 const btn = $(this);
                 btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status"></span>Sending Email...');
 
+                const toEmail = $('#hrDestinationEmailInput').val() || 'mukesh@auxinz.io';
+                const ccEmail = $('#hrCcEmailInput').val() || 'nithin@amoebatronix.com';
+                const bccEmail = $('#hrBccEmailInput').val() || 'hr@auxinz.io';
+
                 $.ajax({
                     url: '/Task/SendOverdueHrNotification',
                     type: 'POST',
+                    data: {
+                        toEmail: toEmail,
+                        ccEmail: ccEmail,
+                        bccEmail: bccEmail
+                    },
                     success: function (res) {
                         bootstrap.Modal.getInstance(document.getElementById('hrEscalationModal')).hide();
                         if (res.success) {
@@ -1734,7 +1817,7 @@ else
                         }
                     },
                     complete: function () {
-                        btn.prop('disabled', false).html('<i class="bi bi-send-fill me-1"></i>Send Email Notification to HR');
+                        btn.prop('disabled', false).html('<i class="bi bi-send-fill me-1"></i>Send System Email');
                     }
                 });
             });

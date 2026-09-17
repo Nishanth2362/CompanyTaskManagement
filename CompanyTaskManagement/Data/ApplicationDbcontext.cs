@@ -50,7 +50,6 @@ namespace CompanyTaskManagement.Data
         public DbSet<TeamTask> TeamTasks { get; set; }
         public DbSet<TeamLeaderReview> TeamLeaderReviews { get; set; }
 
-        public DbSet<MindForgeQuestion> MindForgeQuestions { get; set; }
         public DbSet<MindForgeScore> MindForgeScores { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
