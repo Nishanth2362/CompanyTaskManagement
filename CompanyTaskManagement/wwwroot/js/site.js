@@ -179,13 +179,23 @@ function initIndexPageFeatures() {
             return matchesTab && matchesQuery && matchesComp && matchesEmp && matchesPriority && matchesStatus;
         }
 
-        // Filter Table Rows & Update Row Numbers
+        // Filter Table Rows & Update Row Numbers & Stat Counters
         let currentVisibleNum = 1;
+        let visibleInProgress = 0;
+        let visibleCompleted = 0;
+        let visibleErrors = 0;
+
         rows.forEach(row => {
             const isMatch = checkItemMatch(row);
             row.style.display = isMatch ? '' : 'none';
             if (isMatch) {
                 visibleCount++;
+                const status = row.getAttribute('data-status') || '';
+                const hasError = row.getAttribute('data-haserror') === 'true';
+                if (status === 'InProgress') visibleInProgress++;
+                if (status === 'Completed') visibleCompleted++;
+                if (hasError) visibleErrors++;
+
                 const numBadge = row.querySelector('.row-number-badge');
                 if (numBadge) {
                     numBadge.textContent = currentVisibleNum++;
@@ -206,11 +216,33 @@ function initIndexPageFeatures() {
             }
         });
 
-        // Update live total tasks counter on stat card
+        // Update live total & status counters on stat cards
         const statTotalEl = document.getElementById('statTotalTasks');
-        if (statTotalEl) {
-            statTotalEl.textContent = visibleCount;
-        }
+        if (statTotalEl) statTotalEl.textContent = visibleCount;
+
+        const statInProgressEl = document.getElementById('statInProgressTasks');
+        if (statInProgressEl) statInProgressEl.textContent = visibleInProgress;
+        const inProgPct = visibleCount > 0 ? Math.round((visibleInProgress / visibleCount) * 100) : 0;
+        const statInProgressTextEl = document.getElementById('statInProgressText');
+        if (statInProgressTextEl) statInProgressTextEl.textContent = `${inProgPct}% of total tasks`;
+        const statInProgressBarEl = document.getElementById('statInProgressBar');
+        if (statInProgressBarEl) statInProgressBarEl.style.width = `${inProgPct}%`;
+
+        const statCompletedEl = document.getElementById('statCompletedTasks');
+        if (statCompletedEl) statCompletedEl.textContent = visibleCompleted;
+        const compPct = visibleCount > 0 ? Math.round((visibleCompleted / visibleCount) * 100) : 0;
+        const statCompletedTextEl = document.getElementById('statCompletedText');
+        if (statCompletedTextEl) statCompletedTextEl.textContent = `${compPct}% of total tasks`;
+        const statCompletedBarEl = document.getElementById('statCompletedBar');
+        if (statCompletedBarEl) statCompletedBarEl.style.width = `${compPct}%`;
+
+        const statErrorsEl = document.getElementById('statErrorsTasks');
+        if (statErrorsEl) statErrorsEl.textContent = visibleErrors;
+        const errPct = visibleCount > 0 ? Math.round((visibleErrors / visibleCount) * 100) : 0;
+        const statErrorsTextEl = document.getElementById('statErrorsText');
+        if (statErrorsTextEl) statErrorsTextEl.textContent = `${errPct}% of total tasks`;
+        const statErrorsBarEl = document.getElementById('statErrorsBar');
+        if (statErrorsBarEl) statErrorsBarEl.style.width = `${errPct}%`;
 
         // Show/hide no matching results banner
         if (noResultsAlert) {

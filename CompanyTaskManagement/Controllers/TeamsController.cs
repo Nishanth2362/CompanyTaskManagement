@@ -299,6 +299,16 @@ namespace CompanyTaskManagement.Controllers
             }
 
             var newStatus = (TeamTaskStatus)status;
+
+            var isOverdue = (task.EndDate.HasValue && task.EndDate.Value <= DateTime.Now) || (task.DueDate.HasValue && task.DueDate.Value <= DateTime.Now) || task.Status == TeamTaskStatus.NotCompleted;
+            var hasJustification = !string.IsNullOrWhiteSpace(task.IncompleteReason) || !string.IsNullOrWhiteSpace(incompleteReason);
+
+            if (isOverdue && !hasJustification && newStatus != TeamTaskStatus.NotCompleted)
+            {
+                TempData["ErrorMessage"] = "Overdue Task Locked: Please click 'Justification' to provide your delay reason before updating status.";
+                return RedirectToAction(nameof(Index), new { selectedTeamId = task.TeamId });
+            }
+
             task.Status = newStatus;
 
             if (newStatus == TeamTaskStatus.NotCompleted)

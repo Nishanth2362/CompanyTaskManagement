@@ -411,34 +411,9 @@ using (var scope = app.Services.CreateScope())
                 );
             END;
 
-            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'MindForgeQuestions')
+            IF EXISTS (SELECT * FROM sys.tables WHERE name = 'MindForgeQuestions')
             BEGIN
-                CREATE TABLE [MindForgeQuestions] (
-                    [Id] INT IDENTITY(1,1) PRIMARY KEY,
-                    [GameType] NVARCHAR(100) NOT NULL,
-                    [QuestionText] NVARCHAR(MAX) NOT NULL,
-                    [ScrambledOrSnippet] NVARCHAR(MAX) NULL,
-                    [CorrectAnswer] NVARCHAR(500) NOT NULL,
-                    [OptionA] NVARCHAR(500) NULL,
-                    [OptionB] NVARCHAR(500) NULL,
-                    [OptionC] NVARCHAR(500) NULL,
-                    [OptionD] NVARCHAR(500) NULL,
-                    [Explanation] NVARCHAR(MAX) NULL,
-                    [Difficulty] NVARCHAR(50) NOT NULL DEFAULT 'Medium',
-                    [CreatedAt] DATETIME2 NOT NULL DEFAULT GETDATE()
-                );
-
-                INSERT INTO [MindForgeQuestions] ([GameType], [QuestionText], [ScrambledOrSnippet], [CorrectAnswer], [OptionA], [OptionB], [OptionC], [OptionD], [Explanation], [Difficulty]) VALUES
-                ('WordScramble', 'High-performance web framework for modern cloud apps', 'TESPANOR', 'ASP NET CORE', NULL, NULL, NULL, NULL, 'ASP.NET Core is cross-platform and high-performance.', 'Medium'),
-                ('WordScramble', 'Key Microsoft programming language for .NET development', 'PAHRCS', 'CSHARP', NULL, NULL, NULL, NULL, 'C# is the primary language for .NET ecosystem.', 'Easy'),
-                ('WordScramble', 'High-speed caching and in-memory key-value data store', 'SIRED', 'REDIS', NULL, NULL, NULL, NULL, 'Redis provides fast distributed caching.', 'Medium'),
-                ('WordScramble', 'Object-relational mapper for .NET data access', 'TYITEN', 'ENTITY FRAMEWORK', NULL, NULL, NULL, NULL, 'Entity Framework Core simplifies SQL operations.', 'Medium'),
-                ('WordScramble', 'Asynchronous programming keyword in C#', 'IWAAT', 'AWAIT', NULL, NULL, NULL, NULL, 'await yields execution until task completes.', 'Easy'),
-                ('DotNetQuiz', 'What is the output of the following async code snippet?', 'async Task<int> CalculateAsync()\n{\n    await Task.Delay(10);\n    return 42;\n}', '42', '0', '42', 'Task<int>', 'Compiler Error', 'Awaiting Task.Delay returns the result 42.', 'Medium'),
-                ('DotNetQuiz', 'Which LINQ method defers execution until enumerated?', 'var q = db.Tasks.Where(t => t.Progress > 50);', 'Where', 'ToList()', 'Count()', 'Where', 'FirstOrDefault()', 'Where builds an IQueryable with deferred execution.', 'Medium'),
-                ('DotNetQuiz', 'What keyword handles resource disposal automatically?', 'using var stream = File.OpenRead(path);', 'using', 'using', 'try-finally', 'dispose', 'auto', 'C# 8 using declarations dispose objects at scope exit.', 'Easy'),
-                ('MathChallenge', 'What is 15 * 8 - 35?', NULL, '85', '75', '85', '95', '105', '15 * 8 = 120, 120 - 35 = 85.', 'Easy'),
-                ('MathChallenge', 'What is the square root of 256 + 14?', NULL, '30', '28', '30', '32', '34', 'sqrt(256) = 16, 16 + 14 = 30.', 'Medium');
+                DROP TABLE [MindForgeQuestions];
             END;
 
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'MindForgeScores')
@@ -452,6 +427,16 @@ using (var scope = app.Services.CreateScope())
                     [TimeTakenSeconds] INT NOT NULL DEFAULT 0,
                     [PlayedAt] DATETIME2 NOT NULL DEFAULT GETDATE()
                 );
+            END;
+
+            IF NOT EXISTS (SELECT 1 FROM [MindForgeScores])
+            BEGIN
+                INSERT INTO [MindForgeScores] ([EmployeeName], [GameType], [Score], [TimeTakenSeconds]) VALUES
+                ('Mujimal', 'MemoryMatch', 1200, 24),
+                ('Anas Ahamad', 'WordScramble', 980, 32),
+                ('Karthikeyan', 'DotNetQuiz', 1150, 28),
+                ('Srithar', 'MathChallenge', 1050, 30),
+                ('Santhosh', 'MemoryMatch', 920, 38);
             END;
 
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[TeamTasks]') AND name = 'StartDate')

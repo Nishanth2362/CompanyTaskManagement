@@ -419,6 +419,8 @@ namespace CompanyTaskManagement.Controllers
 
             await _context.SaveChangesAsync();
 
+            await SyncTaskToTeamTasksAsync(task, model.SelectedEmployeeIds);
+
             await RecordTaskActivityLogsAsync(task.Id, task.TaskName, model.SelectedEmployeeIds, "Task Created", null, task.Status.ToString(), task.Progress, task.DelayReason, task.ErrorDetails, uploadedScreenshotPath);
 
             TempData["Success"] = $"Task \"{task.TaskName}\" created successfully.";
@@ -561,6 +563,8 @@ namespace CompanyTaskManagement.Controllers
 
             await _context.SaveChangesAsync();
 
+            await SyncTaskToTeamTasksAsync(task, model.SelectedEmployeeIds);
+
             await RecordTaskActivityLogsAsync(task.Id, task.TaskName, model.SelectedEmployeeIds, "Task Edited / Updated", oldStatusStr, task.Status.ToString(), task.Progress, task.DelayReason, task.ErrorDetails, task.ErrorScreenshotPath);
 
             TempData["Success"] = $"Task \"{task.TaskName}\" updated successfully.";
@@ -640,6 +644,14 @@ namespace CompanyTaskManagement.Controllers
 
             var oldStatusStr = task.Status.ToString();
 
+            var isOverdue = (task.EndDate.HasValue && task.EndDate.Value <= DateTime.Now) || (task.DueDate.HasValue && task.DueDate.Value <= DateTime.Now);
+            var hasJustification = !string.IsNullOrWhiteSpace(task.DelayReason);
+
+            if (isOverdue && !hasJustification && status != TaskStatus.ToDo)
+            {
+                return Json(new { success = false, message = "Overdue Task Locked: Please provide a delay justification first before updating the status." });
+            }
+
             task.Status = status;
             if (status == TaskStatus.Completed)
             {
@@ -653,6 +665,8 @@ namespace CompanyTaskManagement.Controllers
             await _context.SaveChangesAsync();
 
             var empIds = await _context.TaskEmployees.Where(te => te.TaskId == id).Select(te => te.EmployeeId).ToListAsync();
+            await SyncTaskToTeamTasksAsync(task, empIds);
+
             await RecordTaskActivityLogsAsync(task.Id, task.TaskName, empIds, $"Status Changed to {status}", oldStatusStr, status.ToString(), task.Progress, task.DelayReason, task.ErrorDetails, task.ErrorScreenshotPath);
 
             return Json(new { 
@@ -688,6 +702,8 @@ namespace CompanyTaskManagement.Controllers
             await _context.SaveChangesAsync();
 
             var empIds = await _context.TaskEmployees.Where(te => te.TaskId == id).Select(te => te.EmployeeId).ToListAsync();
+            await SyncTaskToTeamTasksAsync(task, empIds);
+
             await RecordTaskActivityLogsAsync(task.Id, task.TaskName, empIds, "Project Delay / Error Logged", task.Status.ToString(), task.Status.ToString(), task.Progress, task.DelayReason, task.ErrorDetails, task.ErrorScreenshotPath);
 
             return Json(new { 
@@ -697,6 +713,115 @@ namespace CompanyTaskManagement.Controllers
                 delayReason = task.DelayReason,
                 errorDetails = task.ErrorDetails
             });
+        }
+
+        // =========================================================
+        // HELPER: SYNC TASKBOARD STATUS TO TEAM TASKS
+        // =========================================================
+        private async Task SyncTaskToTeamTasksAsync(TaskItem task, List<int>? assignedEmployeeIds = null)
+        {
+            if (task == null || string.IsNullOrWhiteSpace(task.TaskName)) return;
+
+            try
+            {
+                var taskNameLower = task.TaskName.Trim().ToLower();
+
+                var matchingTeamTasks = await _context.TeamTasks
+                    .Where(tt => tt.Title.ToLower() == taskNameLower || taskNameLower.Contains(tt.Title.ToLower()) || tt.Title.ToLower().Contains(taskNameLower))
+                    .ToListAsync();
+
+                if (matchingTeamTasks.Any())
+                {
+                    foreach (var tt in matchingTeamTasks)
+                    {
+                        if (task.Status == TaskStatus.Completed)
+                        {
+                            tt.Status = TeamTaskStatus.Completed;
+                            if (!tt.CompletedAt.HasValue)
+                            {
+                                tt.CompletedAt = DateTime.Now;
+                            }
+                            tt.IncompleteReason = null;
+                        }
+                        else if (task.Status == TaskStatus.InProgress || task.Status == TaskStatus.InReview)
+                        {
+                            tt.Status = TeamTaskStatus.InProgress;
+                            if (!string.IsNullOrWhiteSpace(task.DelayReason))
+                            {
+                                tt.IncompleteReason = task.DelayReason;
+                            }
+                        }
+                        else if (task.Status == TaskStatus.ToDo)
+                        {
+                            if (!string.IsNullOrWhiteSpace(task.DelayReason))
+                            {
+                                tt.Status = TeamTaskStatus.NotCompleted;
+                                tt.IncompleteReason = task.DelayReason;
+                            }
+                            else
+                            {
+                                tt.Status = TeamTaskStatus.Pending;
+                            }
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(task.DelayReason))
+                        {
+                            tt.IncompleteReason = task.DelayReason;
+                        }
+
+                        tt.Priority = task.Priority;
+                        tt.ProjectId = task.ProjectId ?? tt.ProjectId;
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+                else if (assignedEmployeeIds != null && assignedEmployeeIds.Any())
+                {
+                    foreach (var empId in assignedEmployeeIds)
+                    {
+                        var teamMember = await _context.TeamMembers
+                            .Include(tm => tm.Team)
+                            .FirstOrDefaultAsync(tm => tm.EmployeeId == empId);
+
+                        if (teamMember != null && teamMember.Team != null)
+                        {
+                            var teamTaskStatus = task.Status switch
+                            {
+                                TaskStatus.Completed => TeamTaskStatus.Completed,
+                                TaskStatus.InProgress => TeamTaskStatus.InProgress,
+                                TaskStatus.InReview => TeamTaskStatus.InProgress,
+                                _ => !string.IsNullOrWhiteSpace(task.DelayReason) ? TeamTaskStatus.NotCompleted : TeamTaskStatus.Pending
+                            };
+
+                            var newTeamTask = new TeamTask
+                            {
+                                TeamId = teamMember.TeamId,
+                                AssignedByLeaderId = teamMember.Team.TeamLeaderId,
+                                AssignedToEmployeeId = empId,
+                                Title = task.TaskName,
+                                Description = task.Description ?? task.TaskName,
+                                Priority = task.Priority,
+                                Status = teamTaskStatus,
+                                IncompleteReason = task.DelayReason,
+                                ProjectId = task.ProjectId,
+                                StartDate = task.StartDate ?? task.CreatedAt,
+                                EndDate = task.EndDate ?? task.DueDate,
+                                DueDate = task.DueDate ?? task.EndDate,
+                                CreatedAt = task.CreatedAt,
+                                CompletedAt = task.Status == TaskStatus.Completed ? DateTime.Now : null
+                            };
+
+                            _context.TeamTasks.Add(newTeamTask);
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error syncing task to team tasks: {ex.Message}");
+            }
         }
 
         // =========================================================
@@ -800,7 +925,7 @@ namespace CompanyTaskManagement.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendOverdueHrNotification()
+        public async Task<IActionResult> SendOverdueHrNotification(string? toEmail = null, string? ccEmail = null, string? bccEmail = null)
         {
             var now = DateTime.Now;
             var today = DateTime.Today;
@@ -818,7 +943,7 @@ namespace CompanyTaskManagement.Controllers
                 return Json(new { success = false, message = "No uncompleted overdue tasks found to report." });
             }
 
-            var sent = await _emailService.SendOverdueTasksNotificationToHrAsync(overdueTasks);
+            var sent = await _emailService.SendOverdueTasksNotificationToHrAsync(overdueTasks, toEmail, ccEmail, bccEmail);
             if (sent)
             {
                 return Json(new { 
