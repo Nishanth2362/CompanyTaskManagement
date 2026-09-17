@@ -15,81 +15,60 @@
 }
 
 <!-- Internship Academy Hero Banner -->
-<div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative mb-4" 
-     style="background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 45%, #0284c7 100%); color: white; border: 1.5px solid rgba(14, 165, 233, 0.35) !important; border-left: 5px solid #f59e0b !important; box-shadow: 0 16px 36px -4px rgba(14, 165, 233, 0.25) !important; margin-bottom: 1.75rem !important;">
-    
-    <div style="position: absolute; right: -60px; top: -60px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(251, 191, 36, 0.22) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 1;"></div>
-    <i class="bi bi-mortarboard-fill position-absolute text-white" style="font-size: 13rem; right: 2rem; bottom: -3rem; opacity: 0.06; pointer-events: none; z-index: 1;"></i>
-
-    <div class="card-body p-3.5 p-lg-4 position-relative" style="z-index: 2; padding: 1.25rem 1.75rem;">
-        <div class="row align-items-center g-3">
-            <div class="col-lg-12">
-                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                    <span class="badge text-dark fw-extrabold px-2.5 py-1 rounded-pill shadow-xs" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); font-size: 0.75rem; letter-spacing: 0.03em;">
-                        <i class="bi bi-mortarboard-fill me-1"></i>Auxinzio Academy
-                    </span>
-                    <span class="badge rounded-pill px-2.5 py-1 fw-bold" style="background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25); color: #e0f2fe; font-size: 0.75rem; backdrop-filter: blur(8px);">
-                        <i class="bi bi-journal-bookmark-fill me-1 text-sky-light"></i> Learning &amp; Testing Hub
-                    </span>
-                </div>
-                <h2 class="fw-extrabold text-white mb-1.5" style="font-family: 'Outfit', sans-serif; font-size: 1.85rem; letter-spacing: -0.02em;">
-                    Internship Learning &amp; Assessment Hub
-                </h2>
-                <p class="text-white opacity-90 mb-0" style="font-size: 0.92rem; line-height: 1.5; max-width: 720px;">
-                    Learn key engineering topics via YouTube &amp; guides, attend topic tests to evaluate mastery, upload assessment results, and get verified mentor guidance.
-                </p>
+<div class="internship-hero-card mb-4 p-4 p-lg-5 text-white position-relative overflow-hidden">
+    <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+        <div class="col-12 col-lg-7">
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1.5"><i class="bi bi-mortarboard-fill me-1"></i> Auxinzio Academy</span>
+                <span class="badge hero-badge-glass px-2.5 py-1.5 font-monospace">Learning &amp; Testing Hub</span>
+            </div>
+            <h1 class="display-6 fw-extrabold text-white mb-2" style="font-family: 'Outfit', sans-serif;">
+                Internship Learning &amp; Assessment Hub
+            </h1>
+            <p class="text-white opacity-90 lead fs-6 mb-0" style="max-width: 650px;">
+                Learn key engineering topics via YouTube &amp; guides, attend topic tests to evaluate mastery, upload assessment results, and get verified mentor guidance.
+            </p>
+        </div>
+        <div class="col-12 col-lg-5 text-lg-end">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <button type="button" class="btn btn-royal-gold shadow d-inline-flex align-items-center gap-2 fw-bold" data-bs-toggle="modal" data-bs-target="#takeTestModal">
+                    <i class="bi bi-patch-check-fill"></i>
+                    <span>Attend Topic Test</span>
+                </button>
+                <button type="button" class="btn btn-outline-light d-inline-flex align-items-center gap-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#uploadTestModal" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                    <span>Upload Test Result</span>
+                </button>
+                <button type="button" class="btn btn-danger shadow d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addYouTubeModal">
+                    <i class="bi bi-youtube"></i>
+                    <span>Add Video</span>
+                </button>
+                <button type="button" class="btn btn-royal-gold shadow d-inline-flex align-items-center gap-2 fw-bold" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+                    <i class="bi bi-journal-plus"></i>
+                    <span>Upload Material</span>
+                </button>
+                @if (isAdmin)
+                {
+                    <button type="button" class="btn btn-emerald shadow d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Add Intern (Admin)</span>
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-outline-light d-inline-flex align-items-center gap-2 opacity-75" title="Only Administrator has permission to add or register interns" disabled style="background: rgba(255, 255, 255, 0.1);">
+                        <i class="bi bi-lock-fill text-warning"></i>
+                        <span>Add Intern (Admin Only)</span>
+                    </button>
+                }
+                <button type="button" class="btn btn-info text-white shadow d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#askDoubtModal">
+                    <i class="bi bi-patch-question-fill"></i>
+                    <span>Raise Doubt</span>
+                </button>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Quick Action Toolbar (Positioned Below Hero Banner Card) -->
-<div class="card border-0 shadow-sm rounded-4 p-3 mb-4" style="background: var(--bg-surface, #ffffff); border: 1px solid rgba(2, 132, 199, 0.15) !important;">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="font-size: 0.82rem;">
-                <i class="bi bi-lightning-charge-fill text-warning"></i> Hub Actions
-            </span>
-            <small class="text-muted d-none d-xl-inline">Access topic tests, upload results &amp; materials, raise doubts, and manage interns.</small>
-        </div>
-
-        <div class="d-flex align-items-center flex-wrap gap-3 ms-auto" style="gap: 14px !important;">
-            <button type="button" class="btn btn-royal-gold rounded-pill shadow-sm px-4 py-2 d-inline-flex align-items-center gap-2 fw-extrabold" data-bs-toggle="modal" data-bs-target="#takeTestModal">
-                <i class="bi bi-patch-check-fill fs-6"></i>
-                <span>Attend Topic Test</span>
-            </button>
-
-            <button type="button" class="btn btn-outline-primary rounded-pill px-3.5 py-2 fw-bold shadow-2xs d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#uploadTestModal">
-                <i class="bi bi-cloud-arrow-up-fill fs-6"></i>
-                <span>Upload Test Result</span>
-            </button>
-
-            <button type="button" class="btn btn-outline-warning rounded-pill px-3.5 py-2 fw-bold shadow-2xs d-inline-flex align-items-center gap-2 text-dark" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
-                <i class="bi bi-journal-plus fs-6 text-warning"></i>
-                <span>Upload Material</span>
-            </button>
-
-            @if (isAdmin)
-            {
-                <button type="button" class="btn btn-emerald rounded-pill px-3.5 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addMemberModal">
-                    <i class="bi bi-person-plus-fill fs-6"></i>
-                    <span>Add Intern (Admin)</span>
-                </button>
-            }
-            else
-            {
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-bold shadow-none d-inline-flex align-items-center gap-2 opacity-60" title="Admin permissions required" disabled>
-                    <i class="bi bi-lock-fill text-warning fs-6"></i>
-                    <span>Add Intern (Admin Only)</span>
-                </button>
-            }
-
-            <button type="button" class="btn btn-outline-info rounded-pill px-3.5 py-2 fw-bold shadow-2xs d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#askDoubtModal">
-                <i class="bi bi-patch-question-fill fs-6"></i>
-                <span>Raise Doubt</span>
-            </button>
-        </div>
-    </div>
+    <div class="hero-decorative-circle"></div>
 </div>
 
 <!-- Success / Error Alert Messages -->
@@ -422,14 +401,13 @@
                 </div>
             </div>
             <div class="col-12 col-lg-4">
-                <div class="input-group input-group-sm rounded-pill overflow-hidden border shadow-sm bg-body p-0.5">
-                    <span class="input-group-text bg-transparent border-0 ps-3 pe-2"><i class="bi bi-search text-primary"></i></span>
-                    <input type="text" name="search" value="@search" class="form-control border-0 shadow-none ps-0" placeholder="Search topics, keywords..." />
+                <div class="input-group input-group-sm">
+                    <input type="text" name="search" value="@search" class="form-control" placeholder="Search topics, keywords..." />
+                    <button class="btn btn-royal-gold" type="submit"><i class="bi bi-search"></i></button>
                     @if (!string.IsNullOrWhiteSpace(search) || selectedTrack != "all")
                     {
-                        <a asp-action="Index" asp-route-tab="materials" class="btn border-0 bg-transparent text-muted pe-1" title="Clear"><i class="bi bi-x-circle-fill"></i></a>
+                        <a asp-action="Index" asp-route-tab="materials" class="btn btn-outline-secondary" title="Clear"><i class="bi bi-x-lg"></i></a>
                     }
-                    <button class="btn btn-royal-gold rounded-pill px-3 fw-medium" type="submit">Search</button>
                 </div>
             </div>
         </form>
@@ -543,14 +521,9 @@
             <div class="d-flex align-items-center gap-2">
                 <form method="get" asp-action="Index" class="d-flex gap-2">
                     <input type="hidden" name="tab" value="members" />
-                    <div class="input-group input-group-sm rounded-pill overflow-hidden border shadow-sm bg-body p-0.5" style="min-width: 240px;">
-                        <span class="input-group-text bg-transparent border-0 ps-3 pe-2"><i class="bi bi-search text-primary"></i></span>
-                        <input type="text" name="search" value="@search" class="form-control border-0 shadow-none ps-0" placeholder="Search by name, role, domain..." />
-                        @if (!string.IsNullOrWhiteSpace(search))
-                        {
-                            <a asp-action="Index" asp-route-tab="members" class="btn border-0 bg-transparent text-muted pe-1" title="Clear"><i class="bi bi-x-circle-fill"></i></a>
-                        }
-                        <button class="btn btn-royal-gold rounded-pill px-3 fw-medium" type="submit">Search</button>
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="search" value="@search" class="form-control" placeholder="Search by name, role, domain..." />
+                        <button class="btn btn-royal-gold" type="submit"><i class="bi bi-search"></i></button>
                     </div>
                 </form>
 
@@ -595,8 +568,8 @@
             @foreach (var mem in members)
             {
                 var roleClass = mem.Role.Contains("Mentor") || mem.Role.Contains("Lead") ? "badge-royal-gold" : "badge-emerald";
-                var statusClass = mem.Status == "Active" ? "badge-emerald" :
-                                  mem.Status == "Completed" ? "bg-primary text-white" : "bg-warning text-dark";
+                var statusClass = mem.Status == "Active" ? "bg-success bg-opacity-20 text-success" :
+                                  mem.Status == "Completed" ? "bg-primary bg-opacity-20 text-primary" : "bg-warning bg-opacity-20 text-warning";
 
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 border-0 shadow-sm glass-card hover-lift transition-all p-4 d-flex flex-column justify-content-between position-relative">
@@ -683,14 +656,9 @@
                 <form method="get" asp-action="Index" class="d-flex gap-2">
                     <input type="hidden" name="tab" value="doubts" />
                     <input type="hidden" name="doubtStatus" value="@selectedDoubtStatus" />
-                    <div class="input-group input-group-sm rounded-pill overflow-hidden border shadow-sm bg-body p-0.5" style="min-width: 240px;">
-                        <span class="input-group-text bg-transparent border-0 ps-3 pe-2"><i class="bi bi-search text-primary"></i></span>
-                        <input type="text" name="search" value="@search" class="form-control border-0 shadow-none ps-0" placeholder="Search doubt, author, keywords..." />
-                        @if (!string.IsNullOrWhiteSpace(search) || selectedDoubtStatus != "all")
-                        {
-                            <a asp-action="Index" asp-route-tab="doubts" class="btn border-0 bg-transparent text-muted pe-1" title="Clear"><i class="bi bi-x-circle-fill"></i></a>
-                        }
-                        <button class="btn btn-royal-gold rounded-pill px-3 fw-medium" type="submit">Search</button>
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="search" value="@search" class="form-control" placeholder="Search doubt, author, keywords..." />
+                        <button class="btn btn-royal-gold" type="submit"><i class="bi bi-search"></i></button>
                     </div>
                 </form>
 
@@ -858,7 +826,7 @@
                                     <span class="text-muted extra-small">Engineering Lead / Mentor</span>
                                 </div>
                             </div>
-                            <span class="badge badge-emerald small">Available</span>
+                            <span class="badge bg-success bg-opacity-20 text-success small">Available</span>
                         </div>
                     }
                 </div>
@@ -889,14 +857,13 @@
             </div>
             <div class="col-12 col-lg-5">
                 <div class="d-flex gap-2">
-                    <div class="input-group input-group-sm flex-grow-1 rounded-pill overflow-hidden border shadow-sm bg-body p-0.5">
-                        <span class="input-group-text bg-transparent border-0 ps-3 pe-2"><i class="bi bi-search text-primary"></i></span>
-                        <input type="text" name="search" value="@search" class="form-control border-0 shadow-none ps-0" placeholder="Search YouTube video, mentor, tags..." />
+                    <div class="input-group input-group-sm flex-grow-1">
+                        <input type="text" name="search" value="@search" class="form-control" placeholder="Search YouTube video, mentor, tags..." />
+                        <button class="btn btn-royal-gold" type="submit"><i class="bi bi-search"></i></button>
                         @if (!string.IsNullOrWhiteSpace(search) || selectedTrack != "all")
                         {
-                            <a asp-action="Index" asp-route-tab="youtube" class="btn border-0 bg-transparent text-muted pe-1" title="Clear"><i class="bi bi-x-circle-fill"></i></a>
+                            <a asp-action="Index" asp-route-tab="youtube" class="btn btn-outline-secondary" title="Clear"><i class="bi bi-x-lg"></i></a>
                         }
-                        <button class="btn btn-royal-gold rounded-pill px-3 fw-medium" type="submit">Search</button>
                     </div>
                     <button type="button" class="btn btn-sm btn-danger d-inline-flex align-items-center gap-1.5 px-3 text-nowrap" data-bs-toggle="modal" data-bs-target="#addYouTubeModal">
                         <i class="bi bi-plus-circle-fill"></i>
@@ -925,8 +892,8 @@
         <div class="row g-4">
             @foreach (var video in youTubeVideos)
             {
-                var diffBadge = video.Difficulty == "Beginner" ? "badge-emerald" :
-                                video.Difficulty == "Intermediate" ? "badge-royal-gold" : "bg-danger text-white";
+                var diffBadge = video.Difficulty == "Beginner" ? "bg-success bg-opacity-20 text-success border border-success" :
+                                video.Difficulty == "Intermediate" ? "bg-warning bg-opacity-20 text-warning border border-warning" : "bg-danger bg-opacity-20 text-danger border border-danger";
 
                 <div class="col-12 col-md-6 col-xl-4">
                     <div class="card h-100 border-0 shadow-sm glass-card overflow-hidden d-flex flex-column justify-content-between position-relative hover-lift">
@@ -1551,7 +1518,7 @@
                             <div class="p-3 rounded-3 bg-body-tertiary border border-danger border-opacity-25 d-flex flex-column flex-sm-row align-items-sm-center gap-3">
                                 <img id="ytPreviewImg" src="" alt="Thumbnail preview" class="rounded shadow-sm" style="width: 140px; height: 80px; object-fit: cover;" />
                                 <div>
-                                    <div class="badge badge-emerald fw-bold mb-1">
+                                    <div class="badge bg-success bg-opacity-20 text-success fw-bold mb-1">
                                         <i class="bi bi-check-circle-fill me-1"></i> Valid YouTube Video Detected
                                     </div>
                                     <div class="small font-monospace text-muted">Video ID: <span id="ytPreviewId" class="text-body fw-bold"></span></div>

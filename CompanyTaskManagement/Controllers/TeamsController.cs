@@ -87,19 +87,12 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // =========================================================
-        // ADMIN / HR: Create Team
+        // ADMIN: Create Team
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTeam(string name, string? description, int? teamLeaderId)
         {
-            if (!_sessionService.IsAdminOrHr())
-            {
-                TempData["ErrorMessage"] = "Only Administrator and HR Manager have permission to create teams.";
-                return RedirectToAction(nameof(Index));
-            }
-
             if (string.IsNullOrWhiteSpace(name))
             {
                 TempData["ErrorMessage"] = "Team name cannot be empty.";
@@ -122,18 +115,12 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN / HR: Assign / Update Team Leader
+        // ADMIN: Assign / Update Team Leader
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignLeader(int teamId, int? teamLeaderId)
         {
-            if (!_sessionService.IsAdminOrHr())
-            {
-                TempData["ErrorMessage"] = "Only Administrator and HR Manager have permission to allocate team leaders.";
-                return RedirectToAction(nameof(Index));
-            }
-
             var team = await _context.Teams.FindAsync(teamId);
             if (team == null)
             {
@@ -149,18 +136,12 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN / HR: Add Employee to Team
+        // ADMIN: Add Employee to Team
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddTeamMember(int teamId, int employeeId)
         {
-            if (!_sessionService.IsAdminOrHr())
-            {
-                TempData["ErrorMessage"] = "Only Administrator and HR Manager have permission to add team members.";
-                return RedirectToAction(nameof(Index));
-            }
-
             var team = await _context.Teams.FindAsync(teamId);
             if (team == null)
             {
@@ -190,18 +171,12 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN / HR: Remove Employee from Team
+        // ADMIN: Remove Employee from Team
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveTeamMember(int teamId, int employeeId)
         {
-            if (!_sessionService.IsAdminOrHr())
-            {
-                TempData["ErrorMessage"] = "Only Administrator and HR Manager have permission to remove team members.";
-                return RedirectToAction(nameof(Index));
-            }
-
             var member = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.TeamId == teamId && tm.EmployeeId == employeeId);
             if (member != null)
             {
@@ -614,18 +589,12 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN / HR: Delete Team
+        // ADMIN: Delete Team
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTeam(int id)
         {
-            if (!_sessionService.IsAdminOrHr())
-            {
-                TempData["ErrorMessage"] = "Only Administrator and HR Manager have permission to delete teams.";
-                return RedirectToAction(nameof(Index));
-            }
-
             var team = await _context.Teams.FindAsync(id);
             if (team != null)
             {

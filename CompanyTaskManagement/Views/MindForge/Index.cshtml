@@ -38,101 +38,68 @@
         background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
         pointer-events: none;
     }
+
     .game-card {
-        border-radius: 16px;
-        border: 1.5px solid rgba(16, 185, 129, 0.28) !important;
-        background: var(--bg-surface, #ffffff);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border-radius: 14px;
+        border: 1.5px solid rgba(34,197,94,0.25);
+        background: var(--mf-card-bg);
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         overflow: hidden;
-        height: 100%;
-        min-height: 440px;
-        display: flex;
-        flex-direction: column;
     }
-    .game-body {
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        flex: 1 1 auto;
-    }
-    .game-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(34,197,94,0.18); border-color: #10b981 !important; }
+    .game-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(34,197,94,0.2); border-color: #22c55e; }
 
     .game-header {
         background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
         color: white;
-        padding: 0.85rem 1.25rem;
+        padding: 0.75rem 1.1rem;
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.6rem;
         border-bottom: 2px solid #86efac;
     }
 
     /* ===== MEMORY GAME ===== */
     .memory-grid { 
         display: grid; 
-        grid-template-columns: repeat(4, 52px); 
-        grid-template-rows: repeat(4, 52px);
-        gap: 8px; 
-        width: 232px; 
-        height: 232px;
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 6px; 
+        max-width: 230px; 
         margin: 0 auto; 
-        justify-content: center;
-        align-content: center;
     }
     .mem-card {
-        width: 52px;
-        height: 52px;
+        aspect-ratio: 1;
         cursor: pointer;
         perspective: 600px;
-        user-select: none;
     }
     .mem-card-inner {
-        width: 52px; 
-        height: 52px;
+        width: 100%; height: 100%;
         position: relative;
         transform-style: preserve-3d;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 10px;
+        transition: transform 0.4s ease;
+        border-radius: 8px;
     }
     .mem-card.flipped .mem-card-inner { transform: rotateY(180deg); }
     .mem-card.matched .mem-card-inner { transform: rotateY(180deg); }
-    .mem-card.matched .mem-front { box-shadow: 0 0 0 3px #10b981; }
+    .mem-card.matched .mem-card-front { box-shadow: 0 0 0 2px #22c55e; }
     .mem-front, .mem-back {
-        position: absolute; 
-        top: 0; left: 0;
-        width: 52px; 
-        height: 52px;
-        border-radius: 10px;
+        position: absolute; width: 100%; height: 100%;
+        border-radius: 8px;
         backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-        display: flex; 
-        align-items: center; 
-        justify-content: center;
-        font-size: 1.35rem;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
         user-select: none;
     }
-    .mem-front { 
-        background: linear-gradient(135deg, #10b981, #059669); 
-        color: white; 
-        box-shadow: 0 4px 10px rgba(16,185,129,0.3);
-        border: 1.5px solid #a7f3d0;
-    }
-    .mem-front::after { content: '?'; font-size: 1.25rem; font-weight: 800; }
-    .mem-back { 
-        background: #ffffff; 
-        transform: rotateY(180deg); 
-        border: 2px solid #10b981; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+    .mem-front { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+    .mem-front::after { content: '?'; font-size: 1.1rem; font-weight: bold; }
+    .mem-back { background: white; transform: rotateY(180deg); border: 1px solid #e5e7eb; }
 
     /* ===== WORD SCRAMBLE ===== */
     .scrambled-word {
-        font-size: 1.55rem;
+        font-size: 1.5rem;
         font-weight: 800;
         letter-spacing: 0.25rem;
-        color: #059669;
+        color: #16a34a;
         font-family: 'JetBrains Mono', monospace;
     }
     .word-input {
@@ -140,90 +107,83 @@
         text-align: center;
         letter-spacing: 0.15rem;
         font-family: 'JetBrains Mono', monospace;
-        border-radius: 10px;
-        border: 2px solid #10b981;
-        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        border: 2px solid #16a34a;
+        padding: 0.35rem 0.75rem;
         max-width: 280px;
         margin: 0 auto;
         width: 100%;
         transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .word-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
-    .word-input.correct { border-color: #10b981; background: rgba(16,185,129,0.1); }
+    .word-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+    .word-input.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
     .word-input.wrong { border-color: #ef4444; background: rgba(239,68,68,0.08); animation: shake 0.4s; }
 
     /* ===== .NET CODE CHALLENGE ===== */
     .dotnet-code-block {
-        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-        border-radius: 10px;
-        padding: 0.65rem 0.9rem;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
         font-family: 'JetBrains Mono', monospace;
-        font-size: 0.8rem;
-        color: #065f46;
+        font-size: 0.78rem;
+        color: #14532d;
         line-height: 1.5;
         text-align: left;
-        border: 1.5px solid #a7f3d0;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+        border: 1.5px solid #86efac;
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.08);
         white-space: pre;
         overflow-x: auto;
         min-height: 55px;
         max-height: 110px;
     }
     [data-bs-theme="dark"] .dotnet-code-block {
-        background: rgba(16, 185, 129, 0.12);
-        color: #a7f3d0;
-        border-color: rgba(16, 185, 129, 0.35);
+        background: rgba(34, 197, 94, 0.12);
+        color: #bbf7d0;
+        border-color: rgba(34, 197, 94, 0.35);
     }
-    .dotnet-code-block .kw  { color: #047857; font-weight: bold; }
+    .dotnet-code-block .kw  { color: #15803d; font-weight: bold; }
     .dotnet-code-block .str { color: #b45309; }
     .dotnet-code-block .num { color: #c2410c; }
     .dotnet-code-block .cls { color: #1d4ed8; font-weight: bold; }
-    [data-bs-theme="dark"] .dotnet-code-block .kw  { color: #a7f3d0; }
+    [data-bs-theme="dark"] .dotnet-code-block .kw  { color: #86efac; }
     [data-bs-theme="dark"] .dotnet-code-block .str { color: #fde047; }
     [data-bs-theme="dark"] .dotnet-code-block .num { color: #fb923c; }
     [data-bs-theme="dark"] .dotnet-code-block .cls { color: #93c5fd; }
     .dotnet-opt-btn {
         width: 100%; text-align: left;
-        padding: 0.4rem 0.8rem;
-        border-radius: 10px;
-        border: 1.5px solid rgba(16,185,129,0.25);
-        background: var(--bg-surface, #ffffff);
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        border: 1.5px solid rgba(34,197,94,0.25);
+        background: var(--mf-card-bg);
         font-family: 'JetBrains Mono', monospace;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         cursor: pointer;
         transition: all 0.15s;
         font-weight: 600;
     }
-    .dotnet-opt-btn:hover:not(:disabled) { border-color: #059669; background: rgba(16,185,129,0.08); transform: translateX(3px); }
-    .dotnet-opt-btn.opt-correct { border-color: #10b981 !important; background: rgba(16,185,129,0.15) !important; color: #047857 !important; }
+    .dotnet-opt-btn:hover:not(:disabled) { border-color: #16a34a; background: rgba(34,197,94,0.08); transform: translateX(3px); }
+    .dotnet-opt-btn.opt-correct { border-color: #22c55e !important; background: rgba(34,197,94,0.15) !important; color: #16a34a !important; }
     .dotnet-opt-btn.opt-wrong   { border-color: #ef4444 !important; background: rgba(239,68,68,0.12) !important; color: #ef4444 !important; }
-    .dotnet-timer-bar { height: 4px; border-radius: 99px; background: linear-gradient(90deg,#10b981,#a7f3d0); transition: width 1s linear; }
+    .dotnet-timer-bar { height: 4px; border-radius: 99px; background: linear-gradient(90deg,#22c55e,#86efac); transition: width 1s linear; }
 
     /* ===== TIC TAC TOE ===== */
     .ttt-board {
         display: grid;
-        grid-template-columns: repeat(3, 54px);
-        grid-template-rows: repeat(3, 54px);
-        gap: 8px;
-        width: 178px;
-        height: 178px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        max-width: 180px;
         margin: 0 auto;
-        justify-content: center;
-        align-content: center;
     }
     .ttt-cell {
-        width: 54px;
-        height: 54px;
+        aspect-ratio: 1;
         display: flex; align-items: center; justify-content: center;
         font-size: 1.5rem;
         font-weight: 900;
-        border-radius: 10px;
-        background: rgba(16,185,129,0.08);
-        border: 2px solid rgba(16,185,129,0.25);
+        border-radius: 8px;
+        background: rgba(34,197,94,0.08);
+        border: 1.5px solid rgba(34,197,94,0.2);
         cursor: pointer;
-        transition: background 0.2s, transform 0.1s, border-color 0.2s;
-    }
-    .ttt-cell:hover { background: rgba(16,185,129,0.18); border-color: #10b981; transform: scale(1.04); }s;
+        transition: background 0.2s, transform 0.1s;
         user-select: none;
     }
     .ttt-cell:hover:not(.taken) { background: rgba(34,197,94,0.18); transform: scale(1.04); }
@@ -258,26 +218,23 @@
 
     /* ===== SCORE BADGES ===== */
     .score-badge {
-        background: rgba(255, 255, 255, 0.22);
+        background: linear-gradient(135deg, #22c55e, #16a34a);
         color: white;
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        backdrop-filter: blur(4px);
         border-radius: 50px;
-        padding: 0.2rem 0.7rem;
+        padding: 0.18rem 0.65rem;
         font-weight: 700;
         font-family: 'Plus Jakarta Sans', system-ui, monospace;
         font-size: 0.76rem;
     }
     .btn-mf {
-        background: linear-gradient(135deg, #16a34a, #22c55e);
+        background: linear-gradient(135deg, #22c55e, #16a34a);
         color: white;
         border: none;
         border-radius: 8px;
-        padding: 0.35rem 0.95rem;
+        padding: 0.32rem 0.85rem;
         font-weight: 700;
-        font-size: 0.82rem;
-        transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+        font-size: 0.8rem;
+        transition: opacity 0.2s, transform 0.15s;
     }
     .btn-mf:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
     .btn-mf-gold {
@@ -296,40 +253,29 @@
     .celebrate { animation: bounce 0.5s ease 3; }
 </style>
 
-<!-- ===== HERO BANNER ===== -->
-<div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative mb-4" 
-     style="background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%); color: white; border: 1.5px solid #86efac !important; border-left: 5px solid #f59e0b !important; box-shadow: 0 16px 36px -4px rgba(34, 197, 94, 0.35) !important; margin-bottom: 1.75rem !important;">
-    
-    <div style="position: absolute; right: -60px; top: -60px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(255, 255, 255, 0.28) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 1;"></div>
-    <i class="bi bi-controller position-absolute text-white" style="font-size: 13rem; right: 2rem; bottom: -3rem; opacity: 0.08; pointer-events: none; z-index: 1;"></i>
-
-    <div class="card-body p-3.5 p-lg-4 position-relative" style="z-index: 2; padding: 1.25rem 1.75rem;">
-        <div class="row align-items-center g-3">
-            <div class="col-12 col-lg-8">
-                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                    <span class="badge text-dark fw-extrabold px-2.5 py-1 rounded-pill shadow-xs" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); font-size: 0.75rem; letter-spacing: 0.03em;">
-                        <i class="bi bi-controller me-1"></i>MindForge
-                    </span>
-                    <span class="badge rounded-pill px-2.5 py-1 fw-bold" style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.3); color: #dcfce7; font-size: 0.75rem; backdrop-filter: blur(8px);">
-                        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Brain Recharge Zone
-                    </span>
-                </div>
-                <h2 class="fw-extrabold text-white mb-1.5" style="font-family: 'Outfit', sans-serif; font-size: 1.85rem; letter-spacing: -0.02em;">
-                    🧠 MindForge – Recharge Your Brain
-                </h2>
-                <p class="text-white opacity-90 mb-0" style="font-size: 0.92rem; line-height: 1.5; max-width: 650px;">
-                    Take a quick break and flex your mind with puzzles, word games &amp; more. Built for the Auxinzio team to refresh, refocus &amp; have fun.
-                </p>
+<!-- ===== HERO ===== -->
+<div class="mf-hero mb-4">
+    <div class="row align-items-center position-relative" style="z-index:2;">
+        <div class="col-12 col-lg-8">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge text-dark fw-bold px-3 py-1.5 rounded-pill shadow-xs" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);"><i class="bi bi-controller me-1"></i>MindForge</span>
+                <span class="badge rounded-pill px-3 py-1.5 shadow-sm" style="background: #ffffff; color: #047857; font-weight: 700; border: 1px solid rgba(255,255,255,0.9);">Brain Recharge Zone</span>
             </div>
-            <div class="col-12 col-lg-4 text-lg-end mt-3 mt-lg-0">
-                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                    <span class="badge px-3 py-2 fs-6 rounded-pill shadow-sm" style="background: #ffffff; color: #047857; font-weight: 700; border: 1px solid rgba(255,255,255,0.9);">
-                        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>4 Games
-                    </span>
-                    <span class="badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill fw-bold shadow-xs">
-                        <i class="bi bi-stars me-1"></i>No logins needed
-                    </span>
-                </div>
+            <h1 class="fw-black text-white mb-2" style="font-family:'Outfit',sans-serif;font-size:clamp(1.6rem,3vw,2.4rem);">
+                🧠 MindForge – Recharge Your Brain
+            </h1>
+            <p class="text-white opacity-90 mb-0" style="max-width: 640px; line-height: 1.6;">
+                Take a quick break and flex your mind with puzzles, word games &amp; more. Built for the Auxinzio team to refresh, refocus &amp; have fun.
+            </p>
+        </div>
+        <div class="col-12 col-lg-4 text-lg-end mt-3 mt-lg-0">
+            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                <span class="badge px-3 py-2 fs-6 rounded-pill shadow-sm" style="background: #ffffff; color: #047857; font-weight: 700; border: 1px solid rgba(255,255,255,0.9);">
+                    <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>4 Games
+                </span>
+                <span class="badge bg-warning text-dark px-3 py-2 fs-6 rounded-pill fw-bold shadow-xs">
+                    <i class="bi bi-stars me-1"></i>No logins needed
+                </span>
             </div>
         </div>
     </div>
@@ -352,19 +298,9 @@
                     <span class="score-badge" id="memMoves">Moves: 0</span>
                 </div>
             </div>
-            <div class="game-body">
-                <div class="memory-grid" id="memoryGrid">
-                    @for (int i = 0; i < 16; i++)
-                    {
-                        <div class="mem-card">
-                            <div class="mem-card-inner">
-                                <div class="mem-front"></div>
-                                <div class="mem-back">❓</div>
-                            </div>
-                        </div>
-                    }
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
+            <div class="p-3">
+                <div class="memory-grid" id="memoryGrid"></div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
                     <div id="memMsg" class="small text-muted"></div>
                     <button class="btn-mf" onclick="initMemory()"><i class="bi bi-arrow-clockwise me-1"></i>New Game</button>
                 </div>
@@ -385,14 +321,12 @@
                     <span class="score-badge" id="wordScore">Score: 0</span>
                 </div>
             </div>
-            <div class="game-body text-center">
-                <div class="my-auto py-2">
-                    <div class="mb-1 text-muted small" id="wordHint"></div>
-                    <div class="scrambled-word mb-2" id="scrambledWord">------</div>
-                    <input class="word-input mb-2" id="wordInput" type="text" placeholder="Type your answer..." autocomplete="off" maxlength="20" />
-                    <div id="wordMsg" class="mb-2 fw-bold" style="min-height:1.5rem;"></div>
-                </div>
-                <div class="d-flex gap-2 justify-content-center mt-2">
+            <div class="p-3 text-center">
+                <div class="mb-1 text-muted small" id="wordHint"></div>
+                <div class="scrambled-word mb-2" id="scrambledWord">------</div>
+                <input class="word-input mb-2" id="wordInput" type="text" placeholder="Type your answer..." autocomplete="off" maxlength="20" />
+                <div id="wordMsg" class="mb-3 fw-bold" style="min-height:1.5rem;"></div>
+                <div class="d-flex gap-2 justify-content-center">
                     <button class="btn-mf" onclick="checkWord()"><i class="bi bi-check-lg me-1"></i>Submit</button>
                     <button class="btn-mf-gold" onclick="nextWord()"><i class="bi bi-skip-forward-fill me-1"></i>Skip</button>
                 </div>
@@ -414,20 +348,18 @@
                     <span class="score-badge" id="dotnetStreak" style="background:linear-gradient(135deg,#d97706,#f59e0b);">🔥 0</span>
                 </div>
             </div>
-            <div class="game-body">
-                <div>
-                    <div style="background:rgba(109,40,217,0.1);border-radius:99px;height:5px;margin-bottom:0.6rem;">
-                        <div class="dotnet-timer-bar" id="dotnetTimerBar" style="width:100%;"></div>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="small text-muted" id="dotnetQNum">Q 1 / 20</span>
-                        <span class="small fw-bold" id="dotnetTimerLabel" style="color:#6d28d9;">⏱ 15s</span>
-                    </div>
-                    <div class="dotnet-code-block mb-2" id="dotnetCode"></div>
-                    <div class="d-grid gap-1 mb-2" id="dotnetOptions"></div>
-                    <div class="fw-bold text-center" id="dotnetMsg" style="min-height:1.4rem;font-size:0.88rem;"></div>
+            <div class="p-3">
+                <div style="background:rgba(109,40,217,0.1);border-radius:99px;height:5px;margin-bottom:0.6rem;">
+                    <div class="dotnet-timer-bar" id="dotnetTimerBar" style="width:100%;"></div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mt-1 pt-1">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small text-muted" id="dotnetQNum">Q 1 / 20</span>
+                    <span class="small fw-bold" id="dotnetTimerLabel" style="color:#6d28d9;">⏱ 15s</span>
+                </div>
+                <div class="dotnet-code-block mb-2" id="dotnetCode"></div>
+                <div class="d-grid gap-1 mb-2" id="dotnetOptions"></div>
+                <div class="fw-bold text-center" id="dotnetMsg" style="min-height:1.4rem;font-size:0.88rem;"></div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
                     <span class="small text-muted fst-italic" id="dotnetExplain"></span>
                     <button class="btn-mf" onclick="dotnetNext()" id="dotnetNextBtn" style="display:none;padding:0.3rem 0.9rem;font-size:0.82rem;"><i class="bi bi-skip-forward-fill me-1"></i>Next</button>
                 </div>
@@ -448,18 +380,14 @@
                     <span class="score-badge" id="tttScore">W:0 D:0 L:0</span>
                 </div>
             </div>
-            <div class="game-body text-center">
-                <div class="my-auto py-1">
-                    <div id="tttStatus" class="fw-bold mb-2 small text-muted">Your turn – click a square!</div>
-                    <div class="ttt-board mb-2" id="tttBoard">
-                        @for (int i = 0; i < 9; i++) {
-                            <div class="ttt-cell" id="ttt-@i" onclick="tttClick(@i)"></div>
-                        }
-                    </div>
+            <div class="p-3 text-center">
+                <div id="tttStatus" class="fw-bold mb-3 small text-muted">Your turn – click a square!</div>
+                <div class="ttt-board mb-3" id="tttBoard">
+                    @for (int i = 0; i < 9; i++) {
+                        <div class="ttt-cell" id="ttt-@i" onclick="tttClick(@i)"></div>
+                    }
                 </div>
-                <div class="mt-2">
-                    <button class="btn-mf" onclick="initTTT()"><i class="bi bi-arrow-clockwise me-1"></i>New Game</button>
-                </div>
+                <button class="btn-mf" onclick="initTTT()"><i class="bi bi-arrow-clockwise me-1"></i>New Game</button>
             </div>
         </div>
     </div>
@@ -832,20 +760,13 @@ function submitScoreToDatabase(gameType, score, timeTakenSeconds) {
 }
 
 // ============================================================
-// INIT ALL GAMES (ROBUST IMMEDIATE & EVENT DRIVEN)
+// INIT ALL GAMES
 // ============================================================
-function runAllInits() {
-    try { initMemory(); } catch(e){ console.error("Error initializing Memory game:", e); }
-    try { initWord(); } catch(e){ console.error("Error initializing Word game:", e); }
-    try { initDotnet(); } catch(e){ console.error("Error initializing .NET game:", e); }
-    try { initTTT(); } catch(e){ console.error("Error initializing TTT game:", e); }
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runAllInits);
-} else {
-    runAllInits();
-}
-window.addEventListener('load', runAllInits);
+document.addEventListener('DOMContentLoaded', () => {
+    initMemory();
+    initWord();
+    initDotnet();
+    initTTT();
+});
 </script>
 }
