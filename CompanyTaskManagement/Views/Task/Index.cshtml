@@ -14,43 +14,80 @@
     var currentFilter = ViewBag.CurrentFilter as string ?? "all";
 }
 
-<!-- Dashboard Header & Title -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-    <div>
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-3 text-white shadow-sm" 
-                 style="width: 40px; height: 40px; background: linear-gradient(135deg, #0f172a 0%, #0c2a4a 100%);">
-                <i class="bi bi-clipboard-check-fill fs-5 text-sky"></i>
+<!-- Taskboard Custom Style & Full Page Background Image -->
+<style>
+    body {
+        background-image: linear-gradient(180deg, rgba(240, 249, 255, 0.78) 0%, rgba(224, 242, 254, 0.88) 100%), url('@Url.Content("~/images/taskboard-bg.png")') !important;
+        background-repeat: no-repeat !important;
+        background-position: center bottom !important;
+        background-size: cover !important;
+        background-attachment: fixed !important;
+    }
+
+    [data-bs-theme="dark"] body {
+        background-image: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(12, 42, 74, 0.92) 100%), url('@Url.Content("~/images/taskboard-bg.png")') !important;
+        background-repeat: no-repeat !important;
+        background-position: center bottom !important;
+        background-size: cover !important;
+        background-attachment: fixed !important;
+    }
+
+    .taskboard-hero-card {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.92) 0%, rgba(2, 132, 199, 0.92) 50%, rgba(3, 105, 161, 0.94) 100%), url('@Url.Content("~/images/taskboard-bg.png")') center bottom / cover no-repeat;
+        border-radius: 16px;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        box-shadow: 0 12px 28px -4px rgba(2, 132, 199, 0.25) !important;
+    }
+</style>
+
+<!-- Taskboard Hero Banner with Skyline Background -->
+<div class="taskboard-hero-card mb-4 p-4 p-lg-4.5 text-white position-relative overflow-hidden">
+    <!-- Ambient Light Accent -->
+    <div style="position: absolute; right: -40px; top: -40px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 1;"></div>
+
+    <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+        <div class="col-12 col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-2.5 flex-wrap">
+                <span class="badge rounded-pill fw-bold px-3 py-1.5 shadow-sm" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #0f172a; font-size: 0.76rem; letter-spacing: 0.03em;">
+                    <i class="bi bi-shield-check-fill me-1"></i> Auxinzio Task Hub
+                </span>
+                <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 0.76rem; backdrop-filter: blur(8px);">
+                    <i class="bi bi-kanban-fill me-1"></i> Task Management &amp; Tracking
+                </span>
             </div>
-            <h1 class="h2 fw-extrabold mb-0" style="font-family: 'Outfit', sans-serif; letter-spacing: -0.02em;">Task Dashboard</h1>
+            <h1 class="h2 fw-extrabold text-white mb-2" style="font-family: 'Outfit', sans-serif; font-size: 1.95rem; letter-spacing: -0.02em;">
+                Task Dashboard
+            </h1>
+            <p class="text-white opacity-90 mb-0" style="font-size: 0.92rem; line-height: 1.55; max-width: 660px;">
+                Manage, organize, and monitor cross-company tasks, priorities, and team assignments across all projects.
+            </p>
         </div>
-        <p class="text-muted mb-0 small">Manage, organize, and monitor cross-company tasks, priorities, and team assignments.</p>
-    </div>
 
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-        <!-- Notify HR Escalation Button -->
-        <button type="button" class="btn text-white rounded-pill px-3.5 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" 
-                id="openHrModalBtn" title="Notify HR of Overdue Tasks" style="background: #f43f5e; border: none; font-size: 0.88rem;">
-            <i class="bi bi-bell-fill fs-6"></i>
-            <span>Notify HR</span>
-        </button>
+        <div class="col-12 col-lg-5 text-lg-end d-flex flex-wrap gap-3 justify-content-start justify-content-lg-end">
+            <!-- Notify HR Escalation Button -->
+            <button type="button" class="btn text-white rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" 
+                    id="openHrModalBtn" title="Notify HR of Overdue Tasks" style="background: #f43f5e; border: none; font-size: 0.9rem;">
+                <i class="bi bi-bell-fill"></i>
+                <span>Notify HR</span>
+            </button>
 
-        <!-- Unified Export Tasksheet Button -->
-        <button type="button" class="btn text-white rounded-pill px-3.5 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" 
-                data-bs-toggle="modal" data-bs-target="#exportTasksheetModal" title="Export Tasksheet with Optional Date Range" style="background: #10b981; border: none; font-size: 0.88rem;">
-            <i class="bi bi-download fs-6"></i>
-            <span>Export Tasksheet</span>
-        </button>
+            <!-- Unified Export Tasksheet Button -->
+            <button type="button" class="btn text-white rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" 
+                    data-bs-toggle="modal" data-bs-target="#exportTasksheetModal" title="Export Tasksheet with Optional Date Range" style="background: #10b981; border: none; font-size: 0.9rem;">
+                <i class="bi bi-download"></i>
+                <span>Export Tasksheet</span>
+            </button>
 
-        @if (isCanAssign)
-        {
-            <!-- Create Task Button (Admin & HR Only) -->
-            <a asp-action="Create" class="btn text-white rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" 
-               style="background: #0284c7; border: none; font-size: 0.88rem;">
-                <i class="bi bi-plus-lg fs-6"></i>
-                <span>Create Task</span>
-            </a>
-        }
+            @if (isCanAssign)
+            {
+                <!-- Create Task Button (Admin & HR Only) -->
+                <a asp-action="Create" class="btn text-dark rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" 
+                   style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: none; font-size: 0.9rem;">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>Create Task</span>
+                </a>
+            }
+        </div>
     </div>
 </div>
 
@@ -366,8 +403,8 @@ else
                         <th style="min-width: 140px;">EMPLOYEES</th>
                         <th class="text-nowrap" style="min-width: 105px;">TASK START TIME</th>
                         <th class="text-nowrap" style="min-width: 105px;">TASK END TIME</th>
-                        <th class="text-nowrap text-center" style="min-width: 95px;">TOTAL WORKING</th>
-                        <th style="min-width: 80px;" class="text-end text-nowrap">ACTIONS</th>
+                        <th class="text-nowrap text-center" style="min-width: 105px;">TOTAL WORKING</th>
+                        <th style="min-width: 185px;" class="text-center text-nowrap">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody id="taskTableBody">
@@ -483,7 +520,7 @@ else
                             </td>
 
                             <!-- Priority -->
-                            <td class="text-nowrap text-center" style="min-width: 120px;">
+                            <td class="text-nowrap text-center" style="min-width: 80px;">
                                 <span class="priority-badge @priorityCss">
                                     @if (item.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent)
                                     {
@@ -508,7 +545,7 @@ else
                             </td>
 
                             <!-- Assigned Employees -->
-                            <td style="min-width: 140px;">
+                            <td style="min-width: 120px;">
                                 <div class="d-flex flex-column gap-1.5">
                                     @if (item.TaskEmployees != null && item.TaskEmployees.Any())
                                     {
@@ -536,7 +573,7 @@ else
                             </td>
 
                             <!-- Task Start Time -->
-                            <td class="text-nowrap" style="min-width: 135px;">
+                            <td class="text-nowrap" style="min-width: 105px;">
                                 <div class="d-flex align-items-center gap-1.5">
                                     <i class="bi bi-clock-fill text-success" style="font-size: 1.05rem;"></i>
                                     <span class="fw-bold font-monospace text-body" style="font-size: 0.88rem;">@startTime.ToString("h:mm tt")</span>
@@ -545,7 +582,7 @@ else
                             </td>
 
                             <!-- Task End Time -->
-                            <td class="text-nowrap" style="min-width: 135px;">
+                            <td class="text-nowrap" style="min-width: 105px;">
                                 @if (endTime.HasValue)
                                 {
                                     <div class="d-flex align-items-center gap-1.5">
@@ -565,58 +602,67 @@ else
                             </td>
 
                             <!-- Total Working -->
-                            <td class="text-center text-nowrap" style="min-width: 130px;">
-                                <span class="total-working-badge px-3 py-1 shadow-2xs d-inline-flex align-items-center gap-1.5" style="font-size: 0.84rem;">
+                            <td class="text-center text-nowrap" style="min-width: 105px;">
+                                <span class="total-working-badge px-2.5 py-1 shadow-2xs d-inline-flex align-items-center gap-1.5" style="font-size: 0.84rem;">
                                     <i class="bi bi-hourglass-split text-warning"></i>
                                     <span class="fw-extrabold font-monospace">@totalWorkingStr</span>
                                 </span>
                             </td>
 
                             <!-- Actions -->
-                            <td class="text-end text-nowrap" style="min-width: 90px;">
+                            <td class="text-center text-nowrap" style="min-width: 185px;">
                                 <div class="dropdown d-inline-block">
                                     <button class="btn btn-sm btn-creative-action dropdown-toggle d-inline-flex align-items-center gap-1 px-3 py-1.5 rounded-pill border shadow-2xs" 
                                             type="button" 
                                             data-bs-toggle="dropdown" 
+                                            data-bs-popper-config='{"placement":"bottom","modifiers":[{"name":"computeStyles","options":{"adaptive":false,"gpuAcceleration":false}}]}'
                                             aria-expanded="false" 
                                             title="Task Actions Menu">
                                         <span>Actions</span>
                                         <i class="bi bi-chevron-down small opacity-75"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border border-secondary border-opacity-25 p-1 rounded-3" style="font-size: 0.84rem; min-width: 190px;">
+                                    <ul class="dropdown-menu task-action-dropdown-menu shadow-lg p-1.5" style="min-width: 170px; max-width: 175px;">
                                         <li>
                                             <button type="button" 
-                                                    class="dropdown-item d-flex align-items-center gap-2 py-1.5 open-error-report-btn" 
+                                                    class="dropdown-item d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 open-error-report-btn" 
                                                     data-id="@item.Id"
                                                     data-name="@item.TaskName"
                                                     data-delayreason="@item.DelayReason"
                                                     data-errordetails="@item.ErrorDetails"
                                                     data-errorscreenshot="@item.ErrorScreenshotPath">
-                                                <i class="bi bi-bug-fill text-warning fs-6"></i>
-                                                <span>Report Issue / Delay</span>
+                                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning flex-shrink-0" style="width: 24px; height: 24px; font-size: 0.8rem;">
+                                                    <i class="bi bi-bug-fill"></i>
+                                                </span>
+                                                <span class="fw-medium">Report Issue</span>
                                             </button>
                                         </li>
                                         <li>
-                                            <a asp-action="Details" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5">
-                                                <i class="bi bi-info-circle-fill text-primary fs-6"></i>
-                                                <span>View Task Details</span>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5 px-2 rounded-2">
+                                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary flex-shrink-0" style="width: 24px; height: 24px; font-size: 0.8rem;">
+                                                    <i class="bi bi-eye-fill"></i>
+                                                </span>
+                                                <span class="fw-medium">View Details</span>
                                             </a>
                                         </li>
                                         @if (isCanAssign)
                                         {
-                                            <li><hr class="dropdown-divider my-1"></li>
+                                            <li><hr class="dropdown-divider my-1 opacity-50"></li>
                                             <li>
-                                                <a asp-action="Edit" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5">
-                                                    <i class="bi bi-pencil-square text-warning fs-6"></i>
-                                                    <span>Edit Task</span>
+                                                <a asp-action="Edit" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5 px-2 rounded-2">
+                                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 24px; height: 24px; font-size: 0.8rem; background-color: rgba(245, 158, 11, 0.12); color: #d97706;">
+                                                        <i class="bi bi-pencil-fill"></i>
+                                                    </span>
+                                                    <span class="fw-medium">Edit Task</span>
                                                 </a>
                                             </li>
                                             <li>
                                                 <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete task \'@item.TaskName\'?');">
                                                     @Html.AntiForgeryToken()
-                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-1.5 text-danger">
-                                                        <i class="bi bi-trash3-fill text-danger fs-6"></i>
-                                                        <span>Delete Task</span>
+                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 text-danger action-delete-item">
+                                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger flex-shrink-0" style="width: 24px; height: 24px; font-size: 0.8rem;">
+                                                            <i class="bi bi-trash3-fill"></i>
+                                                        </span>
+                                                        <span class="fw-medium">Delete Task</span>
                                                     </button>
                                                 </form>
                                             </li>
@@ -1902,6 +1948,16 @@ else
             });
 
 
+
+            // Elevate table row and sticky cell z-index when action dropdown is opened
+            $(document).on('show.bs.dropdown', '#taskTableView .dropdown', function () {
+                $(this).closest('tr').addClass('dropdown-open');
+                $(this).closest('td').addClass('dropdown-open');
+            });
+            $(document).on('hidden.bs.dropdown', '#taskTableView .dropdown', function () {
+                $(this).closest('tr').removeClass('dropdown-open');
+                $(this).closest('td').removeClass('dropdown-open');
+            });
 
             function showToast(msg) {
                 if ($('#appToast').length) {

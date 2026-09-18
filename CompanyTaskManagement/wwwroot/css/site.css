@@ -2687,23 +2687,150 @@ input[type="search"]::-webkit-search-decoration {
   border-color: #475569 !important;
 }
 
-/* Single-Page Desktop Fit for Task Table (No Horizontal Scroll) */
-@media (min-width: 992px) {
-  #taskTableView .table-responsive {
-    overflow-x: visible !important;
-  }
+/* Single-Page Desktop Fit & Responsive Task Table */
+#taskTableView .table-responsive {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
 
+/* Sticky Actions Column on Task Table so Actions are always visible */
+#taskTableView .table-custom th:last-child,
+#taskTableView .table-custom td:last-child {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 5 !important;
+  background-color: #ffffff;
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-bs-theme="dark"] #taskTableView .table-custom th:last-child,
+[data-bs-theme="dark"] #taskTableView .table-custom td:last-child {
+  background-color: #1e293b !important;
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.35);
+}
+
+#taskTableView .table-custom thead th:last-child {
+  z-index: 6 !important;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+[data-bs-theme="dark"] #taskTableView .table-custom thead th:last-child {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+}
+
+#taskTableView .table-custom tbody tr:hover td:last-child {
+  background-color: #f1f5f9 !important;
+}
+
+[data-bs-theme="dark"] #taskTableView .table-custom tbody tr:hover td:last-child {
+  background-color: #334155 !important;
+}
+
+/* Ensure open dropdown is ALWAYS on top of subsequent table rows and all sticky cells */
+#taskTableView .table-custom tr:has(.dropdown.show),
+#taskTableView .table-custom tr:has(.dropdown-menu.show),
+#taskTableView .table-custom tr.dropdown-open {
+  position: relative !important;
+  z-index: 1050 !important;
+}
+
+#taskTableView .table-custom tr:has(.dropdown.show) td,
+#taskTableView .table-custom tr:has(.dropdown-menu.show) td,
+#taskTableView .table-custom tr.dropdown-open td {
+  z-index: 1050 !important;
+}
+
+#taskTableView .table-custom tr:has(.dropdown.show) td:last-child,
+#taskTableView .table-custom tr:has(.dropdown-menu.show) td:last-child,
+#taskTableView .table-custom tr.dropdown-open td:last-child,
+#taskTableView .table-custom td:last-child:has(.dropdown.show),
+#taskTableView .table-custom td:last-child:has(.dropdown-menu.show),
+#taskTableView .table-custom td:last-child.dropdown-open {
+  z-index: 1060 !important;
+}
+
+/* Polished Task Action Dropdown Menu */
+.task-action-dropdown-menu {
+  min-width: 165px !important;
+  max-width: 175px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(226, 232, 240, 0.85) !important;
+  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.16), 0 6px 14px -2px rgba(15, 23, 42, 0.08) !important;
+  background: #ffffff !important;
+  padding: 0.35rem !important;
+  animation: dropdownFadeIn 0.12s ease-out !important;
+  z-index: 1070 !important;
+}
+
+[data-bs-theme="dark"] .task-action-dropdown-menu {
+  background: #1e293b !important;
+  border-color: rgba(51, 65, 85, 0.8) !important;
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 6px 14px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.task-action-dropdown-menu .dropdown-item {
+  font-size: 0.83rem !important;
+  font-weight: 550 !important;
+  color: #334155 !important;
+  border-radius: 8px !important;
+  padding: 0.45rem 0.75rem !important;
+  transition: all 0.15s ease !important;
+}
+
+[data-bs-theme="dark"] .task-action-dropdown-menu .dropdown-item {
+  color: #e2e8f0 !important;
+}
+
+.task-action-dropdown-menu .dropdown-item:hover {
+  background-color: #f1f5f9 !important;
+  color: #4f46e5 !important;
+  transform: translateX(2px);
+}
+
+[data-bs-theme="dark"] .task-action-dropdown-menu .dropdown-item:hover {
+  background-color: #334155 !important;
+  color: #818cf8 !important;
+}
+
+.task-action-dropdown-menu .dropdown-item.action-delete-item:hover {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+}
+
+[data-bs-theme="dark"] .task-action-dropdown-menu .dropdown-item.action-delete-item:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+}
+
+.btn-creative-action.show i.bi-chevron-down {
+  transform: rotate(180deg);
+}
+
+.btn-creative-action i.bi-chevron-down {
+  transition: transform 0.2s ease;
+}
+
+@media (min-width: 992px) {
   .table-custom {
     width: 100% !important;
   }
 
   .table-custom thead th {
-    padding: 0.85rem 0.75rem !important;
+    padding: 0.75rem 0.65rem !important;
     font-size: 0.76rem !important;
   }
 
   .table-custom td {
-    padding: 0.75rem 0.75rem !important;
+    padding: 0.65rem 0.65rem !important;
     font-size: 0.84rem !important;
   }
 
@@ -2714,12 +2841,12 @@ input[type="search"]::-webkit-search-decoration {
 
   .company-badge-chip,
   .employee-badge-chip {
-    padding: 0.28rem 0.65rem !important;
-    font-size: 0.76rem !important;
+    padding: 0.25rem 0.55rem !important;
+    font-size: 0.75rem !important;
   }
 
   .task-desc-truncate {
-    max-width: 220px !important;
+    max-width: 180px !important;
     font-size: 0.78rem !important;
   }
 
@@ -2739,7 +2866,7 @@ input[type="search"]::-webkit-search-decoration {
   }
 }
 
-
+.btn-project-overview {
   font-weight: 650;
   color: #4f46e5;
   transition: all 0.2s ease;
@@ -3662,3 +3789,14 @@ html, body {
   border-color: rgba(148, 163, 184, 0.25);
   color: #f8fafc;
 }
+
+/* Scrollbar Hidden Utility */
+.scrollbar-hidden {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}

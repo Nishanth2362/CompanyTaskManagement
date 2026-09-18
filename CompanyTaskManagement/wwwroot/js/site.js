@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFormPageFeatures();
     initGlobalCopyButtons();
     initUniversalSearchClearButtons();
+    initAutoDismissAlerts();
 });
 
 /* ==========================================================================
@@ -691,6 +692,59 @@ function initUniversalSearchClearButtons() {
 
     const observer = new MutationObserver(() => {
         document.querySelectorAll(selector).forEach(setupInput);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+/* ==========================================================================
+   7. Auto-dismiss Alert Notifications after 3 Seconds
+   ========================================================================== */
+function initAutoDismissAlerts() {
+    function setupAutoDismiss(alertEl) {
+        if (!alertEl || alertEl.dataset.autoDismissed === 'true') return;
+        alertEl.dataset.autoDismissed = 'true';
+
+        // Set 3 seconds timer (3000ms) to auto-dismiss alert
+        setTimeout(() => {
+            if (!document.body.contains(alertEl)) return;
+
+            // Use Bootstrap Alert instance if available, or smooth CSS fade out
+            if (window.bootstrap && bootstrap.Alert) {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(alertEl);
+                if (bsAlert) {
+                    bsAlert.close();
+                    return;
+                }
+            }
+
+            // Fallback smooth fadeout
+            alertEl.style.transition = 'opacity 0.5s ease, transform 0.4s ease, margin 0.4s ease, padding 0.4s ease';
+            alertEl.style.opacity = '0';
+            alertEl.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                alertEl.remove();
+            }, 500);
+        }, 3000);
+    }
+
+    // Target all alert notifications across the application
+    const selector = '.alert:not(.alert-permanent)';
+    document.querySelectorAll(selector).forEach(setupAutoDismiss);
+
+    // Observe dynamically added alerts
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) { // ELEMENT_NODE
+                    if (node.matches && node.matches(selector)) {
+                        setupAutoDismiss(node);
+                    }
+                    if (node.querySelectorAll) {
+                        node.querySelectorAll(selector).forEach(setupAutoDismiss);
+                    }
+                }
+            });
+        });
     });
     observer.observe(document.body, { childList: true, subtree: true });
 }
