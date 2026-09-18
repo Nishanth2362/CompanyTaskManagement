@@ -15,60 +15,60 @@
 }
 
 <!-- Internship Academy Hero Banner -->
-<div class="internship-hero-card mb-4 p-4 p-lg-5 text-white position-relative overflow-hidden">
+<div class="internship-hero-card mb-4 p-4 p-lg-4.5 text-white position-relative overflow-hidden">
     <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
-        <div class="col-12 col-lg-7">
-            <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
-                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1.5"><i class="bi bi-mortarboard-fill me-1"></i> Auxinzio Academy</span>
-                <span class="badge hero-badge-glass px-2.5 py-1.5 font-monospace">Learning &amp; Testing Hub</span>
+        <div class="col-12">
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-2.5">
+                <span class="badge bg-warning text-dark fw-bold px-3 py-1.5"><i class="bi bi-mortarboard-fill me-1"></i> Auxinzio Academy</span>
+                <span class="badge hero-badge-glass px-3 py-1.5 font-monospace">Learning &amp; Testing Hub</span>
             </div>
-            <h1 class="display-6 fw-extrabold text-white mb-2" style="font-family: 'Outfit', sans-serif;">
+            <h2 class="h2 fw-extrabold text-white mb-2" style="font-family: 'Outfit', sans-serif; font-size: 2rem;">
                 Internship Learning &amp; Assessment Hub
-            </h1>
-            <p class="text-white opacity-90 lead fs-6 mb-0" style="max-width: 650px;">
+            </h2>
+            <p class="text-white opacity-90 mb-0" style="max-width: 680px; font-size: 0.95rem; line-height: 1.6;">
                 Learn key engineering topics via YouTube &amp; guides, attend topic tests to evaluate mastery, upload assessment results, and get verified mentor guidance.
             </p>
         </div>
-        <div class="col-12 col-lg-5 text-lg-end">
-            <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <button type="button" class="btn btn-royal-gold shadow d-inline-flex align-items-center gap-2 fw-bold" data-bs-toggle="modal" data-bs-target="#takeTestModal">
-                    <i class="bi bi-patch-check-fill"></i>
-                    <span>Attend Topic Test</span>
-                </button>
-                <button type="button" class="btn btn-outline-light d-inline-flex align-items-center gap-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#uploadTestModal" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);">
-                    <i class="bi bi-cloud-arrow-up-fill"></i>
-                    <span>Upload Test Result</span>
-                </button>
-                <button type="button" class="btn btn-danger shadow d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addYouTubeModal">
-                    <i class="bi bi-youtube"></i>
-                    <span>Add Video</span>
-                </button>
-                <button type="button" class="btn btn-royal-gold shadow d-inline-flex align-items-center gap-2 fw-bold" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
-                    <i class="bi bi-journal-plus"></i>
-                    <span>Upload Material</span>
-                </button>
-                @if (isAdmin)
-                {
-                    <button type="button" class="btn btn-emerald shadow d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addMemberModal">
-                        <i class="bi bi-person-plus-fill"></i>
-                        <span>Add Intern (Admin)</span>
-                    </button>
-                }
-                else
-                {
-                    <button type="button" class="btn btn-outline-light d-inline-flex align-items-center gap-2 opacity-75" title="Only Administrator has permission to add or register interns" disabled style="background: rgba(255, 255, 255, 0.1);">
-                        <i class="bi bi-lock-fill text-warning"></i>
-                        <span>Add Intern (Admin Only)</span>
-                    </button>
-                }
-                <button type="button" class="btn btn-info text-white shadow d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#askDoubtModal">
-                    <i class="bi bi-patch-question-fill"></i>
-                    <span>Raise Doubt</span>
-                </button>
-            </div>
-        </div>
     </div>
     <div class="hero-decorative-circle"></div>
+</div>
+
+<!-- Quick Action Buttons -->
+<div class="d-flex flex-wrap gap-2 gap-sm-3 mb-4 align-items-center">
+    <button type="button" class="btn shadow-sm d-inline-flex align-items-center justify-content-center gap-2 fw-bold text-white flex-grow-1 flex-sm-grow-0" style="background-color: #0ea5e9;" data-bs-toggle="modal" data-bs-target="#takeTestModal">
+        <i class="bi bi-patch-check-fill"></i>
+        <span>Attend Topic Test</span>
+    </button>
+    <button type="button" class="btn shadow-sm d-inline-flex align-items-center justify-content-center gap-2 fw-bold text-white flex-grow-1 flex-sm-grow-0" style="background-color: #0ea5e9;" data-bs-toggle="modal" data-bs-target="#uploadTestModal">
+        <i class="bi bi-cloud-arrow-up-fill"></i>
+        <span>Upload Test Result</span>
+    </button>
+    <button type="button" class="btn shadow-sm d-inline-flex align-items-center justify-content-center gap-2 fw-bold text-white flex-grow-1 flex-sm-grow-0" style="background-color: #0ea5e9;" data-bs-toggle="modal" data-bs-target="#addYouTubeModal">
+        <i class="bi bi-youtube"></i>
+        <span>Add Video</span>
+    </button>
+    <button type="button" class="btn shadow-sm d-inline-flex align-items-center justify-content-center gap-2 fw-bold text-white flex-grow-1 flex-sm-grow-0" style="background-color: #0ea5e9;" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+        <i class="bi bi-journal-plus"></i>
+        <span>Upload Material</span>
+    </button>
+    @if (isAdmin)
+    {
+        <button type="button" class="btn shadow-sm d-inline-flex align-items-center justify-content-center gap-2 fw-bold text-white flex-grow-1 flex-sm-grow-0" style="background-color: #0ea5e9;" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+            <i class="bi bi-person-plus-fill"></i>
+            <span>Add Intern (Admin)</span>
+        </button>
+    }
+    else
+    {
+        <button type="button" class="btn bg-white shadow-sm d-inline-flex align-items-center justify-content-center gap-2 opacity-75 fw-semibold flex-grow-1 flex-sm-grow-0" style="color: #0ea5e9; border: 1px solid #0ea5e9;" title="Only Administrator has permission to add or register interns" disabled>
+            <i class="bi bi-lock-fill text-warning"></i>
+            <span>Add Intern (Admin Only)</span>
+        </button>
+    }
+    <button type="button" class="btn shadow-sm d-inline-flex align-items-center justify-content-center gap-2 fw-bold text-white flex-grow-1 flex-sm-grow-0" style="background-color: #0ea5e9;" data-bs-toggle="modal" data-bs-target="#askDoubtModal">
+        <i class="bi bi-patch-question-fill"></i>
+        <span>Raise Doubt</span>
+    </button>
 </div>
 
 <!-- Success / Error Alert Messages -->
@@ -138,55 +138,57 @@
 </div>
 
 <!-- Main Navigation Tabs -->
-<div class="card border-0 shadow-sm mb-4 p-2 glass-card">
-    <ul class="nav nav-pills nav-fill gap-2" id="internshipNavTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <a class="nav-link @(activeTab == "youtube" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 rounded-3" 
-               asp-action="Index" asp-route-tab="youtube">
-                <i class="bi bi-youtube text-danger fs-5"></i>
-                <span>YouTube References (@ViewBag.TotalYouTubeVideos)</span>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link @(activeTab == "materials" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 rounded-3" 
-               asp-action="Index" asp-route-tab="materials">
-                <i class="bi bi-book-half fs-5"></i>
-                <span>Study Materials &amp; Guides (@ViewBag.TotalMaterials)</span>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link @(activeTab == "tests" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 rounded-3" 
-               asp-action="Index" asp-route-tab="tests">
-                <i class="bi bi-patch-check-fill text-warning fs-5"></i>
-                <span>🎯 Topic Tests &amp; Results (@ViewBag.TotalTests)</span>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link @(activeTab == "members" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 rounded-3" 
-               asp-action="Index" asp-route-tab="members">
-                <i class="bi bi-person-badge-fill fs-5"></i>
-                <span>Interns &amp; Mentors Team (@ViewBag.TotalMembers)</span>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link @(activeTab == "doubts" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 rounded-3" 
-               asp-action="Index" asp-route-tab="doubts">
-                <i class="bi bi-question-circle-fill fs-5"></i>
-                <span>Doubt Forum &amp; Q&amp;A (@ViewBag.TotalDoubts)</span>
-                @if (ViewBag.OpenDoubts > 0)
-                {
-                    <span class="badge bg-warning text-dark rounded-pill px-2">@ViewBag.OpenDoubts open</span>
-                }
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link @(activeTab == "roadmap" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 rounded-3" 
-               asp-action="Index" asp-route-tab="roadmap">
-                <i class="bi bi-compass-fill fs-5"></i>
-                <span>90-Day Roadmap</span>
-            </a>
-        </li>
-    </ul>
+<div class="card border-0 shadow-sm mb-4 p-2 glass-card overflow-hidden">
+    <div class="overflow-x-auto scrollbar-hidden">
+        <ul class="nav nav-pills flex-nowrap flex-xl-wrap gap-2 text-nowrap" id="internshipNavTabs" role="tablist">
+            <li class="nav-item flex-shrink-0 flex-xl-grow-1" role="presentation">
+                <a class="nav-link @(activeTab == "youtube" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 px-3 rounded-3" 
+                   asp-action="Index" asp-route-tab="youtube">
+                    <i class="bi bi-youtube text-danger fs-5"></i>
+                    <span>YouTube References (@ViewBag.TotalYouTubeVideos)</span>
+                </a>
+            </li>
+            <li class="nav-item flex-shrink-0 flex-xl-grow-1" role="presentation">
+                <a class="nav-link @(activeTab == "materials" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 px-3 rounded-3" 
+                   asp-action="Index" asp-route-tab="materials">
+                    <i class="bi bi-book-half fs-5"></i>
+                    <span>Study Materials &amp; Guides (@ViewBag.TotalMaterials)</span>
+                </a>
+            </li>
+            <li class="nav-item flex-shrink-0 flex-xl-grow-1" role="presentation">
+                <a class="nav-link @(activeTab == "tests" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 px-3 rounded-3" 
+                   asp-action="Index" asp-route-tab="tests">
+                    <i class="bi bi-patch-check-fill text-warning fs-5"></i>
+                    <span>🎯 Topic Tests &amp; Results (@ViewBag.TotalTests)</span>
+                </a>
+            </li>
+            <li class="nav-item flex-shrink-0 flex-xl-grow-1" role="presentation">
+                <a class="nav-link @(activeTab == "members" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 px-3 rounded-3" 
+                   asp-action="Index" asp-route-tab="members">
+                    <i class="bi bi-person-badge-fill fs-5"></i>
+                    <span>Interns &amp; Mentors Team (@ViewBag.TotalMembers)</span>
+                </a>
+            </li>
+            <li class="nav-item flex-shrink-0 flex-xl-grow-1" role="presentation">
+                <a class="nav-link @(activeTab == "doubts" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 px-3 rounded-3" 
+                   asp-action="Index" asp-route-tab="doubts">
+                    <i class="bi bi-question-circle-fill fs-5"></i>
+                    <span>Doubt Forum &amp; Q&amp;A (@ViewBag.TotalDoubts)</span>
+                    @if (ViewBag.OpenDoubts > 0)
+                    {
+                        <span class="badge bg-warning text-dark rounded-pill px-2 ms-1">@ViewBag.OpenDoubts open</span>
+                    }
+                </a>
+            </li>
+            <li class="nav-item flex-shrink-0 flex-xl-grow-1" role="presentation">
+                <a class="nav-link @(activeTab == "roadmap" ? "active fw-bold shadow-sm" : "") d-flex align-items-center justify-content-center gap-2 py-2.5 px-3 rounded-3" 
+                   asp-action="Index" asp-route-tab="roadmap">
+                    <i class="bi bi-compass-fill fs-5"></i>
+                    <span>90-Day Roadmap</span>
+                </a>
+            </li>
+        </ul>
+    </div>
 </div>
 
 <!-- ========================================================= -->
@@ -568,8 +570,8 @@
             @foreach (var mem in members)
             {
                 var roleClass = mem.Role.Contains("Mentor") || mem.Role.Contains("Lead") ? "badge-royal-gold" : "badge-emerald";
-                var statusClass = mem.Status == "Active" ? "bg-success bg-opacity-20 text-success" :
-                                  mem.Status == "Completed" ? "bg-primary bg-opacity-20 text-primary" : "bg-warning bg-opacity-20 text-warning";
+                var statusClass = mem.Status == "Active" ? "badge-emerald" :
+                                  mem.Status == "Completed" ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-warning-subtle text-warning-emphasis border border-warning-subtle";
 
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 border-0 shadow-sm glass-card hover-lift transition-all p-4 d-flex flex-column justify-content-between position-relative">
@@ -584,7 +586,6 @@
                                         <span class="badge @roleClass px-2 py-0.5 extra-small">@mem.Role</span>
                                     </div>
                                 </div>
-                                <span class="badge @statusClass px-2 py-1 extra-small">@mem.Status</span>
                             </div>
 
                             <div class="mb-3 p-2.5 rounded bg-body-tertiary">
@@ -826,7 +827,7 @@
                                     <span class="text-muted extra-small">Engineering Lead / Mentor</span>
                                 </div>
                             </div>
-                            <span class="badge bg-success bg-opacity-20 text-success small">Available</span>
+                            <span class="badge badge-emerald px-2.5 py-1 small">Available</span>
                         </div>
                     }
                 </div>
@@ -892,8 +893,8 @@
         <div class="row g-4">
             @foreach (var video in youTubeVideos)
             {
-                var diffBadge = video.Difficulty == "Beginner" ? "bg-success bg-opacity-20 text-success border border-success" :
-                                video.Difficulty == "Intermediate" ? "bg-warning bg-opacity-20 text-warning border border-warning" : "bg-danger bg-opacity-20 text-danger border border-danger";
+                var diffBadge = video.Difficulty == "Beginner" ? "badge-emerald" :
+                                video.Difficulty == "Intermediate" ? "bg-warning-subtle text-warning-emphasis border border-warning-subtle" : "bg-danger-subtle text-danger border border-danger-subtle";
 
                 <div class="col-12 col-md-6 col-xl-4">
                     <div class="card h-100 border-0 shadow-sm glass-card overflow-hidden d-flex flex-column justify-content-between position-relative hover-lift">
@@ -1518,7 +1519,7 @@
                             <div class="p-3 rounded-3 bg-body-tertiary border border-danger border-opacity-25 d-flex flex-column flex-sm-row align-items-sm-center gap-3">
                                 <img id="ytPreviewImg" src="" alt="Thumbnail preview" class="rounded shadow-sm" style="width: 140px; height: 80px; object-fit: cover;" />
                                 <div>
-                                    <div class="badge bg-success bg-opacity-20 text-success fw-bold mb-1">
+                                    <div class="badge badge-emerald px-2.5 py-1 fw-bold mb-1">
                                         <i class="bi bi-check-circle-fill me-1"></i> Valid YouTube Video Detected
                                     </div>
                                     <div class="small font-monospace text-muted">Video ID: <span id="ytPreviewId" class="text-body fw-bold"></span></div>
