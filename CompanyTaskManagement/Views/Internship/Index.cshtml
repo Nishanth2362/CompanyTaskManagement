@@ -386,38 +386,42 @@
 @if (activeTab == "materials")
 {
     <!-- Filter Toolbar -->
-    <div class="card border-0 shadow-sm mb-4 p-3 glass-card">
-        <form method="get" asp-action="Index" class="row g-2 align-items-center">
-            <input type="hidden" name="tab" value="materials" />
-            <div class="col-12 col-lg-8">
-                <div class="d-flex flex-wrap gap-1">
-                    <a asp-action="Index" asp-route-tab="materials" asp-route-track="all" class="btn btn-sm @(selectedTrack == "all" ? "btn-royal-gold shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3">
-                        All Domains
+    <div class="card border-0 shadow-sm mb-4 p-3.5 p-lg-4 glass-card">
+        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+            <!-- Domain Track Filter Pills -->
+            <div class="d-flex flex-wrap gap-1.5 align-items-center">
+                <a asp-action="Index" asp-route-tab="materials" asp-route-track="all" class="btn btn-sm @(selectedTrack == "all" ? "btn-royal-gold shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3 py-1.5" style="font-size: 0.82rem;">
+                    All Domains
+                </a>
+                @foreach (var tr in tracks)
+                {
+                    <a asp-action="Index" asp-route-tab="materials" asp-route-track="@tr" class="btn btn-sm @(selectedTrack == tr ? "btn-royal-gold shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3 py-1.5" style="font-size: 0.82rem;">
+                        @tr
                     </a>
-                    @foreach (var tr in tracks)
-                    {
-                        <a asp-action="Index" asp-route-tab="materials" asp-route-track="@tr" class="btn btn-sm @(selectedTrack == tr ? "btn-royal-gold shadow-sm fw-bold" : "btn-dark-carbon") rounded-pill px-3">
-                            @tr
-                        </a>
-                    }
-                </div>
+                }
             </div>
-            <div class="col-12 col-lg-4">
-                <div class="input-group input-group-sm">
-                    <input type="text" name="search" value="@search" class="form-control" placeholder="Search topics, keywords..." />
-                    <button class="btn btn-royal-gold" type="submit"><i class="bi bi-search"></i></button>
-                    @if (!string.IsNullOrWhiteSpace(search) || selectedTrack != "all")
-                    {
-                        <a asp-action="Index" asp-route-tab="materials" class="btn btn-outline-secondary" title="Clear"><i class="bi bi-x-lg"></i></a>
-                    }
-                </div>
+
+            <!-- Search Box & Action Button Group -->
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <form method="get" asp-action="Index" class="d-flex gap-1.5 flex-grow-1">
+                    <input type="hidden" name="tab" value="materials" />
+                    <input type="hidden" name="track" value="@selectedTrack" />
+                    <div class="input-group input-group-sm rounded-pill overflow-hidden border shadow-sm bg-body p-0.5" style="min-width: 240px;">
+                        <span class="input-group-text bg-transparent border-0 ps-3 pe-2"><i class="bi bi-search text-primary"></i></span>
+                        <input type="text" name="search" value="@search" class="form-control border-0 shadow-none ps-0" placeholder="Search topics, keywords..." style="font-size: 0.84rem;" />
+                        @if (!string.IsNullOrWhiteSpace(search) || selectedTrack != "all")
+                        {
+                            <a asp-action="Index" asp-route-tab="materials" asp-route-track="@selectedTrack" class="btn border-0 bg-transparent text-muted pe-1" title="Clear"><i class="bi bi-x-circle-fill"></i></a>
+                        }
+                        <button class="btn btn-royal-gold rounded-pill px-3 fw-bold" type="submit">Search</button>
+                    </div>
+                </form>
+
+                <button type="button" class="btn btn-royal-gold btn-sm rounded-pill fw-bold px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 shadow-sm text-nowrap flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addMaterialModal" style="font-size: 0.84rem;">
+                    <i class="bi bi-journal-plus"></i>
+                    <span>Upload Study Material</span>
+                </button>
             </div>
-        </form>
-        <div class="d-flex justify-content-end mt-2 mt-lg-0">
-            <button type="button" class="btn btn-royal-gold fw-bold d-inline-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
-                <i class="bi bi-journal-plus"></i>
-                <span>Upload Study Material</span>
-            </button>
         </div>
     </div>
 

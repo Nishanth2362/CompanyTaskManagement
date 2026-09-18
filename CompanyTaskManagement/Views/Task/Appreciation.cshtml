@@ -159,6 +159,11 @@
         padding: 1.5rem 2rem;
         border-bottom: 3.5px solid #f59e0b;
     }
+    @@media (max-width: 576px) {
+        .certificate-header-banner {
+            padding: 1.15rem 1rem;
+        }
+    }
     .quality-index-card {
         background: #ffffff;
         border: 2px solid #2563eb;
@@ -477,29 +482,29 @@
 {
     <div class="certificate-frame mb-5 print-certificate-container">
         <!-- Royal Midnight Header Banner Row -->
-        <div class="certificate-header-banner d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div class="d-flex align-items-center gap-3">
+        <div class="certificate-header-banner d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-2.5 gap-sm-3 min-w-0 w-100 w-md-auto">
                 <div class="position-relative flex-shrink-0">
-                    <img src="~/images/award_insignia.jpg" alt="Innovation Excellence Award" class="rounded-circle shadow" style="width: 76px; height: 76px; object-fit: cover; border: 3px solid #f59e0b; background: #ffffff;" />
-                    <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-warning text-dark p-1 shadow-sm border border-white" title="#1 Rank">
+                    <img src="~/images/award_insignia.jpg" alt="Innovation Excellence Award" class="rounded-circle shadow" style="width: 64px; height: 64px; object-fit: cover; border: 3px solid #f59e0b; background: #ffffff;" />
+                    <span class="position-absolute bottom-0 end-0 badge rounded-circle bg-warning text-dark p-1 shadow-sm border border-white" title="#1 Rank" style="font-size: 0.65rem;">
                         <i class="bi bi-trophy-fill"></i>
                     </span>
                 </div>
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <span class="badge bg-warning text-dark fw-extrabold rounded-pill px-3 py-1 shadow-xs" style="font-size: 0.75rem;">
+                <div class="min-w-0 flex-grow-1">
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                        <span class="badge bg-warning text-dark fw-extrabold rounded-pill px-2.5 py-1 shadow-xs flex-shrink-0 text-nowrap" style="font-size: 0.72rem;">
                             <i class="bi bi-star-fill me-1"></i> Auxinzio Excellence Award
                         </span>
-                        <span class="small text-white-50 fw-semibold"><i class="bi bi-calendar-check me-1"></i>@DateTime.Now.ToString("yyyy - MMMM") Cycle</span>
+                        <span class="small text-white-50 fw-semibold text-nowrap" style="font-size: 0.78rem;"><i class="bi bi-calendar-check me-1"></i>@DateTime.Now.ToString("yyyy - MMMM") Cycle</span>
                     </div>
-                    <h2 class="fs-4 fw-extrabold text-white mb-0 tracking-wide">
+                    <h2 class="fs-5 fs-md-4 fw-extrabold text-white mb-0 tracking-wide text-break">
                         EMPLOYEE OF THE WEEK RECOGNITION
                     </h2>
                 </div>
             </div>
 
-            <div>
-                <button type="button" onclick="window.print()" class="btn btn-warning rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-sm border-0 text-dark" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);">
+            <div class="w-100 w-md-auto text-start text-md-end">
+                <button type="button" onclick="window.print()" class="btn btn-warning rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-sm border-0 text-dark w-100 w-sm-auto" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);">
                     <i class="bi bi-printer-fill fs-6"></i>
                     <span>Print Official Award</span>
                 </button>
@@ -507,14 +512,14 @@
         </div>
 
         <!-- High-Contrast Crisp Card Body -->
-        <div class="p-4 p-md-5">
+        <div class="p-3.5 p-sm-4 p-md-5">
             <div class="row align-items-center g-4">
                 <div class="col-12 col-lg-8">
                     <div class="d-flex align-items-center gap-2 mb-1">
                         <i class="bi bi-award-fill text-warning fs-5"></i>
                         <p class="text-primary small text-uppercase fw-extrabold tracking-wider mb-0" style="letter-spacing: 1.2px;">PROUDLY PRESENTED TO:</p>
                     </div>
-                    <h1 class="display-4 fw-extrabold mb-3 text-capitalize text-body" style="font-size: 2.75rem; letter-spacing: -0.5px;">
+                    <h1 class="display-4 fw-extrabold mb-3 text-capitalize text-body" style="font-size: clamp(1.75rem, 5vw, 2.75rem); letter-spacing: -0.5px; word-break: break-word;">
                         @Model.StarPerformer.EmployeeName
                     </h1>
                     <p class="lead fs-6 text-body-secondary mb-4" style="line-height: 1.7; max-width: 720px;">

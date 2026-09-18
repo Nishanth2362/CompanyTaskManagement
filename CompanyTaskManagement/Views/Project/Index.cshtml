@@ -158,22 +158,22 @@
 
 <!-- Interactive Filter & Search Bar -->
 <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 glass-card" style="border: 1px solid rgba(2, 132, 199, 0.18) !important;">
-    <form method="get" asp-action="Index" class="row g-2.5 align-items-center">
+    <form method="get" asp-action="Index" class="row g-3 align-items-center">
         <div class="col-12 col-lg-8">
-            <div class="d-flex flex-nowrap flex-sm-wrap overflow-x-auto scrollbar-hidden gap-1.5 align-items-center text-nowrap pb-1 pb-sm-0">
-                <a asp-action="Index" asp-route-status="all" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "all" ? "btn-primary shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5" style="font-size: 0.82rem;">
+            <div class="d-flex flex-nowrap overflow-x-auto scrollbar-hidden gap-2 align-items-center text-nowrap pb-2 pb-lg-0">
+                <a asp-action="Index" asp-route-status="all" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "all" ? "btn-primary shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5 flex-shrink-0 text-nowrap" style="font-size: 0.82rem;">
                     All (@ViewBag.TotalProjects)
                 </a>
-                <a asp-action="Index" asp-route-status="In Progress" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "in progress" ? "btn-info text-white shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5" style="font-size: 0.82rem;">
+                <a asp-action="Index" asp-route-status="In Progress" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "in progress" ? "btn-info text-white shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5 flex-shrink-0 text-nowrap" style="font-size: 0.82rem;">
                     <i class="bi bi-play-circle me-1"></i> In Progress (@ViewBag.InProgressCount)
                 </a>
-                <a asp-action="Index" asp-route-status="Planning" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "planning" ? "btn-primary text-white shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5" style="font-size: 0.82rem;">
+                <a asp-action="Index" asp-route-status="Planning" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "planning" ? "btn-primary text-white shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5 flex-shrink-0 text-nowrap" style="font-size: 0.82rem;">
                     <i class="bi bi-compass me-1"></i> Planning (@ViewBag.PlanningCount)
                 </a>
-                <a asp-action="Index" asp-route-status="Completed" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "completed" ? "btn-success shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5" style="font-size: 0.82rem;">
+                <a asp-action="Index" asp-route-status="Completed" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "completed" ? "btn-success shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5 flex-shrink-0 text-nowrap" style="font-size: 0.82rem;">
                     <i class="bi bi-check-circle-fill me-1"></i> Completed (@ViewBag.CompletedCount)
                 </a>
-                <a asp-action="Index" asp-route-status="On Hold" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "on hold" ? "btn-warning text-dark shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5" style="font-size: 0.82rem;">
+                <a asp-action="Index" asp-route-status="On Hold" asp-route-search="@search" class="btn btn-sm @(selectedStatus == "on hold" ? "btn-warning text-dark shadow-sm fw-bold" : "btn-light border text-secondary") rounded-pill px-3 py-1.5 flex-shrink-0 text-nowrap" style="font-size: 0.82rem;">
                     <i class="bi bi-pause-circle me-1"></i> On Hold (@ViewBag.OnHoldCount)
                 </a>
             </div>
