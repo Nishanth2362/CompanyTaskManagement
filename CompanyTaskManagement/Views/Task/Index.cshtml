@@ -169,9 +169,6 @@
                         <i class="bi bi-dash fs-6 text-muted"></i><span>@tasksThisWeek added</span> <span class="text-muted fw-normal ms-0.5">this week</span>
                     }
                 </small>
-                <svg width="46" height="15" viewBox="0 0 60 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.6;" class="flex-shrink-0">
-                    <path d="M2 16C12 16 16 6 26 10C36 14 42 2 58 4" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
             </div>
         </div>
     </div>
@@ -391,7 +388,7 @@ else
 {
     <!-- 1. TABLE VIEW (Desktop & Tablet) -->
     <div id="taskTableView" class="table-card d-none d-md-block">
-        <div class="table-responsive">
+        <div class="table-responsive" style="overflow: visible;">
             <table class="table table-custom" id="mainTaskTable">
                 <thead>
                     <tr>
@@ -403,8 +400,8 @@ else
                         <th style="min-width: 140px;">EMPLOYEES</th>
                         <th class="text-nowrap" style="min-width: 105px;">TASK START TIME</th>
                         <th class="text-nowrap" style="min-width: 105px;">TASK END TIME</th>
-                        <th class="text-nowrap text-center" style="min-width: 105px;">TOTAL WORKING</th>
-                        <th style="min-width: 185px;" class="text-center text-nowrap">ACTIONS</th>
+                        <th class="text-nowrap text-center" style="min-width: 95px;">TOTAL WORKING</th>
+                        <th style="min-width: 80px;" class="text-end text-nowrap">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody id="taskTableBody">
@@ -602,7 +599,7 @@ else
                             </td>
 
                             <!-- Total Working -->
-                            <td class="text-center text-nowrap" style="min-width: 105px;">
+                            <td class="text-center text-nowrap" style="min-width: 95px;">
                                 <span class="total-working-badge px-2.5 py-1 shadow-2xs d-inline-flex align-items-center gap-1.5" style="font-size: 0.84rem;">
                                     <i class="bi bi-hourglass-split text-warning"></i>
                                     <span class="fw-extrabold font-monospace">@totalWorkingStr</span>
@@ -610,59 +607,51 @@ else
                             </td>
 
                             <!-- Actions -->
-                            <td class="text-center text-nowrap" style="min-width: 185px;">
+                            <td class="text-end text-nowrap" style="min-width: 90px;">
                                 <div class="dropdown d-inline-block">
                                     <button class="btn btn-sm btn-creative-action dropdown-toggle d-inline-flex align-items-center gap-1 px-3 py-1.5 rounded-pill border shadow-2xs" 
                                             type="button" 
                                             data-bs-toggle="dropdown" 
-                                            data-bs-popper-config='{"placement":"bottom","modifiers":[{"name":"computeStyles","options":{"adaptive":false,"gpuAcceleration":false}}]}'
+                                            data-bs-boundary="viewport"
                                             aria-expanded="false" 
                                             title="Task Actions Menu">
                                         <span>Actions</span>
                                         <i class="bi bi-chevron-down small opacity-75"></i>
                                     </button>
-                                    <ul class="dropdown-menu task-action-dropdown-menu shadow-lg p-1.5" style="min-width: 170px; max-width: 175px;">
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border border-secondary border-opacity-25 p-1 rounded-3" style="font-size: 0.84rem; min-width: 190px;">
                                         <li>
                                             <button type="button" 
-                                                    class="dropdown-item d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 open-error-report-btn" 
+                                                    class="dropdown-item d-flex align-items-center gap-2 py-1.5 open-error-report-btn" 
                                                     data-id="@item.Id"
                                                     data-name="@item.TaskName"
                                                     data-delayreason="@item.DelayReason"
                                                     data-errordetails="@item.ErrorDetails"
                                                     data-errorscreenshot="@item.ErrorScreenshotPath">
-                                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning flex-shrink-0" style="width: 24px; height: 24px; font-size: 0.8rem;">
-                                                    <i class="bi bi-bug-fill"></i>
-                                                </span>
-                                                <span class="fw-medium">Report Issue</span>
+                                                <i class="bi bi-bug-fill text-warning fs-6"></i>
+                                                <span>Report Issue / Delay</span>
                                             </button>
                                         </li>
                                         <li>
-                                            <a asp-action="Details" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5 px-2 rounded-2">
-                                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary flex-shrink-0" style="width: 24px; height: 24px; font-size: 0.8rem;">
-                                                    <i class="bi bi-eye-fill"></i>
-                                                </span>
-                                                <span class="fw-medium">View Details</span>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5">
+                                                <i class="bi bi-info-circle-fill text-primary fs-6"></i>
+                                                <span>View Task Details</span>
                                             </a>
                                         </li>
                                         @if (isCanAssign)
                                         {
-                                            <li><hr class="dropdown-divider my-1 opacity-50"></li>
+                                            <li><hr class="dropdown-divider my-1"></li>
                                             <li>
-                                                <a asp-action="Edit" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5 px-2 rounded-2">
-                                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width: 24px; height: 24px; font-size: 0.8rem; background-color: rgba(245, 158, 11, 0.12); color: #d97706;">
-                                                        <i class="bi bi-pencil-fill"></i>
-                                                    </span>
-                                                    <span class="fw-medium">Edit Task</span>
+                                                <a asp-action="Edit" asp-route-id="@item.Id" class="dropdown-item d-flex align-items-center gap-2 py-1.5">
+                                                    <i class="bi bi-pencil-square text-warning fs-6"></i>
+                                                    <span>Edit Task</span>
                                                 </a>
                                             </li>
                                             <li>
                                                 <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete task \'@item.TaskName\'?');">
                                                     @Html.AntiForgeryToken()
-                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 text-danger action-delete-item">
-                                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger flex-shrink-0" style="width: 24px; height: 24px; font-size: 0.8rem;">
-                                                            <i class="bi bi-trash3-fill"></i>
-                                                        </span>
-                                                        <span class="fw-medium">Delete Task</span>
+                                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-1.5 text-danger">
+                                                        <i class="bi bi-trash3-fill text-danger fs-6"></i>
+                                                        <span>Delete Task</span>
                                                     </button>
                                                 </form>
                                             </li>
@@ -1949,16 +1938,6 @@ else
 
 
 
-            // Elevate table row and sticky cell z-index when action dropdown is opened
-            $(document).on('show.bs.dropdown', '#taskTableView .dropdown', function () {
-                $(this).closest('tr').addClass('dropdown-open');
-                $(this).closest('td').addClass('dropdown-open');
-            });
-            $(document).on('hidden.bs.dropdown', '#taskTableView .dropdown', function () {
-                $(this).closest('tr').removeClass('dropdown-open');
-                $(this).closest('td').removeClass('dropdown-open');
-            });
-
             function showToast(msg) {
                 if ($('#appToast').length) {
                     $('#appToastMessage').text(msg);
@@ -1966,6 +1945,24 @@ else
                     toast.show();
                 }
             }
+            // Fix: When an Actions dropdown opens, raise the parent <tr> z-index
+            // so the dropdown menu floats above all other rows (fixes stacking issue).
+            document.querySelectorAll('#mainTaskTable').forEach(function (table) {
+                table.addEventListener('show.bs.dropdown', function (e) {
+                    const tr = e.target.closest('tr');
+                    if (tr) {
+                        tr.style.position = 'relative';
+                        tr.style.zIndex   = '1050';
+                    }
+                });
+                table.addEventListener('hide.bs.dropdown', function (e) {
+                    const tr = e.target.closest('tr');
+                    if (tr) {
+                        tr.style.position = '';
+                        tr.style.zIndex   = '';
+                    }
+                });
+            });
         });
     </script>
 }
