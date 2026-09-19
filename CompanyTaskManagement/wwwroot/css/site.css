@@ -279,11 +279,10 @@ a:hover {
   max-width: 280px;
   object-fit: contain;
   display: block;
-  background-color: #ffffff;
-  border-radius: 10px;
-  padding: 5px 14px;
+  background: transparent;
   border: none;
   box-shadow: none;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
 }
@@ -294,15 +293,14 @@ a:hover {
 }
 
 [data-bs-theme="dark"] .auxinz-brand-logo {
-  background-color: #ffffff;
-  border-radius: 10px;
+  background: transparent;
 }
 
 @media (max-width: 768px) {
   .auxinz-brand-logo {
     height: 55px;
     max-width: 240px;
-    padding: 4px 10px;
+    padding: 0;
   }
 }
 
@@ -310,7 +308,7 @@ a:hover {
   .auxinz-brand-logo {
     height: 48px;
     max-width: 200px;
-    padding: 3px 8px;
+    padding: 0;
   }
 }
 
@@ -2699,56 +2697,27 @@ input[type="search"]::-webkit-search-decoration {
 
 /* Single-Page Desktop Fit & Responsive Task Table */
 #taskTableView .table-responsive {
-  overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: visible !important;
 }
 
-/* Sticky Actions Column on Task Table so Actions are always visible */
-#taskTableView .table-custom th:last-child,
-#taskTableView .table-custom td:last-child {
-  position: sticky !important;
-  right: 0 !important;
-  z-index: 5 !important;
-  background-color: #ffffff;
-  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
-}
-
-[data-bs-theme="dark"] #taskTableView .table-custom th:last-child,
-[data-bs-theme="dark"] #taskTableView .table-custom td:last-child {
-  background-color: #1e293b !important;
-  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.35);
-}
-
-#taskTableView .table-custom thead th:last-child {
-  z-index: 6 !important;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
-}
-
-[data-bs-theme="dark"] #taskTableView .table-custom thead th:last-child {
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
-}
-
-#taskTableView .table-custom tbody tr:hover td:last-child {
-  background-color: #f1f5f9 !important;
-}
-
-[data-bs-theme="dark"] #taskTableView .table-custom tbody tr:hover td:last-child {
-  background-color: #334155 !important;
-}
+/* Actions column — normal styling, no sticky/shadow */
 
 @media (min-width: 992px) {
   .table-custom {
     width: 100% !important;
+    table-layout: auto !important;
   }
 
   .table-custom thead th {
-    padding: 0.75rem 0.65rem !important;
-    font-size: 0.76rem !important;
+    padding: 0.6rem 0.45rem !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap;
   }
 
   .table-custom td {
-    padding: 0.65rem 0.65rem !important;
-    font-size: 0.84rem !important;
+    padding: 0.55rem 0.45rem !important;
+    font-size: 0.8rem !important;
+    word-break: break-word;
   }
 
   .quick-status-select {
@@ -3498,6 +3467,261 @@ input[type="search"]::-webkit-search-decoration {
 }
 
 /* ==========================================================================
+   TABLET & MEDIUM SCREEN RESPONSIVE OPTIMIZATIONS
+   iPad Mini (768px), Surface Pro 10 (912px), iPad Pro 13 (1024px)
+   ========================================================================== */
+
+/* Tablet Portrait & Landscape (768px to 1199px) */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+
+  /* Container padding for tablets */
+  .container-fluid {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* --- INTERNSHIP HERO BANNER --- */
+  .internship-hero-card {
+    padding: 1.25rem 1.5rem !important;
+  }
+
+  .internship-hero-card h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .internship-hero-card p {
+    font-size: 0.88rem !important;
+  }
+
+  /* --- NAVIGATION TABS (Internship Hub) --- */
+  /* Allow horizontal scroll on tablets instead of breaking layout */
+  #internshipNavTabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px !important;
+    padding-bottom: 4px;
+  }
+
+  #internshipNavTabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  #internshipNavTabs .nav-item {
+    flex-shrink: 0 !important;
+  }
+
+  #internshipNavTabs .nav-link {
+    font-size: 0.82rem !important;
+    padding: 0.5rem 0.75rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* --- QUICK ACTION BUTTONS --- */
+  .d-flex.flex-wrap.gap-2.gap-sm-3.mb-4 > .btn {
+    font-size: 0.82rem !important;
+    padding: 0.45rem 0.85rem !important;
+  }
+
+  /* --- STAT CARDS --- */
+  .stat-card {
+    padding: 1rem 1rem !important;
+  }
+
+  .stat-number {
+    font-size: 1.5rem !important;
+  }
+
+  .stat-label {
+    font-size: 0.72rem !important;
+  }
+
+  .stat-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1.15rem !important;
+  }
+
+  /* --- FILTER TOOLBARS --- */
+  /* Ensure filter toolbar items stack properly on tablets */
+  .glass-card .d-flex.flex-column.flex-xl-row {
+    flex-direction: column !important;
+  }
+
+  .glass-card .d-flex.flex-wrap.gap-1 {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+  }
+
+  .glass-card .d-flex.flex-wrap.gap-1::-webkit-scrollbar {
+    display: none;
+  }
+
+  .glass-card .d-flex.flex-wrap.gap-1 > .btn {
+    flex-shrink: 0 !important;
+  }
+
+  /* --- TABLE RESPONSIVE ENHANCEMENTS --- */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-responsive table {
+    min-width: 900px;
+  }
+
+  /* --- MODAL SIZING --- */
+  .modal-dialog.modal-lg {
+    max-width: 90vw !important;
+  }
+
+  .modal-body {
+    max-height: calc(80vh - 130px);
+    overflow-y: auto;
+  }
+
+  /* --- VIDEO CARD THUMBNAIL --- */
+  .play-btn-overlay {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  /* --- DOUBT FORUM CARDS --- */
+  .glass-card.hover-lift {
+    padding: 1.25rem !important;
+  }
+}
+
+/* Small tablets only (768px to 899px) - iPad Mini specific fixes */
+@media (min-width: 768px) and (max-width: 899.98px) {
+
+  /* Container needs tighter padding on small tablets */
+  .container-fluid {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Hero banner more compact */
+  .internship-hero-card h2 {
+    font-size: 1.35rem !important;
+  }
+
+  /* Stat cards: 2 per row on small tablets (override col-md-3) */
+  .row.g-3.mb-4 > .col-md-3 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+
+  .stat-number {
+    font-size: 1.4rem !important;
+  }
+
+  /* Quick action buttons: 2 per row with proper wrapping */
+  .d-flex.flex-wrap.gap-2.gap-sm-3.mb-4 > .btn {
+    flex: 0 0 calc(50% - 8px) !important;
+    max-width: calc(50% - 8px) !important;
+    font-size: 0.78rem !important;
+    padding: 0.4rem 0.65rem !important;
+  }
+
+  /* YouTube video cards: 1 column on very small tablets */
+  .row.g-4 > .col-md-6.col-xl-4 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Member and material cards: single column */
+  .row.g-4 > .col-md-6.col-lg-4 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Modal sizing for small tablets */
+  .modal-dialog.modal-lg {
+    max-width: 95vw !important;
+    margin: 0.75rem auto !important;
+  }
+
+  /* Filter bar search narrower */
+  .input-group[style*="min-width: 240px"] {
+    min-width: 200px !important;
+  }
+}
+
+/* Medium tablets (900px to 1023px) - Surface Pro 10 specific */
+@media (min-width: 900px) and (max-width: 1023.98px) {
+
+  /* Stat cards: keep 4 per row but tighter */
+  .stat-card {
+    padding: 0.85rem 0.9rem !important;
+  }
+
+  .stat-number {
+    font-size: 1.45rem !important;
+  }
+
+  /* Quick action buttons: 3 per row */
+  .d-flex.flex-wrap.gap-2.gap-sm-3.mb-4 > .btn {
+    flex: 0 0 calc(33.33% - 8px) !important;
+    max-width: calc(33.33% - 8px) !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Larger tablets (1024px to 1199px) - iPad Pro 13 specific */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+
+  /* Nav link sizing - slightly compact for tablet landscape */
+  .custom-nav-link {
+    font-size: 0.78rem !important;
+    padding: 0.3rem 0.42rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .custom-nav-link i {
+    font-size: 0.88rem !important;
+  }
+
+  /* Compact header controls */
+  .header-right-controls {
+    gap: 8px !important;
+  }
+
+  .btn-role-switcher {
+    max-width: 170px !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* Quick action buttons: 3 per row */
+  .d-flex.flex-wrap.gap-2.gap-sm-3.mb-4 > .btn {
+    font-size: 0.82rem !important;
+  }
+}
+
+/* Tablet height optimizations (landscape orientation, short viewport) */
+@media (min-width: 768px) and (max-width: 1199.98px) and (max-height: 900px) {
+  .app-main-content {
+    padding-top: 0.5rem !important;
+    padding-bottom: 2rem !important;
+  }
+
+  .modal-dialog {
+    max-height: 88vh;
+  }
+
+  .modal-body {
+    max-height: calc(88vh - 130px);
+    overflow-y: auto;
+  }
+}
+
+/* ==========================================================================
    DESKTOP & SMALL LAPTOP SCREEN RESPONSIVE OPTIMIZATIONS
    ========================================================================== */
 
@@ -3530,7 +3754,7 @@ body {
     height: 44px !important;
     max-height: 48px !important;
     max-width: 175px !important;
-    padding: 2px 6px !important;
+    padding: 0 !important;
   }
 
   .navbar-app {
@@ -3612,7 +3836,7 @@ body {
     height: 52px !important;
     max-height: 56px !important;
     max-width: 210px !important;
-    padding: 3px 8px !important;
+    padding: 0 !important;
   }
 
   .custom-nav-link {

@@ -5,21 +5,21 @@
 
 <style>
     :root {
-        --mf-primary: #059669;
-        --mf-primary-dark: #047857;
+        --mf-primary: #4f46e5;
+        --mf-primary-dark: #4338ca;
         --mf-accent: #f59e0b;
-        --mf-glow: rgba(16,185,129,0.35);
+        --mf-glow: rgba(99,102,241,0.28);
         --mf-card-bg: var(--bs-body-bg);
     }
 
     .mf-hero {
-        background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
+        background: linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%);
         border-radius: 16px;
         position: relative;
         overflow: hidden;
         color: white;
-        border: 1.5px solid #86efac;
-        box-shadow: 0 16px 36px -4px rgba(34, 197, 94, 0.35);
+        border: 1.5px solid #818cf8;
+        box-shadow: 0 16px 36px -4px rgba(99, 102, 241, 0.35);
     }
     .mf-hero::before {
         content: '';
@@ -40,22 +40,22 @@
 
     .game-card {
         border-radius: 14px;
-        border: 1.5px solid rgba(34,197,94,0.25);
+        border: 1.5px solid rgba(99,102,241,0.2);
         background: var(--mf-card-bg);
         box-shadow: 0 4px 18px rgba(0,0,0,0.06);
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         overflow: hidden;
     }
-    .game-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(34,197,94,0.2); border-color: #22c55e; }
+    .game-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(99,102,241,0.18); border-color: #6366f1; }
 
     .game-header {
-        background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
+        background: linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%);
         color: white;
         padding: 0.75rem 1.1rem;
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        border-bottom: 2px solid #86efac;
+        border-bottom: 2px solid #818cf8;
     }
 
     /* ===== MEMORY GAME ===== */
@@ -80,7 +80,7 @@
     }
     .mem-card.flipped .mem-card-inner { transform: rotateY(180deg); }
     .mem-card.matched .mem-card-inner { transform: rotateY(180deg); }
-    .mem-card.matched .mem-card-front { box-shadow: 0 0 0 2px #22c55e; }
+    .mem-card.matched .mem-card-front { box-shadow: 0 0 0 2px #6366f1; }
     .mem-front, .mem-back {
         position: absolute; width: 100%; height: 100%;
         border-radius: 8px;
@@ -89,7 +89,7 @@
         font-size: 1.25rem;
         user-select: none;
     }
-    .mem-front { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+    .mem-front { background: linear-gradient(135deg, #6366f1, #4338ca); color: white; }
     .mem-front::after { content: '?'; font-size: 1.1rem; font-weight: bold; }
     .mem-back { background: white; transform: rotateY(180deg); border: 1px solid #e5e7eb; }
 
@@ -98,7 +98,7 @@
         font-size: 1.5rem;
         font-weight: 800;
         letter-spacing: 0.25rem;
-        color: #16a34a;
+        color: #4f46e5;
         font-family: 'JetBrains Mono', monospace;
     }
     .word-input {
@@ -107,7 +107,7 @@
         letter-spacing: 0.15rem;
         font-family: 'JetBrains Mono', monospace;
         border-radius: 8px;
-        border: 2px solid #16a34a;
+        border: 2px solid #6366f1;
         padding: 0.35rem 0.75rem;
         max-width: 280px;
         margin: 0 auto;
@@ -115,36 +115,36 @@
         transition: border-color 0.2s, box-shadow 0.2s;
     }
     .word-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
-    .word-input.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
+    .word-input.correct { border-color: #6366f1; background: rgba(99,102,241,0.08); }
     .word-input.wrong { border-color: #ef4444; background: rgba(239,68,68,0.08); animation: shake 0.4s; }
 
     /* ===== .NET CODE CHALLENGE ===== */
     .dotnet-code-block {
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
         border-radius: 8px;
         padding: 0.6rem 0.85rem;
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.78rem;
-        color: #14532d;
+        color: #1e1b4b;
         line-height: 1.5;
         text-align: left;
-        border: 1.5px solid #86efac;
-        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.08);
+        border: 1.5px solid #a5b4fc;
+        box-shadow: 0 4px 12px rgba(99,102,241,0.08);
         white-space: pre;
         overflow-x: auto;
         min-height: 55px;
         max-height: 110px;
     }
     [data-bs-theme="dark"] .dotnet-code-block {
-        background: rgba(34, 197, 94, 0.12);
-        color: #bbf7d0;
-        border-color: rgba(34, 197, 94, 0.35);
+        background: rgba(99,102,241,0.12);
+        color: #c7d2fe;
+        border-color: rgba(99,102,241,0.35);
     }
-    .dotnet-code-block .kw  { color: #15803d; font-weight: bold; }
+    .dotnet-code-block .kw  { color: #4338ca; font-weight: bold; }
     .dotnet-code-block .str { color: #b45309; }
     .dotnet-code-block .num { color: #c2410c; }
     .dotnet-code-block .cls { color: #1d4ed8; font-weight: bold; }
-    [data-bs-theme="dark"] .dotnet-code-block .kw  { color: #86efac; }
+    [data-bs-theme="dark"] .dotnet-code-block .kw  { color: #a5b4fc; }
     [data-bs-theme="dark"] .dotnet-code-block .str { color: #fde047; }
     [data-bs-theme="dark"] .dotnet-code-block .num { color: #fb923c; }
     [data-bs-theme="dark"] .dotnet-code-block .cls { color: #93c5fd; }
@@ -152,7 +152,7 @@
         width: 100%; text-align: left;
         padding: 0.35rem 0.75rem;
         border-radius: 8px;
-        border: 1.5px solid rgba(34,197,94,0.25);
+        border: 1.5px solid rgba(99,102,241,0.22);
         background: var(--mf-card-bg);
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.78rem;
@@ -160,10 +160,10 @@
         transition: all 0.15s;
         font-weight: 600;
     }
-    .dotnet-opt-btn:hover:not(:disabled) { border-color: #16a34a; background: rgba(34,197,94,0.08); transform: translateX(3px); }
-    .dotnet-opt-btn.opt-correct { border-color: #22c55e !important; background: rgba(34,197,94,0.15) !important; color: #16a34a !important; }
+    .dotnet-opt-btn:hover:not(:disabled) { border-color: #4f46e5; background: rgba(99,102,241,0.08); transform: translateX(3px); }
+    .dotnet-opt-btn.opt-correct { border-color: #6366f1 !important; background: rgba(99,102,241,0.12) !important; color: #4338ca !important; }
     .dotnet-opt-btn.opt-wrong   { border-color: #ef4444 !important; background: rgba(239,68,68,0.12) !important; color: #ef4444 !important; }
-    .dotnet-timer-bar { height: 4px; border-radius: 99px; background: linear-gradient(90deg,#22c55e,#86efac); transition: width 1s linear; }
+    .dotnet-timer-bar { height: 4px; border-radius: 99px; background: linear-gradient(90deg,#6366f1,#a5b4fc); transition: width 1s linear; }
 
     /* ===== TIC TAC TOE ===== */
     .ttt-board {
@@ -179,15 +179,15 @@
         font-size: 1.5rem;
         font-weight: 900;
         border-radius: 8px;
-        background: rgba(34,197,94,0.08);
-        border: 1.5px solid rgba(34,197,94,0.2);
+        background: rgba(99,102,241,0.07);
+        border: 1.5px solid rgba(99,102,241,0.18);
         cursor: pointer;
         transition: background 0.2s, transform 0.1s;
         user-select: none;
     }
-    .ttt-cell:hover:not(.taken) { background: rgba(34,197,94,0.18); transform: scale(1.04); }
+    .ttt-cell:hover:not(.taken) { background: rgba(99,102,241,0.16); transform: scale(1.04); }
     .ttt-cell.taken { cursor: default; }
-    .ttt-cell.win-cell { background: rgba(34,197,94,0.25); border-color: #22c55e; }
+    .ttt-cell.win-cell { background: rgba(99,102,241,0.22); border-color: #6366f1; }
 
     /* ===== TYPING TEST ===== */
     .typing-passage {
@@ -196,19 +196,19 @@
         font-family: 'Plus Jakarta Sans', sans-serif;
         padding: 0.65rem 0.85rem;
         border-radius: 8px;
-        background: rgba(34,197,94,0.05);
-        border: 1px solid rgba(34,197,94,0.15);
+        background: rgba(99,102,241,0.05);
+        border: 1px solid rgba(99,102,241,0.15);
         min-height: 70px;
     }
     .typing-passage .char { transition: color 0.05s; }
-    .typing-passage .char.correct { color: #16a34a; }
+    .typing-passage .char.correct { color: #4f46e5; }
     .typing-passage .char.wrong   { color: #ef4444; background: rgba(239,68,68,0.12); border-radius: 2px; }
-    .typing-passage .char.current { border-bottom: 2px solid #16a34a; }
+    .typing-passage .char.current { border-bottom: 2px solid #6366f1; }
     .typing-area {
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.88rem;
         border-radius: 8px;
-        border: 1.5px solid #16a34a;
+        border: 1.5px solid #6366f1;
         padding: 0.5rem 0.75rem;
         resize: none;
         width: 100%;
@@ -217,7 +217,7 @@
 
     /* ===== SCORE BADGES ===== */
     .score-badge {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, #6366f1, #4338ca);
         color: white;
         border-radius: 50px;
         padding: 0.18rem 0.65rem;
@@ -226,7 +226,7 @@
         font-size: 0.76rem;
     }
     .btn-mf {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, #6366f1, #4338ca);
         color: white;
         border: none;
         border-radius: 8px;
@@ -258,7 +258,7 @@
         <div class="col-12 col-lg-8">
             <div class="d-flex align-items-center gap-2 mb-2">
                 <span class="badge text-dark fw-bold px-2.5 py-1 rounded-pill shadow-xs" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);"><i class="bi bi-controller me-1"></i>MindForge</span>
-                <span class="badge rounded-pill px-2.5 py-1 shadow-sm" style="background: #ffffff; color: #047857; font-weight: 700; border: 1px solid rgba(255,255,255,0.9);">Brain Recharge Zone</span>
+                <span class="badge rounded-pill px-2.5 py-1 shadow-sm" style="background: rgba(255,255,255,0.18); color: #ffffff; font-weight: 700; border: 1px solid rgba(255,255,255,0.35);">Brain Recharge Zone</span>
             </div>
             <h2 class="fw-black text-white mb-1.5" style="font-family:'Outfit',sans-serif; font-size:clamp(1.35rem, 2.2vw, 1.75rem);">
                 🧠 MindForge – Recharge Your Brain
@@ -269,7 +269,7 @@
         </div>
         <div class="col-12 col-lg-4 text-lg-end mt-3 mt-lg-0">
             <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                <span class="badge px-2.5 py-1.5 rounded-pill shadow-sm" style="background: #ffffff; color: #047857; font-weight: 700; border: 1px solid rgba(255,255,255,0.9); font-size: 0.82rem;">
+                <span class="badge px-2.5 py-1.5 rounded-pill shadow-sm" style="background: rgba(255,255,255,0.18); color: #ffffff; font-weight: 700; border: 1px solid rgba(255,255,255,0.35); font-size: 0.82rem;">
                     <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>4 Games
                 </span>
                 <span class="badge bg-warning text-dark px-2.5 py-1.5 rounded-pill fw-bold shadow-xs" style="font-size: 0.82rem;">
