@@ -20,8 +20,9 @@ namespace CompanyTaskManagement.Models
         [StringLength(100)]
         public string? Department { get; set; } = "Engineering";
 
-        [Phone]
-        [StringLength(50)]
+        [Phone(ErrorMessage = "Please enter a valid phone number")]
+        [StringLength(10, ErrorMessage = "Phone number cannot exceed 10 digits")]
+        [RegularExpression(@"^$|^[0-9]{10}$", ErrorMessage = "Phone number must be exactly 10 digits")]
         public string? Phone { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

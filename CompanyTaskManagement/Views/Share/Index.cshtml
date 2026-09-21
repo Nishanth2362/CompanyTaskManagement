@@ -1099,11 +1099,31 @@ else
                                                 <p class="small mb-0 text-body" style="line-height: 1.5;">@fb.Comment</p>
                                                 @if (!string.IsNullOrEmpty(fb.ScreenshotPath))
                                                 {
-                                                    <div class="mt-2">
-                                                        <a href="javascript:void(0);" onclick="openLightbox('@fb.ScreenshotPath')">
-                                                            <img src="@fb.ScreenshotPath" alt="Screenshot" class="img-fluid rounded border" style="max-height: 120px; object-fit: cover;" />
-                                                        </a>
-                                                    </div>
+                                                    var ext = System.IO.Path.GetExtension(fb.ScreenshotPath).ToLower();
+                                                    if (ext == ".pdf")
+                                                    {
+                                                        <div class="mt-2">
+                                                            <a href="@fb.ScreenshotPath" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1.5 shadow-2xs fw-bold" style="font-size: 0.78rem;">
+                                                                <i class="bi bi-file-earmark-pdf-fill fs-6 text-danger"></i> View PDF Document
+                                                            </a>
+                                                        </div>
+                                                    }
+                                                    else if (ext == ".doc" || ext == ".docx")
+                                                    {
+                                                        <div class="mt-2">
+                                                            <a href="@fb.ScreenshotPath" target="_blank" download class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1.5 shadow-2xs fw-bold" style="font-size: 0.78rem;">
+                                                                <i class="bi bi-file-earmark-word-fill fs-6 text-primary"></i> Download Word Document
+                                                            </a>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="mt-2">
+                                                            <a href="javascript:void(0);" onclick="openLightbox('@fb.ScreenshotPath')">
+                                                                <img src="@fb.ScreenshotPath" alt="Attachment" class="img-fluid rounded border" style="max-height: 120px; object-fit: cover;" />
+                                                            </a>
+                                                        </div>
+                                                    }
                                                 }
                                                 <div class="text-muted" style="font-size: 0.65rem; margin-top: 4px;">@fb.CreatedAt.ToString("MMM dd, yyyy")</div>
                                             </div>
@@ -1371,11 +1391,11 @@ else
                                   placeholder="Share your honest thoughts — what works, what could be improved, any bugs, or features you'd love to see..."></textarea>
                     </div>
 
-                    <!-- Screenshot Upload (Optional) -->
+                    <!-- Screenshot / Document Upload (Optional) -->
                     <div class="col-12">
-                        <label class="form-label fw-semibold small">Attach Screenshot <span class="text-muted">(optional)</span></label>
-                        <input type="file" class="form-control form-control-sm" id="fbScreenshot" accept="image/*" />
-                        <div class="form-text small">Helpful for bug reports or UI feedback.</div>
+                        <label class="form-label fw-semibold small">Attach Screenshot or Document (PDF / Word) <span class="text-muted">(optional)</span></label>
+                        <input type="file" class="form-control form-control-sm" id="fbScreenshot" accept="image/*,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                        <div class="form-text small">Upload screenshots (PNG, JPG), PDF documents (.pdf), or Word files (.doc, .docx).</div>
                     </div>
 
                     <!-- Email (Optional) -->
@@ -1627,11 +1647,26 @@ else
                     
                     let screenshotHtml = '';
                     if (data.screenshotPath) {
-                        screenshotHtml = `<div class="mt-2">
-                                            <a href="javascript:void(0);" onclick="openLightbox('${data.screenshotPath}')">
-                                                <img src="${data.screenshotPath}" alt="Screenshot" class="img-fluid rounded border" style="max-height: 120px; object-fit: cover;" />
-                                            </a>
-                                          </div>`;
+                        const ext = data.screenshotPath.split('.').pop().toLowerCase();
+                        if (ext === 'pdf') {
+                            screenshotHtml = `<div class="mt-2">
+                                                <a href="${data.screenshotPath}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1.5 shadow-2xs fw-bold" style="font-size: 0.78rem;">
+                                                    <i class="bi bi-file-earmark-pdf-fill fs-6 text-danger"></i> View PDF Document
+                                                </a>
+                                              </div>`;
+                        } else if (ext === 'doc' || ext === 'docx') {
+                            screenshotHtml = `<div class="mt-2">
+                                                <a href="${data.screenshotPath}" target="_blank" download class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1.5 shadow-2xs fw-bold" style="font-size: 0.78rem;">
+                                                    <i class="bi bi-file-earmark-word-fill fs-6 text-primary"></i> Download Word Document
+                                                </a>
+                                              </div>`;
+                        } else {
+                            screenshotHtml = `<div class="mt-2">
+                                                <a href="javascript:void(0);" onclick="openLightbox('${data.screenshotPath}')">
+                                                    <img src="${data.screenshotPath}" alt="Attachment" class="img-fluid rounded border" style="max-height: 120px; object-fit: cover;" />
+                                                </a>
+                                              </div>`;
+                        }
                     }
 
                     const itemHtml = `

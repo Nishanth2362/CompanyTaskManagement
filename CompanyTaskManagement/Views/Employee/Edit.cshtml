@@ -96,7 +96,7 @@
                         <label asp-for="Phone" class="form-label fw-bold">Phone Number</label>
                         <div class="input-group">
                             <span class="input-group-text bg-transparent"><i class="bi bi-telephone text-success"></i></span>
-                            <input asp-for="Phone" class="form-control" />
+                            <input asp-for="Phone" class="form-control" id="inputEmpPhone" placeholder="e.g., 9876543210" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" />
                         </div>
                         <span asp-validation-for="Phone" class="text-danger small"></span>
                     </div>
