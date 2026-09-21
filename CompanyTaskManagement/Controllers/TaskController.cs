@@ -889,6 +889,57 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
+        // AJAX: DYNAMICALLY DELETE COMPANY
+        // =========================================================
+
+        [HttpPost]
+        public async Task<IActionResult> QuickDeleteCompany(int id)
+        {
+            var company = await _context.Companies
+                .Include(c => c.TaskCompanies)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (company == null)
+            {
+                return Json(new { success = false, message = "Company not found." });
+            }
+
+            _context.TaskCompanies.RemoveRange(company.TaskCompanies);
+            _context.Companies.Remove(company);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, id = id, name = company.Name });
+        }
+
+        // =========================================================
+        // AJAX: DYNAMICALLY DELETE EMPLOYEE
+        // =========================================================
+
+        [HttpPost]
+        public async Task<IActionResult> QuickDeleteEmployee(int id)
+        {
+            if (!_sessionService.IsAdmin())
+            {
+                return Json(new { success = false, message = "Access Denied: Only Administrator has permission to remove employees." });
+            }
+
+            var employee = await _context.Employees
+                .Include(e => e.TaskEmployees)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (employee == null)
+            {
+                return Json(new { success = false, message = "Employee not found." });
+            }
+
+            _context.TaskEmployees.RemoveRange(employee.TaskEmployees);
+            _context.Employees.Remove(employee);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, id = id, name = employee.Name });
+        }
+
+        // =========================================================
         // AJAX: HR OVERDUE EMAIL NOTIFICATION ENDPOINTS
         // =========================================================
 

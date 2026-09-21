@@ -386,7 +386,7 @@
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-semibold small">Phone Number (Optional)</label>
-                                <input type="text" name="phone" class="form-control" placeholder="+91 98765 43210" />
+                                <input type="text" name="phone" class="form-control" placeholder="e.g., 9876543210" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" />
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-semibold small">Joining Date</label>

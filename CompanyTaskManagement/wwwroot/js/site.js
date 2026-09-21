@@ -273,8 +273,8 @@ function initIndexPageFeatures() {
     if (statusSelect) {
         statusSelect.addEventListener('change', applyCombinedFilter);
     }
-    if (resetFilterBtn) {
-        resetFilterBtn.addEventListener('click', () => {
+    document.querySelectorAll('#resetFilterBtn, #resetFilterAlertBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
             if (searchInput) searchInput.value = '';
             if (companySelect) companySelect.value = '';
             if (employeeSelect) employeeSelect.value = '';
@@ -290,7 +290,7 @@ function initIndexPageFeatures() {
             applyCombinedFilter();
             showAppToast('Filters reset to default view', 'info');
         });
-    }
+    });
 
     // Run initial filter on page load
     applyCombinedFilter();

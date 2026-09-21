@@ -372,12 +372,11 @@ t.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(t.DelayReason))
                                 </select>
                             </div>
 
-                            <!-- Reset Filters Button -->
+                            <!-- Reset Filters Button (Icon-Only Attractive Button) -->
                             <button type="button" id="resetFilterBtn"
-                                    class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1 shadow-2xs ms-auto"
-                                    style="height: 38px; font-size: 0.82rem;" title="Reset all active filters">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                <span>Reset</span>
+                                    class="btn btn-icon-reset ms-auto"
+                                    title="Reset all active filters" aria-label="Reset Filters">
+                                <i class="bi bi-arrow-counterclockwise fs-5"></i>
                             </button>
                         </div>
 
@@ -1015,8 +1014,8 @@ else
                                                                 </div>
                                                                 <h5 class="fw-bold mb-1">No matching tasks found</h5>
                                                                 <p class="text-muted mb-3">Try adjusting your search terms or clearing the active filters.</p>
-                                                                <button type="button" class="btn btn-sm btn-outline-primary" id="resetFilterBtn">
-                                                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                                                                <button type="button" class="btn btn-icon-reset d-inline-flex mx-auto" id="resetFilterAlertBtn" title="Reset all active filters" aria-label="Reset Filters">
+                                                                    <i class="bi bi-arrow-counterclockwise fs-5"></i>
                                                                 </button>
                                                             </div>
                                                         }
@@ -1198,51 +1197,45 @@ else
                                                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                                                 </div>
                                                                                 <div class="modal-body p-4">
+                                                                                    <!-- Email Recipient Inputs (Always visible) -->
+                                                                                    <div class="row g-2 mb-3">
+                                                                                        <div class="col-12">
+                                                                                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">Destination HR Email (To)</label>
+                                                                                            <input type="email" class="form-control form-control-sm font-monospace" id="hrDestinationEmailInput" value="mukesh@auxinz.io" placeholder="mukesh@auxinz.io" />
+                                                                                        </div>
+                                                                                        <div class="col-md-6">
+                                                                                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">CC Email</label>
+                                                                                            <input type="email" class="form-control form-control-sm font-monospace" id="hrCcEmailInput" value="nithin@amoebatronix.com" placeholder="nithin@amoebatronix.com" />
+                                                                                        </div>
+                                                                                        <div class="col-md-6">
+                                                                                            <label class="form-label text-muted small fw-bold text-uppercase mb-1">BCC Email</label>
+                                                                                            <input type="email" class="form-control form-control-sm font-monospace" id="hrBccEmailInput" value="hr@auxinz.io" placeholder="hr@auxinz.io" />
+                                                                                        </div>
+                                                                                    </div>
+
                                                                                     <div id="hrModalLoading" class="text-center py-4">
                                                                                         <div class="spinner-border text-danger" role="status">
                                                                                             <span class="visually-hidden">Loading overdue tasks...</span>
                                                                                         </div>
-                                                                                        <p class="text-white-50 mt-2 mb-0">Checking uncompleted overdue tasks...</p>
+                                                                                        <p class="text-muted mt-2 mb-0">Checking uncompleted overdue tasks...</p>
                                                                                     </div>
 
-                                                                                    <div id="hrModalEmpty" class="text-center py-4 d-none">
+                                                                                    <div id="hrModalEmpty" class="text-center py-3 d-none">
                                                                                         <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
-                                                                                        <h5 class="fw-bold text-white">All Assigned Tasks On Track!</h5>
-                                                                                        <p class="text-white-50 mb-0">There are currently no overdue uncompleted tasks requiring HR
-                                                                                            escalation.</p>
+                                                                                        <h5 class="fw-bold text-dark">All Assigned Tasks On Track!</h5>
+                                                                                        <p class="text-muted mb-0">There are currently no overdue tasks requiring HR escalation. You can still send a status summary email to HR below.</p>
+                                                                                    </div>
+
+                                                                                    <div id="hrModalContent" class="d-none">
+                                                                                        <div class="alert alert-warning d-flex align-items-center gap-2 mb-3 py-2">
+                                                                                            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                                                                                            <div>Found <strong id="hrOverdueCount">0</strong> uncompleted task(s) past their due date.</div>
                                                                                         </div>
-
-                                                                                        <div id="hrModalContent" class="d-none">
-                                                                                            <div class="alert alert-warning d-flex align-items-center gap-2 mb-3 py-2">
-                                                                                                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-                                                                                                <div>Found <strong id="hrOverdueCount">0</strong> uncompleted task(s) past their due date.</div>
-                                                                                            </div>
-
-                                                                                            <div class="row g-2 mb-3">
-                                                                                                <div class="col-12">
-                                                                                                    <label class="form-label text-muted small fw-bold text-uppercase mb-1">Destination HR Email
-                                                                                                        (To)</label>
-                                                                                                        <input type="email" class="form-control form-control-sm font-monospace"
-                                                                                                               id="hrDestinationEmailInput" value="mukesh@auxinz.io" placeholder="mukesh@auxinz.io" />
-                                                                                                    </div>
-                                                                                                    <div class="col-md-6">
-                                                                                                        <label class="form-label text-muted small fw-bold text-uppercase mb-1">CC Email</label>
-                                                                                                        <input type="email" class="form-control form-control-sm font-monospace" id="hrCcEmailInput"
-                                                                                                               value="nithin@amoebatronix.com" placeholder="nithin@amoebatronix.com" />
-                                                                                                    </div>
-                                                                                                    <div class="col-md-6">
-                                                                                                        <label class="form-label text-muted small fw-bold text-uppercase mb-1">BCC Email</label>
-                                                                                                        <input type="email" class="form-control form-control-sm font-monospace" id="hrBccEmailInput"
-                                                                                                               value="hr@auxinz.io" placeholder="hr@auxinz.io" />
-                                                                                                    </div>
-                                                                                                </div>
-
-                                                                                                <div id="hrOverdueList" class="d-flex flex-column gap-2 mb-3"
-                                                                                                     style="max-height: 250px; overflow-y: auto;">
-                                                                                                    <!-- Dynamically populated -->
-                                                                                                </div>
-                                                                                            </div>
+                                                                                        <div id="hrOverdueList" class="d-flex flex-column gap-2 mb-3" style="max-height: 250px; overflow-y: auto;">
+                                                                                            <!-- Dynamically populated -->
                                                                                         </div>
+                                                                                    </div>
+                                                                                </div>
                                                                                         <div class="modal-footer d-flex justify-content-end flex-wrap gap-2">
                                                                                             <div class="d-flex gap-2">
                                                                                                 <button type="button" class="btn btn-primary d-flex align-items-center gap-2"
@@ -1808,29 +1801,36 @@ else
                                                                                                     const toEmail = targetTo || $('#hrDestinationEmailInput').val() || 'mukesh@auxinz.io';
                                                                                                     const ccEmail = targetCc !== null ? targetCc : ($('#hrCcEmailInput').val() || 'nithin@amoebatronix.com');
                                                                                                     const bccEmail = targetBcc !== null ? targetBcc : ($('#hrBccEmailInput').val() || 'hr@auxinz.io');
-                                                                                                    const subject = `[URGENT] Overdue Tasks Escalation Report - AUXINZ.io`;
+                                                                                                    
+                                                                                                    const count = overdueTasksList ? overdueTasksList.length : 0;
+                                                                                                    const subject = count > 0 
+                                                                                                        ? `[URGENT] Overdue Tasks Escalation Report - AUXINZ.io` 
+                                                                                                        : `[STATUS REPORT] Task Status Update - AUXINZ.io`;
                 
                                                                                                     let body = `Dear HR Team,\n\n`;
-                                                                                                    body += `This is an urgent escalation regarding overdue tasks requiring management attention.\n\n`;
-                
-                                                                                                    const count = overdueTasksList ? overdueTasksList.length : 0;
-                                                                                                    body += `Total Overdue Tasks: ${count}\n\n`;
-                
                                                                                                     if (count > 0) {
-                                                                                                        body += `Top Overdue Tasks:\n`;
-                                                                                                        const limit = Math.min(count, 3);
-                                                                                                        for (let i = 0; i < limit; i++) {
-                                                                                                            const t = overdueTasksList[i];
-                                                                                                            body += `• ${t.name} (Due: ${t.dueDate || 'Overdue'})\n`;
-                                                                                                        }
-                                                                                                        if (count > limit) {
-                                                                                                            body += `... and ${count - limit} more overdue task(s).\n`;
-                                                                                                        }
-                                                                                                        body += `\n`;
+                                                                                                        body += `This is an urgent escalation regarding overdue tasks requiring management attention.\n\n`;
+                                                                                                        body += `Total Overdue Tasks: ${count}\n\n`;
+                                                                                                        body += `Overdue Tasks Breakdown:\n`;
+                                                                                                        body += `--------------------------------------------------\n`;
+                                                                                                        overdueTasksList.forEach((t, idx) => {
+                                                                                                            body += `${idx + 1}. #${String(t.id).padStart(3, '0')} - ${t.name}\n`;
+                                                                                                            body += `   • Priority: ${t.priority || 'Normal'}\n`;
+                                                                                                            body += `   • Assigned To: ${t.employees || 'Unassigned'}\n`;
+                                                                                                            body += `   • Companies: ${t.companies || 'None'}\n`;
+                                                                                                            body += `   • Due Date: ${t.dueDate || 'Overdue'} (${t.status || 'Pending'})\n`;
+                                                                                                            if (t.delayReason) {
+                                                                                                                body += `   • Delay Reason: ${t.delayReason}\n`;
+                                                                                                            }
+                                                                                                            body += `\n`;
+                                                                                                        });
+                                                                                                    } else {
+                                                                                                        body += `Great news! Currently, all assigned tasks across companies and team members are completed or on track.\n\n`;
+                                                                                                        body += `Total Overdue Tasks: 0\n\n`;
                                                                                                     }
 
                                                                                                     body += `View details on Tasksheet Portal: ${window.location.origin}/\n\n`;
-                                                                                                    body += `Best regards,\nTask Management Automation`;
+                                                                                                    body += `Best regards,\nTask Management System`;
 
                                                                                                     const encTo = encodeURIComponent(toEmail);
                                                                                                     const encCc = encodeURIComponent(ccEmail);
@@ -1874,8 +1874,7 @@ else
                                                                                                             cachedOverdueTasks = res.tasks || [];
                                                                                                             if (res.count === 0) {
                                                                                                                 $('#hrModalEmpty').removeClass('d-none');
-                                                                                                                $('#sendHrEmailBtn').prop('disabled', true);
-                                                                                                                $('#redirectToGmailBtn').prop('disabled', false);
+                                                                                                                $('#sendHrEmailBtn, #redirectToGmailBtn').prop('disabled', false);
                                                                                                             } else {
                                                                                                                 $('#hrModalContent').removeClass('d-none');
                                                                                                                 $('#sendHrEmailBtn, #redirectToGmailBtn').prop('disabled', false);

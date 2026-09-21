@@ -80,11 +80,6 @@ namespace CompanyTaskManagement.Services
             try
             {
                 var taskList = overdueTasks?.Where(t => t != null).ToList() ?? new List<TaskItem>();
-                if (!taskList.Any())
-                {
-                    _logger.LogInformation("No overdue tasks provided for HR notification email.");
-                    return true;
-                }
 
                 var hrEmail = !string.IsNullOrWhiteSpace(customToEmail)
                     ? customToEmail
@@ -100,7 +95,10 @@ namespace CompanyTaskManagement.Services
                     ? customBccEmail
                     : _emailSettings?.BccEmailAddress;
 
-                var subject = $"⚠️ Alert: {taskList.Count} Uncompleted Overdue Task(s) Requiring HR Attention";
+                var subject = taskList.Any()
+                    ? $"⚠️ Alert: {taskList.Count} Uncompleted Overdue Task(s) Requiring HR Attention"
+                    : "✅ HR Status Report: All Assigned Tasks On Track";
+
                 var sb = new StringBuilder();
 
                 sb.AppendLine("<!DOCTYPE html>");
@@ -108,7 +106,8 @@ namespace CompanyTaskManagement.Services
                 sb.AppendLine("body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; }");
                 sb.AppendLine(".container { max-width: 680px; background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }");
                 sb.AppendLine(".header { background: linear-gradient(135deg, #dc2626, #991b1b); color: #ffffff; padding: 18px 24px; border-radius: 8px; margin-bottom: 20px; }");
-                sb.AppendLine(".header h2 { margin: 0; font-size: 20px; }");
+                sb.AppendLine(".header-success { background: linear-gradient(135deg, #059669, #047857); color: #ffffff; padding: 18px 24px; border-radius: 8px; margin-bottom: 20px; }");
+                sb.AppendLine(".header h2, .header-success h2 { margin: 0; font-size: 20px; }");
                 sb.AppendLine(".task-card { border: 1px solid #e2e8f0; border-left: 5px solid #dc2626; border-radius: 8px; padding: 16px; margin-bottom: 14px; background: #fafafa; }");
                 sb.AppendLine(".badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }");
                 sb.AppendLine(".badge-urgent { background: #fee2e2; color: #dc2626; }");
@@ -119,46 +118,58 @@ namespace CompanyTaskManagement.Services
                 sb.AppendLine("</style></head><body>");
 
                 sb.AppendLine("<div class='container'>");
-                sb.AppendLine("<div class='header'>");
-                sb.AppendLine("<h2>⚠️ HR Task Escalation Report</h2>");
-                sb.AppendLine("<p style='margin:4px 0 0 0; opacity:0.9;'>The following assigned task(s) have passed their target due date without completion.</p>");
-                sb.AppendLine("</div>");
 
-                foreach (var task in taskList)
+                if (taskList.Any())
                 {
-                    var compNames = task.TaskCompanies != null && task.TaskCompanies.Any(c => c?.Company != null)
-                        ? string.Join(", ", task.TaskCompanies.Where(c => c?.Company != null).Select(c => c.Company!.Name))
-                        : "None";
-                    var empNames = task.TaskEmployees != null && task.TaskEmployees.Any(e => e?.Employee != null)
-                        ? string.Join(", ", task.TaskEmployees.Where(e => e?.Employee != null).Select(e => e.Employee!.Name))
-                        : "Unassigned";
-
-                    var daysOverdue = task.DueDate.HasValue ? (DateTime.Today - task.DueDate.Value.Date).Days : 0;
-                    var overdueTxt = daysOverdue > 0 ? $"{daysOverdue} day(s) overdue" : "Overdue today";
-                    var priorityBadgeClass = task.Priority == TaskPriority.Urgent ? "badge-urgent" :
-                                             task.Priority == TaskPriority.High ? "badge-high" : "badge-medium";
-
-                    sb.AppendLine("<div class='task-card'>");
-                    sb.AppendLine($"<div style='display:flex; justify-content:space-between; align-items:center;'>");
-                    sb.AppendLine($"<strong style='font-size:16px; color:#0f172a;'>#{task.Id.ToString("D3")} - {task.TaskName}</strong>");
-                    sb.AppendLine($"<span class='badge {priorityBadgeClass}'>{task.Priority} Priority</span>");
+                    sb.AppendLine("<div class='header'>");
+                    sb.AppendLine("<h2>⚠️ HR Task Escalation Report</h2>");
+                    sb.AppendLine("<p style='margin:4px 0 0 0; opacity:0.9;'>The following assigned task(s) have passed their target due date without completion.</p>");
                     sb.AppendLine("</div>");
 
-                    if (!string.IsNullOrWhiteSpace(task.Description))
+                    foreach (var task in taskList)
                     {
-                        sb.AppendLine($"<p style='font-size:14px; color:#475569; margin:8px 0;'>{task.Description}</p>");
-                    }
+                        var compNames = task.TaskCompanies != null && task.TaskCompanies.Any(c => c?.Company != null)
+                            ? string.Join(", ", task.TaskCompanies.Where(c => c?.Company != null).Select(c => c.Company!.Name))
+                            : "None";
+                        var empNames = task.TaskEmployees != null && task.TaskEmployees.Any(e => e?.Employee != null)
+                            ? string.Join(", ", task.TaskEmployees.Where(e => e?.Employee != null).Select(e => e.Employee!.Name))
+                            : "Unassigned";
 
-                    sb.AppendLine("<div class='meta'>");
-                    sb.AppendLine($"<strong>Assigned Team:</strong> {empNames}<br/>");
-                    sb.AppendLine($"<strong>Companies:</strong> {compNames}<br/>");
-                    sb.AppendLine($"<strong>Due Date:</strong> {(task.DueDate.HasValue ? task.DueDate.Value.ToString("MMM dd, yyyy") : "N/A")} (<span style='color:#dc2626; font-weight:bold;'>{overdueTxt}</span>)<br/>");
-                    sb.AppendLine($"<strong>Current Progress:</strong> {task.Progress}% | <strong>Status:</strong> {task.Status}");
-                    sb.AppendLine("</div></div>");
+                        var daysOverdue = task.DueDate.HasValue ? (DateTime.Today - task.DueDate.Value.Date).Days : 0;
+                        var overdueTxt = daysOverdue > 0 ? $"{daysOverdue} day(s) overdue" : "Overdue today";
+                        var priorityBadgeClass = task.Priority == TaskPriority.Urgent ? "badge-urgent" :
+                                                 task.Priority == TaskPriority.High ? "badge-high" : "badge-medium";
+
+                        sb.AppendLine("<div class='task-card'>");
+                        sb.AppendLine($"<div style='display:flex; justify-content:space-between; align-items:center;'>");
+                        sb.AppendLine($"<strong style='font-size:16px; color:#0f172a;'>#{task.Id.ToString("D3")} - {task.TaskName}</strong>");
+                        sb.AppendLine($"<span class='badge {priorityBadgeClass}'>{task.Priority} Priority</span>");
+                        sb.AppendLine("</div>");
+
+                        if (!string.IsNullOrWhiteSpace(task.Description))
+                        {
+                            sb.AppendLine($"<p style='font-size:14px; color:#475569; margin:8px 0;'>{task.Description}</p>");
+                        }
+
+                        sb.AppendLine("<div class='meta'>");
+                        sb.AppendLine($"<strong>Assigned Team:</strong> {empNames}<br/>");
+                        sb.AppendLine($"<strong>Companies:</strong> {compNames}<br/>");
+                        sb.AppendLine($"<strong>Due Date:</strong> {(task.DueDate.HasValue ? task.DueDate.Value.ToString("MMM dd, yyyy") : "N/A")} (<span style='color:#dc2626; font-weight:bold;'>{overdueTxt}</span>)<br/>");
+                        sb.AppendLine($"<strong>Current Progress:</strong> {task.Progress}% | <strong>Status:</strong> {task.Status}");
+                        sb.AppendLine("</div></div>");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine("<div class='header-success'>");
+                    sb.AppendLine("<h2>✅ HR Task Status Report</h2>");
+                    sb.AppendLine("<p style='margin:4px 0 0 0; opacity:0.9;'>All assigned tasks are currently on track. No overdue tasks requiring escalation.</p>");
+                    sb.AppendLine("</div>");
+                    sb.AppendLine("<p style='font-size:14px; color:#475569;'>All active company tasks are progressing according to scheduled due dates.</p>");
                 }
 
                 sb.AppendLine("<div class='footer'>");
-                sb.AppendLine($"<p>This automated escalation report was generated by <strong>AUXINZ.io Task Management System</strong> on {DateTime.Now:f}.</p>");
+                sb.AppendLine($"<p>This automated notification was generated by <strong>AUXINZ.io Task Management System</strong> on {DateTime.Now:f}.</p>");
                 sb.AppendLine($"<p>Target Recipient: {hrEmail} (CC: {ccEmail}, BCC: {bccEmail})</p>");
                 sb.AppendLine("</div></div></body></html>");
 
