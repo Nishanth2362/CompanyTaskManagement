@@ -531,6 +531,12 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            if (teamLeaderId == employeeId)
+            {
+                TempData["ErrorMessage"] = "Team Leaders cannot review or give appreciation to themselves.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var leader = await _context.Employees.FindAsync(teamLeaderId);
             var employee = await _context.Employees.FindAsync(employeeId);
 
@@ -609,6 +615,64 @@ namespace CompanyTaskManagement.Controllers
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Appreciation & Review for '{employee.Name}' submitted successfully by Team Leader {leader.Name}!{taskMsg}";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =========================================================
+        // TEAM LEADER / ADMIN: Remove Self-Completed Task (No Self Review)
+        // =========================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveSelfCompletedTask(int id)
+        {
+            var completedTask = await _context.TeamTasks.FindAsync(id);
+            if (completedTask != null)
+            {
+                var teamId = completedTask.TeamId;
+                var mainTask = await _context.Tasks.FirstOrDefaultAsync(t => t.TaskName == completedTask.Title);
+                if (mainTask != null)
+                {
+                    mainTask.Status = TaskStatus.Completed;
+                    mainTask.Progress = 100;
+                    mainTask.DelayReason = null;
+                    mainTask.EndDate = DateTime.Now;
+                }
+                else
+                {
+                    var newMainTask = new TaskItem
+                    {
+                        TaskName = completedTask.Title,
+                        Description = completedTask.Description,
+                        Priority = completedTask.Priority,
+                        Status = TaskStatus.Completed,
+                        ProjectId = completedTask.ProjectId,
+                        StartDate = completedTask.StartDate ?? completedTask.CreatedAt,
+                        EndDate = DateTime.Now,
+                        DueDate = completedTask.DueDate ?? completedTask.EndDate,
+                        CreatedAt = completedTask.CreatedAt,
+                        Progress = 100,
+                        DelayReason = null
+                    };
+                    _context.Tasks.Add(newMainTask);
+                    await _context.SaveChangesAsync();
+
+                    if (completedTask.AssignedToEmployeeId > 0)
+                    {
+                        _context.TaskEmployees.Add(new TaskEmployee
+                        {
+                            TaskId = newMainTask.Id,
+                            EmployeeId = completedTask.AssignedToEmployeeId
+                        });
+                    }
+                }
+
+                _context.TeamTasks.Remove(completedTask);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Task '{completedTask.Title}' marked completed and cleared from the board.";
+                return RedirectToAction(nameof(Index), new { selectedTeamId = teamId });
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

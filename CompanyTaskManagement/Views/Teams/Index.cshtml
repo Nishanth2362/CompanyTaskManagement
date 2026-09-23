@@ -288,7 +288,7 @@
                                                 <span class="text-muted fw-normal" style="font-size:0.75rem;">Leader Appreciations: @leaderReviews.Count</span>
                                             </div>
                                             <button class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 mt-1" style="font-size: 0.72rem;" onclick="openReviewLeaderModal(@leader.Id, '@leader.Name')">
-                                                <i class="bi bi-award me-1"></i> Give Review
+                                                <i class="bi bi-award me-1"></i> Review Employees
                                             </button>
                                         }
                                     </div>
@@ -460,9 +460,25 @@
                                                         </span>
                                                         @if (isCompleted)
                                                         {
-                                                            <button class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openReviewTaskModal(@(task.AssignedByLeaderId ?? team.TeamLeaderId ?? 0), @task.AssignedToEmployeeId, @task.Id, '@task.Title.Replace("'", "\\'")')">
-                                                                <i class="bi bi-star-fill text-warning me-1"></i> Review &amp; Remove Task
-                                                            </button>
+                                                            var isSelfTask = (team.TeamLeaderId.HasValue && task.AssignedToEmployeeId == team.TeamLeaderId.Value) ||
+                                                                             (task.AssignedByLeaderId.HasValue && task.AssignedToEmployeeId == task.AssignedByLeaderId.Value);
+
+                                                            if (!isSelfTask)
+                                                            {
+                                                                <button class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openReviewTaskModal(@(task.AssignedByLeaderId ?? team.TeamLeaderId ?? 0), @task.AssignedToEmployeeId, @task.Id, '@task.Title.Replace("'", "\\'")')">
+                                                                    <i class="bi bi-star-fill text-warning me-1"></i> Review &amp; Remove Task
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <form asp-action="RemoveSelfCompletedTask" method="post" class="d-inline" onsubmit="return confirm('Complete and remove task \'@task.Title.Replace("'", "\\'")\' from active board?');">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="hidden" name="id" value="@task.Id" />
+                                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;">
+                                                                        <i class="bi bi-check2-circle me-1"></i> Remove Completed Task
+                                                                    </button>
+                                                                </form>
+                                                            }
                                                         }
                                                         @if (isIncomplete)
                                                         {
@@ -944,7 +960,7 @@
             }
             foreach (var m in team.Members)
             {
-                if (m.Employee != null && !leaderMembersDict[leaderId].Any(x => ((dynamic)x).id == m.Employee.Id))
+                if (m.Employee != null && m.Employee.Id != leaderId && !leaderMembersDict[leaderId].Any(x => ((dynamic)x).id == m.Employee.Id))
                 {
                     leaderMembersDict[leaderId].Add(new {
                         id = m.Employee.Id,
@@ -1143,12 +1159,24 @@
             defaultOpt.textContent = '-- Select Team Member / Employee --';
             empSelect.appendChild(defaultOpt);
 
+            let addedCount = 0;
             members.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = `${m.name} (${m.designation} - ${m.department})`;
-                empSelect.appendChild(opt);
+                if (m.id !== selectedLeaderId) {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = `${m.name} (${m.designation} - ${m.department})`;
+                    empSelect.appendChild(opt);
+                    addedCount++;
+                }
             });
+
+            if (addedCount === 0) {
+                empSelect.innerHTML = '';
+                const emptyOpt = document.createElement('option');
+                emptyOpt.value = '';
+                emptyOpt.textContent = '-- No other team members to review --';
+                empSelect.appendChild(emptyOpt);
+            }
         } else {
             empSelect.disabled = false;
             const defaultOpt = document.createElement('option');
@@ -1276,6 +1304,10 @@
     }
 
     function openReviewTaskModal(leaderId, employeeId, taskId, taskTitle) {
+        if (leaderId > 0 && employeeId > 0 && leaderId === employeeId) {
+            alert('Team Leaders cannot review their own tasks.');
+            return;
+        }
         document.getElementById('reviewTaskId').value = taskId;
         const leaderSelect = document.getElementById('reviewLeaderSelect');
         if (leaderId > 0) {
