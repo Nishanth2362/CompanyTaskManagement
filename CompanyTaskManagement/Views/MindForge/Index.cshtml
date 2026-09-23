@@ -229,6 +229,9 @@
     .dotnet-opt-btn.opt-correct { border-color: #10b981 !important; background: rgba(16,185,129,0.12) !important; color: #047857 !important; }
     .dotnet-opt-btn.opt-wrong   { border-color: #ef4444 !important; background: rgba(239,68,68,0.12) !important; color: #ef4444 !important; }
     .dotnet-timer-bar { height: 5px; border-radius: 99px; background: linear-gradient(90deg,#6366f1,#a5b4fc); transition: width 1s linear; }
+    @@keyframes dnBounce { 0%{transform:scale(0) rotate(-15deg);opacity:0} 60%{transform:scale(1.3) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(0deg);} }
+    @@keyframes dnFall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(400px) rotate(360deg);opacity:0} }
+
 
     /* ===== TIC TAC TOE ===== */
     .ttt-board {
@@ -434,7 +437,36 @@
 
     <!-- ===== GAME 3: .NET CODE CHALLENGE ===== -->
     <div class="col-12 col-lg-6 d-flex">
-        <div class="game-card w-100">
+        <div class="game-card w-100" style="position:relative;overflow:hidden;">
+            <!-- COMPLETION OVERLAY — covers full card including header -->
+            <div id="dotnetCompleteOverlay" style="display:none;position:absolute;inset:0;z-index:50;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);padding:1.5rem;overflow:hidden;">
+                <!-- Confetti dots -->
+                <div id="dnConfetti" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+                <div style="position:relative;z-index:2;text-align:center;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0.6rem;">
+                    <div style="font-size:3rem;line-height:1;animation:dnBounce 0.8s ease-out;">🎉</div>
+                    <div style="font-size:1.3rem;font-weight:900;color:#fff;letter-spacing:-0.02em;">Challenge Complete!</div>
+                    <div id="dnGradeBadge" style="font-size:0.85rem;font-weight:700;padding:0.3rem 1rem;border-radius:999px;margin:0.2rem 0;"></div>
+                    <div id="dnAppreciation" style="font-size:0.82rem;color:rgba(255,255,255,0.85);max-width:280px;line-height:1.5;"></div>
+                    <!-- Stats row -->
+                    <div style="display:flex;gap:1rem;margin:0.5rem 0;">
+                        <div style="background:rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.5rem 0.9rem;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:900;color:#a78bfa;" id="dnFinalScore">0</div>
+                            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.05em;">Score</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.5rem 0.9rem;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:900;color:#34d399;" id="dnCorrectCount">0</div>
+                            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.05em;">Correct</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.1);border-radius:0.75rem;padding:0.5rem 0.9rem;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:900;color:#fbbf24;" id="dnAccuracy">0%</div>
+                            <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.05em;">Accuracy</div>
+                        </div>
+                    </div>
+                    <div id="dnBestStreak" style="font-size:0.78rem;color:rgba(255,255,255,0.7);"></div>
+                    <button onclick="initDotnet()" style="margin-top:0.5rem;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;border-radius:999px;padding:0.5rem 1.5rem;font-weight:700;font-size:0.85rem;cursor:pointer;box-shadow:0 4px 15px rgba(139,92,246,0.4);transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="bi bi-arrow-repeat me-1"></i>Play Again</button>
+                </div>
+            </div>
+            <!-- NORMAL CARD CONTENT -->
             <div class="game-header">
                 <div class="game-header-icon">
                     <i class="bi bi-braces fs-5" style="color:#c4b5fd;"></i>
@@ -449,25 +481,28 @@
                 </div>
             </div>
             <div class="game-card-body">
-                <div class="game-card-content py-1">
-                    <div style="background:rgba(109,40,217,0.1);border-radius:99px;height:5px;margin-bottom:0.5rem;">
-                        <div class="dotnet-timer-bar" id="dotnetTimerBar" style="width:100%;"></div>
+                <div id="dotnetGameContent">
+                    <div class="game-card-content py-1">
+                        <div style="background:rgba(109,40,217,0.1);border-radius:99px;height:5px;margin-bottom:0.5rem;">
+                            <div class="dotnet-timer-bar" id="dotnetTimerBar" style="width:100%;"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <span class="small text-muted fw-bold" id="dotnetQNum">Q 1 / 20</span>
+                            <span class="small fw-bold px-2 py-0.5 rounded-pill bg-primary bg-opacity-10 text-primary" id="dotnetTimerLabel">⏱ 30s</span>
+                        </div>
+                        <div class="dotnet-code-block mb-2" id="dotnetCode"></div>
+                        <div class="d-grid gap-1 mb-1.5" id="dotnetOptions"></div>
+                        <div class="fw-bold text-center" id="dotnetMsg" style="min-height:1.3rem;font-size:0.85rem;"></div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-1.5">
-                        <span class="small text-muted fw-bold" id="dotnetQNum">Q 1 / 20</span>
-                        <span class="small fw-bold px-2 py-0.5 rounded-pill bg-primary bg-opacity-10 text-primary" id="dotnetTimerLabel">⏱ 30s</span>
+                    <div class="game-card-footer d-flex justify-content-between align-items-center">
+                        <span class="small text-muted fst-italic text-truncate pe-2" id="dotnetExplain" style="max-width: 75%;"></span>
+                        <button class="btn-mf ms-auto" onclick="dotnetNext()" id="dotnetNextBtn" style="display:none;padding:0.35rem 0.9rem;font-size:0.8rem;">Next <i class="bi bi-arrow-right ms-1"></i></button>
                     </div>
-                    <div class="dotnet-code-block mb-2" id="dotnetCode"></div>
-                    <div class="d-grid gap-1 mb-1.5" id="dotnetOptions"></div>
-                    <div class="fw-bold text-center" id="dotnetMsg" style="min-height:1.3rem;font-size:0.85rem;"></div>
-                </div>
-                <div class="game-card-footer d-flex justify-content-between align-items-center">
-                    <span class="small text-muted fst-italic text-truncate pe-2" id="dotnetExplain" style="max-width: 75%;"></span>
-                    <button class="btn-mf ms-auto" onclick="dotnetNext()" id="dotnetNextBtn" style="display:none;padding:0.35rem 0.9rem;font-size:0.8rem;">Next <i class="bi bi-arrow-right ms-1"></i></button>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- ===== GAME 4: TIC TAC TOE ===== -->
     <div class="col-12 col-lg-6 d-flex">
@@ -691,19 +726,26 @@ hs.<span class="cls">Add</span>(<span class="num">2</span>);
 <span class="cls">Console</span>.<span class="cls">WriteLine</span>(d.<span class="cls">ContainsKey</span>(<span class="str">"c"</span>));`, answer:'False', options:['False','True','0','Exception'], explain:'Key "c" not present → False.' },
 ];
 
-let dnIdx = 0, dnScore = 0, dnStreak = 0, dnTimer, dnSecs, dnOrder = [], dnAnswered = false;
+let dnIdx = 0, dnScore = 0, dnStreak = 0, dnBestStreak = 0, dnCorrect = 0, dnTimer, dnSecs, dnOrder = [], dnAnswered = false;
 
 function initDotnet() {
     dnOrder = [...dotnetQs].sort(() => Math.random() - 0.5);
-    dnIdx = 0; dnScore = 0; dnStreak = 0;
+    dnIdx = 0; dnScore = 0; dnStreak = 0; dnBestStreak = 0; dnCorrect = 0;
     document.getElementById('dotnetScore').textContent = 'Score: 0';
     document.getElementById('dotnetStreak').textContent = '🔥 0';
+    // Hide completion overlay, show game
+    document.getElementById('dotnetCompleteOverlay').style.display = 'none';
+    document.getElementById('dotnetGameContent').style.display = '';
     dotnetLoad();
 }
 
 function dotnetLoad() {
     clearInterval(dnTimer);
-    if (dnIdx >= dnOrder.length) dnIdx = 0;
+    // Check if all 20 questions done
+    if (dnIdx >= dnOrder.length) {
+        dotnetShowComplete();
+        return;
+    }
     const q = dnOrder[dnIdx];
     document.getElementById('dotnetQNum').textContent = `Q ${dnIdx + 1} / ${dnOrder.length}`;
     document.getElementById('dotnetCode').innerHTML = q.code;
@@ -745,7 +787,8 @@ function dotnetAnswer(chosen, correct, explain) {
     });
     if (chosen === correct) {
         const points = 100 + (dnStreak * 25);
-        dnScore += points; dnStreak++;
+        dnScore += points; dnStreak++; dnCorrect++;
+        if (dnStreak > dnBestStreak) dnBestStreak = dnStreak;
         document.getElementById('dotnetMsg').innerHTML = `<span style="color:#10b981">✅ Correct! (+${points} pts)</span>`;
         submitScoreToDatabase('DotNetQuiz', points, 30);
     } else {
@@ -762,6 +805,65 @@ function dotnetAnswer(chosen, correct, explain) {
 }
 
 function dotnetNext() { dotnetLoad(); }
+
+function dotnetShowComplete() {
+    clearInterval(dnTimer);
+    const total = dnOrder.length;
+    const accuracy = Math.round((dnCorrect / total) * 100);
+    // Determine grade & appreciation
+    let grade, gradeColor, appreciation;
+    if (accuracy === 100) {
+        grade = '🏆 Perfect Score!';
+        gradeColor = 'linear-gradient(135deg,#f59e0b,#fbbf24)';
+        appreciation = 'Absolutely flawless! You answered every single question correctly. You are a true .NET master — outstanding performance!';
+    } else if (accuracy >= 85) {
+        grade = '🌟 Excellent!';
+        gradeColor = 'linear-gradient(135deg,#10b981,#34d399)';
+        appreciation = 'Brilliant work! Your C# knowledge is razor-sharp. You crushed this challenge — well done, champion!';
+    } else if (accuracy >= 70) {
+        grade = '👍 Great Job!';
+        gradeColor = 'linear-gradient(135deg,#6366f1,#818cf8)';
+        appreciation = 'Really solid performance! You have a strong grasp of .NET concepts. Keep practicing and you will hit perfect soon!';
+    } else if (accuracy >= 50) {
+        grade = '💪 Good Effort!';
+        gradeColor = 'linear-gradient(135deg,#f59e0b,#fbbf24)';
+        appreciation = 'Nice effort completing the challenge! Every question you review makes you a stronger developer. Keep going!';
+    } else {
+        grade = '🎯 Keep Practicing!';
+        gradeColor = 'linear-gradient(135deg,#ef4444,#f87171)';
+        appreciation = 'You completed the full challenge — that takes courage! Review the C# concepts and try again to see your score soar!';
+    }
+    // Populate overlay
+    document.getElementById('dnFinalScore').textContent = dnScore;
+    document.getElementById('dnCorrectCount').textContent = dnCorrect + '/' + total;
+    document.getElementById('dnAccuracy').textContent = accuracy + '%';
+    document.getElementById('dnGradeBadge').textContent = grade;
+    document.getElementById('dnGradeBadge').style.background = gradeColor;
+    document.getElementById('dnGradeBadge').style.color = '#fff';
+    document.getElementById('dnAppreciation').textContent = appreciation;
+    document.getElementById('dnBestStreak').textContent = dnBestStreak > 1 ? `🔥 Best Streak: ${dnBestStreak} in a row!` : '';
+    // Save final score
+    submitScoreToDatabase('DotNetQuiz', dnScore, total * 30);
+    // Launch confetti
+    dnLaunchConfetti();
+    // Show overlay
+    document.getElementById('dotnetGameContent').style.display = 'none';
+    document.getElementById('dotnetCompleteOverlay').style.display = 'flex';
+    document.getElementById('dotnetCompleteOverlay').style.flexDirection = 'column';
+    document.getElementById('dotnetCompleteOverlay').style.justifyContent = 'center';
+}
+
+function dnLaunchConfetti() {
+    const container = document.getElementById('dnConfetti');
+    container.innerHTML = '';
+    const colors = ['#a78bfa','#34d399','#fbbf24','#f87171','#60a5fa','#f9a8d4'];
+    for (let i = 0; i < 40; i++) {
+        const dot = document.createElement('div');
+        const size = Math.random() * 8 + 4;
+        dot.style.cssText = `position:absolute;width:${size}px;height:${size}px;border-radius:${Math.random()>0.5?'50%':'2px'};background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}%;top:-10px;opacity:${Math.random()*0.8+0.2};animation:dnFall ${Math.random()*2+1.5}s linear ${Math.random()*1}s infinite;`;
+        container.appendChild(dot);
+    }
+}
 
 // ============================================================
 // GAME 4: TIC-TAC-TOE vs AI

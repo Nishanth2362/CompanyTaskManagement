@@ -3302,26 +3302,26 @@
 
                 questions.forEach((qObj, index) => {
                     const card = document.createElement('div');
-                    card.className = 'p-3.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-15 shadow-xs';
+                    card.className = 'p-4 rounded-4 bg-body border border-secondary border-opacity-15 shadow-sm mb-4';
 
                     let optionsHtml = '';
                     qObj.options.forEach((opt, optIndex) => {
                         optionsHtml += `
-                            <div class="form-check p-2.5 rounded-2 bg-body border border-secondary border-opacity-10 mb-2 transition-all">
-                                <input class="form-check-input ms-0 me-2.5" type="radio" name="q_${index}" id="q_${index}_opt_${optIndex}" value="${optIndex}" required />
-                                <label class="form-check-label small text-body fw-medium cursor-pointer w-100" for="q_${index}_opt_${optIndex}">
+                            <label class="d-flex align-items-center gap-3 p-3 rounded-3 bg-body-tertiary border border-secondary border-opacity-15 mb-2.5 transition-all option-choice-card cursor-pointer" for="q_${index}_opt_${optIndex}" style="cursor: pointer; transition: all 0.2s ease;">
+                                <input class="form-check-input flex-shrink-0 m-0 cursor-pointer" type="radio" name="q_${index}" id="q_${index}_opt_${optIndex}" value="${optIndex}" style="width: 1.25em; height: 1.25em; cursor: pointer;" required />
+                                <span class="small text-body fw-medium flex-grow-1" style="line-height: 1.45;">
                                     ${opt}
-                                </label>
-                            </div>
+                                </span>
+                            </label>
                         `;
                     });
 
                     card.innerHTML = `
-                        <div class="d-flex align-items-center gap-2 mb-2.5">
-                            <span class="badge badge-royal-gold rounded-pill px-2.5 py-1 font-monospace">Q${index + 1}</span>
-                            <span class="fw-bold text-body small">${qObj.q}</span>
+                        <div class="d-flex align-items-start gap-2.5 mb-3">
+                            <span class="badge rounded-pill px-3 py-1.5 font-monospace fw-bold flex-shrink-0" style="background: #f59e0b; color: #1e1b4b; font-size: 0.85rem;">Q${index + 1}</span>
+                            <span class="fw-bold text-body" style="font-size: 0.98rem; line-height: 1.5; white-space: pre-line;">${qObj.q}</span>
                         </div>
-                        <div class="options-container ps-1">
+                        <div class="options-container">
                             ${optionsHtml}
                         </div>
                     `;

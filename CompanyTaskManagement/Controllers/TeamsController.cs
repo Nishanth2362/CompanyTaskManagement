@@ -72,7 +72,7 @@ namespace CompanyTaskManagement.Controllers
             var allTasks = teams.SelectMany(t => t.TeamTasks).ToList();
             ViewBag.TotalTasks = allTasks.Count;
             ViewBag.CompletedTasks = allTasks.Count(t => t.Status == TeamTaskStatus.Completed);
-            
+
             var now = DateTime.Now;
             var incompleteTasksList = allTasks.Where(t =>
                 t.Status == TeamTaskStatus.NotCompleted ||
@@ -87,12 +87,18 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN: Create Team
+        // ADMIN / HR: Create Team
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTeam(string name, string? description, int? teamLeaderId)
         {
+            if (!_sessionService.IsAdminOrHr())
+            {
+                TempData["ErrorMessage"] = "Access Denied: Only Admin and HR can create teams.";
+                return RedirectToAction(nameof(Index));
+            }
+
             if (string.IsNullOrWhiteSpace(name))
             {
                 TempData["ErrorMessage"] = "Team name cannot be empty.";
@@ -115,12 +121,18 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN: Assign / Update Team Leader
+        // ADMIN / HR: Assign / Update Team Leader
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignLeader(int teamId, int? teamLeaderId)
         {
+            if (!_sessionService.IsAdminOrHr())
+            {
+                TempData["ErrorMessage"] = "Access Denied: Only Admin and HR can assign team leaders.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var team = await _context.Teams.FindAsync(teamId);
             if (team == null)
             {
@@ -136,12 +148,18 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN: Add Employee to Team
+        // ADMIN / HR: Add Employee to Team
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddTeamMember(int teamId, int employeeId)
         {
+            if (!_sessionService.IsAdminOrHr())
+            {
+                TempData["ErrorMessage"] = "Access Denied: Only Admin and HR can add team members.";
+                return RedirectToAction(nameof(Index), new { selectedTeamId = teamId });
+            }
+
             var team = await _context.Teams.FindAsync(teamId);
             if (team == null)
             {
@@ -171,12 +189,18 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN: Remove Employee from Team
+        // ADMIN / HR: Remove Employee from Team
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveTeamMember(int teamId, int employeeId)
         {
+            if (!_sessionService.IsAdminOrHr())
+            {
+                TempData["ErrorMessage"] = "Access Denied: Only Admin and HR can remove team members.";
+                return RedirectToAction(nameof(Index), new { selectedTeamId = teamId });
+            }
+
             var member = await _context.TeamMembers.FirstOrDefaultAsync(tm => tm.TeamId == teamId && tm.EmployeeId == employeeId);
             if (member != null)
             {
@@ -507,6 +531,12 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            if (teamLeaderId == employeeId)
+            {
+                TempData["ErrorMessage"] = "Team Leaders cannot review or give appreciation to themselves.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var leader = await _context.Employees.FindAsync(teamLeaderId);
             var employee = await _context.Employees.FindAsync(employeeId);
 
@@ -589,12 +619,76 @@ namespace CompanyTaskManagement.Controllers
         }
 
         // =========================================================
-        // ADMIN: Delete Team
+        // TEAM LEADER / ADMIN: Remove Self-Completed Task (No Self Review)
+        // =========================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveSelfCompletedTask(int id)
+        {
+            var completedTask = await _context.TeamTasks.FindAsync(id);
+            if (completedTask != null)
+            {
+                var teamId = completedTask.TeamId;
+                var mainTask = await _context.Tasks.FirstOrDefaultAsync(t => t.TaskName == completedTask.Title);
+                if (mainTask != null)
+                {
+                    mainTask.Status = TaskStatus.Completed;
+                    mainTask.Progress = 100;
+                    mainTask.DelayReason = null;
+                    mainTask.EndDate = DateTime.Now;
+                }
+                else
+                {
+                    var newMainTask = new TaskItem
+                    {
+                        TaskName = completedTask.Title,
+                        Description = completedTask.Description,
+                        Priority = completedTask.Priority,
+                        Status = TaskStatus.Completed,
+                        ProjectId = completedTask.ProjectId,
+                        StartDate = completedTask.StartDate ?? completedTask.CreatedAt,
+                        EndDate = DateTime.Now,
+                        DueDate = completedTask.DueDate ?? completedTask.EndDate,
+                        CreatedAt = completedTask.CreatedAt,
+                        Progress = 100,
+                        DelayReason = null
+                    };
+                    _context.Tasks.Add(newMainTask);
+                    await _context.SaveChangesAsync();
+
+                    if (completedTask.AssignedToEmployeeId > 0)
+                    {
+                        _context.TaskEmployees.Add(new TaskEmployee
+                        {
+                            TaskId = newMainTask.Id,
+                            EmployeeId = completedTask.AssignedToEmployeeId
+                        });
+                    }
+                }
+
+                _context.TeamTasks.Remove(completedTask);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Task '{completedTask.Title}' marked completed and cleared from the board.";
+                return RedirectToAction(nameof(Index), new { selectedTeamId = teamId });
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // =========================================================
+        // ADMIN / HR: Delete Team
         // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteTeam(int id)
         {
+            if (!_sessionService.IsAdminOrHr())
+            {
+                TempData["ErrorMessage"] = "Access Denied: Only Admin and HR can delete teams.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var team = await _context.Teams.FindAsync(id);
             if (team != null)
             {

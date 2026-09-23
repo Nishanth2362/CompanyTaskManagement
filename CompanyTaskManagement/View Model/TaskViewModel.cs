@@ -26,9 +26,11 @@ namespace CompanyTaskManagement.ViewModels
             = new List<SelectListItem>();
 
         [DataType(DataType.DateTime)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-ddTHH:mm}", ApplyFormatInEditMode = true)]
         public DateTime? StartDate { get; set; }
 
         [DataType(DataType.DateTime)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-ddTHH:mm}", ApplyFormatInEditMode = true)]
         public DateTime? EndDate { get; set; }
 
         [DataType(DataType.Date)]

@@ -8,6 +8,7 @@
     var allProjects = ViewBag.AllProjects as List<Project> ?? new List<Project>();
     var allReviews = ViewBag.AllReviews as List<TeamLeaderReview> ?? new List<TeamLeaderReview>();
     var isAdmin = UserSession.IsAdmin();
+    var isAdminOrHr = UserSession.IsAdminOrHr();
     var currentRole = UserSession.GetCurrentRole();
     var currentEmployeeId = UserSession.GetCurrentEmployeeId();
 
@@ -85,10 +86,13 @@
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end d-flex flex-wrap gap-3 justify-content-start justify-content-lg-end">
-                    <button type="button" class="btn btn-warning rounded-pill fw-bold px-4 py-2.5 shadow-sm border-0 text-dark d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); font-size: 0.92rem;" data-bs-toggle="modal" data-bs-target="#createTeamModal">
-                        <i class="bi bi-plus-circle-fill"></i>
-                        <span>Create Team</span>
-                    </button>
+                    @if (isAdminOrHr)
+                    {
+                        <button type="button" class="btn btn-warning rounded-pill fw-bold px-4 py-2.5 shadow-sm border-0 text-dark d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); font-size: 0.92rem;" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                            <i class="bi bi-plus-circle-fill"></i>
+                            <span>Create Team</span>
+                        </button>
+                    }
                     <button type="button" class="btn btn-outline-light rounded-pill fw-bold px-4 py-2.5 d-inline-flex align-items-center justify-content-center gap-2 flex-grow-1 flex-sm-grow-0" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); font-size: 0.92rem; backdrop-filter: blur(10px);" data-bs-toggle="modal" data-bs-target="#addLeaderReviewModal">
                         <i class="bi bi-award-fill text-warning"></i>
                         <span>Give Employee Review</span>
@@ -193,9 +197,12 @@
             <i class="bi bi-people display-1 text-muted opacity-50 d-block mb-3"></i>
             <h4 class="fw-bold text-secondary">No Teams Found</h4>
             <p class="text-muted max-w-md mx-auto">Create the first team in Auxinzio and assign a Team Leader to start managing tasks.</p>
-            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#createTeamModal">
-                <i class="bi bi-plus-lg me-1"></i> Create First Team
-            </button>
+            @if (isAdminOrHr)
+            {
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#createTeamModal">
+                    <i class="bi bi-plus-lg me-1"></i> Create First Team
+                </button>
+            }
         </div>
     }
     else
@@ -222,33 +229,36 @@
                                 <span class="badge rounded-pill fw-bold px-3 d-inline-flex align-items-center gap-1 shadow-sm" style="background: rgba(255,255,255,0.2); color: #ffffff !important; font-size: 0.8rem; letter-spacing: 0.02em; border: 1px solid rgba(255,255,255,0.35); backdrop-filter: blur(4px);">
                                     <i class="bi bi-people-fill"></i> @team.Members.Count @(team.Members.Count == 1 ? "Employee" : "Employees")
                                 </span>
-                                <div class="dropdown">
-                                <button class="btn btn-sm btn-light btn-outline-white rounded-circle shadow-none opacity-75" type="button" data-bs-toggle="dropdown" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3">
-                                        <li>
-                                            <button class="dropdown-item small" type="button" onclick="openAssignLeaderModal(@team.Id, '@team.Name', @(team.TeamLeaderId ?? 0))">
-                                                <i class="bi bi-person-gear text-primary me-2"></i> Allocate Team Leader
-                                            </button>
-                                        </li>
-                                        <li>
-                                            <button class="dropdown-item small" type="button" onclick="openManageMembersModal(@team.Id, '@team.Name')">
-                                                <i class="bi bi-person-plus text-success me-2"></i> Manage Employees
-                                            </button>
-                                        </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form asp-action="DeleteTeam" method="post" onsubmit="return confirm('Are you sure you want to delete team @team.Name?');">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@team.Id" />
-                                                <button type="submit" class="dropdown-item small text-danger">
-                                                    <i class="bi bi-trash me-2"></i> Delete Team
+                                @if (isAdminOrHr)
+                                {
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light btn-outline-white rounded-circle shadow-none opacity-75" type="button" data-bs-toggle="dropdown" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-3">
+                                            <li>
+                                                <button class="dropdown-item small" type="button" onclick="openAssignLeaderModal(@team.Id, '@team.Name', @(team.TeamLeaderId ?? 0))">
+                                                    <i class="bi bi-person-gear text-primary me-2"></i> Allocate Team Leader
                                                 </button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
+                                            </li>
+                                            <li>
+                                                <button class="dropdown-item small" type="button" onclick="openManageMembersModal(@team.Id, '@team.Name')">
+                                                    <i class="bi bi-person-plus text-success me-2"></i> Manage Employees
+                                                </button>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form asp-action="DeleteTeam" method="post" onsubmit="return confirm('Are you sure you want to delete team @team.Name?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@team.Id" />
+                                                    <button type="submit" class="dropdown-item small text-danger">
+                                                        <i class="bi bi-trash me-2"></i> Delete Team
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
                             </div>
                         </div>
 
@@ -278,7 +288,7 @@
                                                 <span class="text-muted fw-normal" style="font-size:0.75rem;">Leader Appreciations: @leaderReviews.Count</span>
                                             </div>
                                             <button class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 mt-1" style="font-size: 0.72rem;" onclick="openReviewLeaderModal(@leader.Id, '@leader.Name')">
-                                                <i class="bi bi-award me-1"></i> Give Review
+                                                <i class="bi bi-award me-1"></i> Review Employees
                                             </button>
                                         }
                                     </div>
@@ -291,9 +301,12 @@
                                     <h6 class="fw-bold mb-0 text-body small text-uppercase tracking-wider">
                                         <i class="bi bi-people-fill text-info me-1.5"></i> Team Members (@team.Members.Count)
                                     </h6>
-                                    <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openManageMembersModal(@team.Id, '@team.Name')">
-                                        <i class="bi bi-person-plus-fill me-1"></i> Manage Members
-                                    </button>
+                                    @if (isAdminOrHr)
+                                    {
+                                        <button class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openManageMembersModal(@team.Id, '@team.Name')">
+                                            <i class="bi bi-person-plus-fill me-1"></i> Manage Members
+                                        </button>
+                                    }
                                 </div>
                                 <div class="d-flex flex-wrap gap-1.5 align-items-center" style="max-height: 100px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin;">
                                     @if (!team.Members.Any())
@@ -447,9 +460,25 @@
                                                         </span>
                                                         @if (isCompleted)
                                                         {
-                                                            <button class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openReviewTaskModal(@(task.AssignedByLeaderId ?? team.TeamLeaderId ?? 0), @task.AssignedToEmployeeId, @task.Id, '@task.Title.Replace("'", "\\'")')">
-                                                                <i class="bi bi-star-fill text-warning me-1"></i> Review &amp; Remove Task
-                                                            </button>
+                                                            var isSelfTask = (team.TeamLeaderId.HasValue && task.AssignedToEmployeeId == team.TeamLeaderId.Value) ||
+                                                                             (task.AssignedByLeaderId.HasValue && task.AssignedToEmployeeId == task.AssignedByLeaderId.Value);
+
+                                                            if (!isSelfTask)
+                                                            {
+                                                                <button class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;" onclick="openReviewTaskModal(@(task.AssignedByLeaderId ?? team.TeamLeaderId ?? 0), @task.AssignedToEmployeeId, @task.Id, '@task.Title.Replace("'", "\\'")')">
+                                                                    <i class="bi bi-star-fill text-warning me-1"></i> Review &amp; Remove Task
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <form asp-action="RemoveSelfCompletedTask" method="post" class="d-inline" onsubmit="return confirm('Complete and remove task \'@task.Title.Replace("'", "\\'")\' from active board?');">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="hidden" name="id" value="@task.Id" />
+                                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-sm" style="font-size: 0.78rem;">
+                                                                        <i class="bi bi-check2-circle me-1"></i> Remove Completed Task
+                                                                    </button>
+                                                                </form>
+                                                            }
                                                         }
                                                         @if (isIncomplete)
                                                         {
@@ -674,44 +703,47 @@
      MODALS
 ============================================================ -->
 
-<!-- 1. Create Team Modal -->
-<div class="modal fade" id="createTeamModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #0284c7, #0369a1);">
-                <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-people-fill me-2"></i> Create New Auxinzio Team</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+@if (isAdminOrHr)
+{
+    <!-- 1. Create Team Modal -->
+    <div class="modal fade" id="createTeamModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #0284c7, #0369a1);">
+                    <h5 class="modal-header-title fw-bold mb-0 text-white"><i class="bi bi-people-fill me-2"></i> Create New Auxinzio Team</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="CreateTeam" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Team Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Frontend Innovators, Backend Architects" required maxlength="150" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Description</label>
+                            <textarea name="description" class="form-control" rows="2" placeholder="Briefly describe the team's mission and scope..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Assign Team Leader</label>
+                            <select name="teamLeaderId" class="form-select">
+                                <option value="">-- Select Team Leader (Optional) --</option>
+                                @foreach (var emp in allEmployees)
+                                {
+                                    <option value="@emp.Id">@emp.Name (@emp.Designation)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4">Create Team</button>
+                    </div>
+                </form>
             </div>
-            <form asp-action="CreateTeam" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Team Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" placeholder="e.g. Frontend Innovators, Backend Architects" required maxlength="150" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Description</label>
-                        <textarea name="description" class="form-control" rows="2" placeholder="Briefly describe the team's mission and scope..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Assign Team Leader</label>
-                        <select name="teamLeaderId" class="form-select">
-                            <option value="">-- Select Team Leader (Optional) --</option>
-                            @foreach (var emp in allEmployees)
-                            {
-                                <option value="@emp.Id">@emp.Name (@emp.Designation)</option>
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 bg-body-tertiary px-4 py-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4">Create Team</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
+}
 
 <!-- 2. Assign Team Leader Modal -->
 <div class="modal fade" id="assignLeaderModal" tabindex="-1" aria-hidden="true">
@@ -928,7 +960,7 @@
             }
             foreach (var m in team.Members)
             {
-                if (m.Employee != null && !leaderMembersDict[leaderId].Any(x => ((dynamic)x).id == m.Employee.Id))
+                if (m.Employee != null && m.Employee.Id != leaderId && !leaderMembersDict[leaderId].Any(x => ((dynamic)x).id == m.Employee.Id))
                 {
                     leaderMembersDict[leaderId].Add(new {
                         id = m.Employee.Id,
@@ -1127,12 +1159,24 @@
             defaultOpt.textContent = '-- Select Team Member / Employee --';
             empSelect.appendChild(defaultOpt);
 
+            let addedCount = 0;
             members.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = `${m.name} (${m.designation} - ${m.department})`;
-                empSelect.appendChild(opt);
+                if (m.id !== selectedLeaderId) {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = `${m.name} (${m.designation} - ${m.department})`;
+                    empSelect.appendChild(opt);
+                    addedCount++;
+                }
             });
+
+            if (addedCount === 0) {
+                empSelect.innerHTML = '';
+                const emptyOpt = document.createElement('option');
+                emptyOpt.value = '';
+                emptyOpt.textContent = '-- No other team members to review --';
+                empSelect.appendChild(emptyOpt);
+            }
         } else {
             empSelect.disabled = false;
             const defaultOpt = document.createElement('option');
@@ -1260,6 +1304,10 @@
     }
 
     function openReviewTaskModal(leaderId, employeeId, taskId, taskTitle) {
+        if (leaderId > 0 && employeeId > 0 && leaderId === employeeId) {
+            alert('Team Leaders cannot review their own tasks.');
+            return;
+        }
         document.getElementById('reviewTaskId').value = taskId;
         const leaderSelect = document.getElementById('reviewLeaderSelect');
         if (leaderId > 0) {

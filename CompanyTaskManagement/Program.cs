@@ -92,6 +92,9 @@ using (var scope = app.Services.CreateScope())
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Employees]') AND name = 'Email')
                 ALTER TABLE [Employees] ADD [Email] NVARCHAR(150) NULL;
 
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Employees]') AND name = 'CompanyName')
+                ALTER TABLE [Employees] ADD [CompanyName] NVARCHAR(100) NULL DEFAULT 'Auxinzio';
+
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Employees]') AND name = 'Designation')
                 ALTER TABLE [Employees] ADD [Designation] NVARCHAR(100) NULL DEFAULT 'Software Engineer';
 
@@ -645,6 +648,7 @@ using (var scope = app.Services.CreateScope())
             UPDATE [Employees] SET [Department] = 'UI / UX Designer' WHERE [Department] IN ('Product & Design', 'Design', 'Product');
             UPDATE [Employees] SET [Department] = 'Tester' WHERE [Department] IN ('Quality Assurance', 'Operations', 'QA');
             UPDATE [Employees] SET [Department] = 'Intern' WHERE [Department] IN ('Internship', 'Interns');
+            UPDATE [Employees] SET [CompanyName] = 'Auxinzio' WHERE [CompanyName] IS NULL OR [CompanyName] = '';
         ";
         context.Database.ExecuteSqlRaw(updateDeptSql);
 

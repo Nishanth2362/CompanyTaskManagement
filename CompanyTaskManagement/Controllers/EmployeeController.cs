@@ -39,9 +39,11 @@ namespace CompanyTaskManagement.Controllers
 
             if (!string.IsNullOrWhiteSpace(department) && department.ToLower() != "all")
             {
-                if (department.Equals("Internship", StringComparison.OrdinalIgnoreCase) || department.Equals("Interns", StringComparison.OrdinalIgnoreCase))
+                if (department.Equals("Intern", StringComparison.OrdinalIgnoreCase) ||
+                    department.Equals("Internship", StringComparison.OrdinalIgnoreCase) ||
+                    department.Equals("Interns", StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(e => (e.Department != null && e.Department.ToLower() == "internship") ||
+                    query = query.Where(e => (e.Department != null && (e.Department.ToLower() == "intern" || e.Department.ToLower() == "internship" || e.Department.ToLower() == "interns")) ||
                                              (e.Designation != null && e.Designation.ToLower().Contains("intern")));
                 }
                 else
@@ -60,11 +62,11 @@ namespace CompanyTaskManagement.Controllers
             ViewBag.BackendCount = allEmployees.Count(e => e.Department == "Backend" || e.Department == "Engineering");
             ViewBag.DesignCount = allEmployees.Count(e => e.Department == "UI / UX Designer" || e.Department == "Product & Design");
             ViewBag.TesterCount = allEmployees.Count(e => e.Department == "Tester" || e.Department == "Quality Assurance");
-            ViewBag.InternsCount = allEmployees.Count(e => (e.Department != null && (e.Department.Equals("Intern", StringComparison.OrdinalIgnoreCase) || e.Department.Equals("Internship", StringComparison.OrdinalIgnoreCase))) || (e.Designation != null && e.Designation.ToLower().Contains("intern")));
+            ViewBag.InternsCount = allEmployees.Count(e => (e.Department != null && (e.Department.Equals("Intern", StringComparison.OrdinalIgnoreCase) || e.Department.Equals("Internship", StringComparison.OrdinalIgnoreCase) || e.Department.Equals("Interns", StringComparison.OrdinalIgnoreCase))) || (e.Designation != null && e.Designation.ToLower().Contains("intern")));
 
             // Senior team leads for mentor assignment dropdown
             ViewBag.SeniorMentors = allEmployees
-                .Where(e => e.Department != "Internship" && !(e.Designation != null && e.Designation.ToLower().Contains("intern")))
+                .Where(e => e.Department != "Internship" && e.Department != "Intern" && !(e.Designation != null && e.Designation.ToLower().Contains("intern")))
                 .OrderBy(e => e.Name)
                 .ToList();
 
@@ -120,7 +122,7 @@ namespace CompanyTaskManagement.Controllers
 
             var trimmedName = name.Trim();
             var existingEmp = await _context.Employees.FirstOrDefaultAsync(e => e.Name.ToLower() == trimmedName.ToLower());
-            
+
             if (existingEmp == null)
             {
                 var newEmp = new Employee
@@ -128,7 +130,7 @@ namespace CompanyTaskManagement.Controllers
                     Name = trimmedName,
                     Email = !string.IsNullOrWhiteSpace(email) ? email.Trim() : $"{trimmedName.ToLower().Replace(" ", ".")}@auxinz.io",
                     Phone = phone,
-                    Department = "Internship",
+                    Department = "Intern",
                     Designation = $"Software Intern ({domain})",
                     IsActive = true,
                     CreatedAt = DateTime.Now
@@ -137,7 +139,7 @@ namespace CompanyTaskManagement.Controllers
             }
             else
             {
-                existingEmp.Department = "Internship";
+                existingEmp.Department = "Intern";
                 if (string.IsNullOrWhiteSpace(existingEmp.Designation) || !existingEmp.Designation.Contains("Intern"))
                 {
                     existingEmp.Designation = $"Software Intern ({domain})";
@@ -164,7 +166,7 @@ namespace CompanyTaskManagement.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = $"🎉 Intern '{trimmedName}' added successfully to Directory & Internship Hub by Administrator.";
-            return RedirectToAction(nameof(Index), new { department = "Internship" });
+            return RedirectToAction(nameof(Index), new { department = "Intern" });
         }
 
         // =========================================================
@@ -215,7 +217,27 @@ namespace CompanyTaskManagement.Controllers
                 return View(model);
             }
 
+            if (!string.IsNullOrWhiteSpace(model.Email))
+            {
+                var trimmedEmail = model.Email.Trim();
+                var existingEmail = await _context.Employees.FirstOrDefaultAsync(e => e.Email != null && e.Email.ToLower() == trimmedEmail.ToLower());
+                if (existingEmail != null)
+                {
+                    ModelState.AddModelError("Email", $"An employee with the corporate email '{trimmedEmail}' already exists.");
+                    return View(model);
+                }
+                model.Email = trimmedEmail;
+            }
+
             model.Name = trimmedName;
+            if (string.IsNullOrWhiteSpace(model.CompanyName))
+            {
+                model.CompanyName = "Auxinzio";
+            }
+            else
+            {
+                model.CompanyName = model.CompanyName.Trim();
+            }
             model.CreatedAt = DateTime.Now;
             _context.Employees.Add(model);
             await _context.SaveChangesAsync();
@@ -282,8 +304,24 @@ namespace CompanyTaskManagement.Controllers
                 return View(model);
             }
 
+            if (!string.IsNullOrWhiteSpace(model.Email))
+            {
+                var trimmedEmail = model.Email.Trim();
+                var existingEmail = await _context.Employees.FirstOrDefaultAsync(e => e.Id != id && e.Email != null && e.Email.ToLower() == trimmedEmail.ToLower());
+                if (existingEmail != null)
+                {
+                    ModelState.AddModelError("Email", $"Another employee with the corporate email '{trimmedEmail}' already exists.");
+                    return View(model);
+                }
+                employee.Email = trimmedEmail;
+            }
+            else
+            {
+                employee.Email = null;
+            }
+
             employee.Name = trimmedName;
-            employee.Email = model.Email?.Trim();
+            employee.CompanyName = string.IsNullOrWhiteSpace(model.CompanyName) ? "Auxinzio" : model.CompanyName.Trim();
             employee.Designation = model.Designation?.Trim();
             employee.Department = model.Department?.Trim();
             employee.Phone = model.Phone?.Trim();

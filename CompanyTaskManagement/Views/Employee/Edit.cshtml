@@ -40,87 +40,115 @@
 
                     <!-- Full Name -->
                     <div class="mb-3">
-                        <label asp-for="Name" class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent"><i class="bi bi-person text-primary"></i></span>
-                            <input asp-for="Name" class="form-control" required />
+                        <label asp-for="Name" class="form-label fw-bold">Full Name <span
+                            class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent"><i
+                                    class="bi bi-person text-primary"></i></span>
+                                    <input asp-for="Name" class="form-control" required minlength="2" maxlength="100"
+                                           pattern="^[a-zA-Z\s\.'-]+$"
+                                           title="Full Name can only contain letters, spaces, dots, hyphens, and apostrophes." />
+                                </div>
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Email Address -->
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label fw-bold">Corporate Email Address <span
+                                    class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-transparent"><i
+                                            class="bi bi-envelope text-info"></i></span>
+                                            <input asp-for="Email" type="email" class="form-control font-monospace" required
+                                                   maxlength="150" pattern="^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                                                   title="Please enter a valid email address (e.g., alex.henderson@auxinz.io)" />
+                                        </div>
+                                        <span asp-validation-for="Email" class="text-danger small"></span>
+                                    </div>
+
+                                    <!-- Company Name -->
+                                    <div class="mb-3">
+                                        <label asp-for="CompanyName" class="form-label fw-bold">Company Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-transparent"><i
+                                                class="bi bi-building text-warning"></i></span>
+                                                <input asp-for="CompanyName" class="form-control" list="companySuggestions"
+                                                       placeholder="e.g. Auxinzio, Ameobatronics, Vigo Solutions" />
+                                                <datalist id="companySuggestions">
+                                                    <option value="Auxinzio"></option>
+                                                    <option value="Ameobatronics"></option>
+                                                    <option value="Vigo Solutions"></option>
+                                                </datalist>
+                                            </div>
+                                            <span asp-validation-for="CompanyName" class="text-danger small"></span>
+                                        </div>
+
+                                        <!-- Designation & Department Row -->
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-12 col-md-6">
+                                                <label asp-for="Designation" class="form-label fw-bold">Job Title / Designation</label>
+                                                <input asp-for="Designation" class="form-control" list="designationSuggestions" />
+                                                <datalist id="designationSuggestions">
+                                                    <option value="Lead Full Stack Architect"></option>
+                                                    <option value="Senior Full Stack Engineer"></option>
+                                                    <option value="Frontend Developer"></option>
+                                                    <option value="Backend Specialist"></option>
+                                                    <option value="UI/UX Designer"></option>
+                                                    <option value="QA Automation Lead"></option>
+                                                    <option value="DevOps & Cloud Engineer"></option>
+                                                    <option value="Product Manager"></option>
+                                                    <option value="Scrum Master"></option>
+                                                    <option value="HR Specialist"></option>
+                                                </datalist>
+                                                <span asp-validation-for="Designation" class="text-danger small"></span>
+                                            </div>
+
+                                            <div class="col-12 col-md-6">
+                                                <label asp-for="Department" class="form-label fw-bold">Department</label>
+                                                <select asp-for="Department" class="form-select">
+                                                    <option value="Frontend">Frontend</option>
+                                                    <option value="Backend">Backend</option>
+                                                    <option value="UI / UX Designer">UI / UX Designer</option>
+                                                    <option value="Intern">Intern</option>
+                                                    <option value="Tester">Tester</option>
+                                                </select>
+                                                <span asp-validation-for="Department" class="text-danger small"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Phone Number -->
+                                        <div class="mb-3">
+                                            <label asp-for="Phone" class="form-label fw-bold">Phone Number</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-transparent"><i
+                                                    class="bi bi-telephone text-success"></i></span>
+                                                    <input asp-for="Phone" class="form-control" id="inputEmpPhone"
+                                                           placeholder="e.g., 9876543210" maxlength="10" inputmode="numeric"
+                                                           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" />
+                                                </div>
+                                                <span asp-validation-for="Phone" class="text-danger small"></span>
+                                            </div>
+
+                                            <!-- Active Status Checkbox -->
+                                            <div class="form-check form-switch mb-4">
+                                                <input class="form-check-input" type="checkbox" asp-for="IsActive" id="isActiveSwitch">
+                                                <label class="form-check-label fw-bold" for="isActiveSwitch">Active Team Member Status</label>
+                                            </div>
+
+                                            <!-- Submit Actions -->
+                                            <div class="d-flex align-items-center gap-3 pt-3 border-top">
+                                                <button type="submit" class="btn btn-royal-gold px-4 py-2 d-flex align-items-center gap-2">
+                                                    <i class="bi bi-save me-1"></i>
+                                                    <span>Save Changes</span>
+                                                </button>
+                                                <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <span asp-validation-for="Name" class="text-danger small"></span>
-                    </div>
 
-                    <!-- Email Address -->
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label fw-bold">Corporate Email Address</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent"><i class="bi bi-envelope text-info"></i></span>
-                            <input asp-for="Email" type="email" class="form-control font-monospace" />
-                        </div>
-                        <span asp-validation-for="Email" class="text-danger small"></span>
-                    </div>
-
-                    <!-- Designation & Department Row -->
-                    <div class="row g-3 mb-3">
-                        <div class="col-12 col-md-6">
-                            <label asp-for="Designation" class="form-label fw-bold">Job Title / Designation</label>
-                            <input asp-for="Designation" class="form-control" list="designationSuggestions" />
-                            <datalist id="designationSuggestions">
-                                <option value="Lead Full Stack Architect"></option>
-                                <option value="Senior Full Stack Engineer"></option>
-                                <option value="Frontend Developer"></option>
-                                <option value="Backend Specialist"></option>
-                                <option value="UI/UX Designer"></option>
-                                <option value="QA Automation Lead"></option>
-                                <option value="DevOps & Cloud Engineer"></option>
-                                <option value="Product Manager"></option>
-                                <option value="Scrum Master"></option>
-                                <option value="HR Specialist"></option>
-                            </datalist>
-                            <span asp-validation-for="Designation" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <label asp-for="Department" class="form-label fw-bold">Department</label>
-                            <select asp-for="Department" class="form-select">
-                                <option value="Frontend">Frontend</option>
-                                <option value="Backend">Backend</option>
-                                <option value="UI / UX Designer">UI / UX Designer</option>
-                                <option value="Intern">Intern</option>
-                                <option value="Tester">Tester</option>
-                            </select>
-                            <span asp-validation-for="Department" class="text-danger small"></span>
-                        </div>
-                    </div>
-
-                    <!-- Phone Number -->
-                    <div class="mb-3">
-                        <label asp-for="Phone" class="form-label fw-bold">Phone Number</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent"><i class="bi bi-telephone text-success"></i></span>
-                            <input asp-for="Phone" class="form-control" id="inputEmpPhone" placeholder="e.g., 9876543210" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" />
-                        </div>
-                        <span asp-validation-for="Phone" class="text-danger small"></span>
-                    </div>
-
-                    <!-- Active Status Checkbox -->
-                    <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" asp-for="IsActive" id="isActiveSwitch">
-                        <label class="form-check-label fw-bold" for="isActiveSwitch">Active Team Member Status</label>
-                    </div>
-
-                    <!-- Submit Actions -->
-                    <div class="d-flex align-items-center gap-3 pt-3 border-top">
-                        <button type="submit" class="btn btn-royal-gold px-4 py-2 d-flex align-items-center gap-2">
-                            <i class="bi bi-save me-1"></i>
-                            <span>Save Changes</span>
-                        </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+                        @section Scripts {
+                            <partial name="_ValidationScriptsPartial" />
+                        }
