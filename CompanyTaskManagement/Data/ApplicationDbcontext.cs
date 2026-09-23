@@ -34,11 +34,11 @@ namespace CompanyTaskManagement.Data
         public DbSet<InternshipMember> InternshipMembers { get; set; }
 
         public DbSet<InternYouTubeReference> InternYouTubeReferences { get; set; }
-        
+
         public DbSet<InternTestResult> InternTestResults { get; set; }
 
         public DbSet<Project> Projects { get; set; }
-        
+
         public DbSet<ColleaguePost> ColleaguePosts { get; set; }
         public DbSet<ColleagueFeedback> ColleagueFeedbacks { get; set; }
         public DbSet<ColleaguePostLike> ColleaguePostLikes { get; set; }

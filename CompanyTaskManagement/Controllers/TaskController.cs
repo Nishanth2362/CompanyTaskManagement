@@ -18,8 +18,8 @@ namespace CompanyTaskManagement.Controllers
         private readonly IUserSessionService _sessionService;
 
         public TaskController(
-            ApplicationDbContext context, 
-            IEmailService emailService, 
+            ApplicationDbContext context,
+            IEmailService emailService,
             IWebHostEnvironment environment,
             IUserSessionService sessionService)
         {
@@ -96,9 +96,9 @@ namespace CompanyTaskManagement.Controllers
                 var overdueTeamTasks = await _context.TeamTasks
                     .Include(tt => tt.AssignedToEmployee)
                     .Include(tt => tt.Project)
-                    .Where(tt => tt.Status == TeamTaskStatus.NotCompleted || 
-                                 (tt.Status != TeamTaskStatus.Completed && 
-                                  ((tt.EndDate.HasValue && tt.EndDate.Value <= now) || 
+                    .Where(tt => tt.Status == TeamTaskStatus.NotCompleted ||
+                                 (tt.Status != TeamTaskStatus.Completed &&
+                                  ((tt.EndDate.HasValue && tt.EndDate.Value <= now) ||
                                    (tt.DueDate.HasValue && tt.DueDate.Value <= now))))
                     .ToListAsync();
 
@@ -119,8 +119,8 @@ namespace CompanyTaskManagement.Controllers
                             DueDate = tt.DueDate ?? tt.EndDate,
                             CreatedAt = tt.CreatedAt,
                             Progress = 0,
-                            DelayReason = !string.IsNullOrWhiteSpace(tt.IncompleteReason) 
-                                ? tt.IncompleteReason 
+                            DelayReason = !string.IsNullOrWhiteSpace(tt.IncompleteReason)
+                                ? tt.IncompleteReason
                                 : $"Overdue Team Task (End: {(tt.EndDate.HasValue ? tt.EndDate.Value.ToString("MMM dd, h:mm tt") : "Elapsed")})"
                         };
                         _context.Tasks.Add(matchingTask);
@@ -271,8 +271,8 @@ namespace CompanyTaskManagement.Controllers
 
                 // 2. Process Auto-Rollover for past incomplete tasks
                 var pastIncompleteTasks = await _context.Tasks
-                    .Where(t => t.Status != TaskStatus.Completed && 
-                                ((t.EndDate.HasValue && t.EndDate.Value <= now) || 
+                    .Where(t => t.Status != TaskStatus.Completed &&
+                                ((t.EndDate.HasValue && t.EndDate.Value <= now) ||
                                  (t.DueDate.HasValue && t.DueDate.Value.Date < today)))
                     .ToListAsync();
 
@@ -287,7 +287,7 @@ namespace CompanyTaskManagement.Controllers
                         }
 
                         var empIds = await _context.TaskEmployees.Where(te => te.TaskId == task.Id).Select(te => te.EmployeeId).ToListAsync();
-                        
+
                         _context.TaskActivityLogs.Add(new TaskActivityLog
                         {
                             TaskId = task.Id,
@@ -327,11 +327,14 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            var now = DateTime.Now;
+            var nowTrimmed = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0);
+
             var model = new TaskViewModel
             {
-                StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(7),
-                DueDate = DateTime.Now.AddDays(7),
+                StartDate = nowTrimmed,
+                EndDate = nowTrimmed.AddDays(7),
+                DueDate = nowTrimmed.AddDays(7),
                 Priority = TaskPriority.Medium,
                 Status = TaskStatus.ToDo,
                 Progress = 0
@@ -460,9 +463,9 @@ namespace CompanyTaskManagement.Controllers
                 Priority = task.Priority,
                 Status = task.Status,
                 ProjectId = task.ProjectId,
-                StartDate = task.StartDate ?? task.CreatedAt,
-                EndDate = task.EndDate ?? task.DueDate,
-                DueDate = task.EndDate ?? task.DueDate,
+                StartDate = task.StartDate.HasValue ? new DateTime(task.StartDate.Value.Year, task.StartDate.Value.Month, task.StartDate.Value.Day, task.StartDate.Value.Hour, task.StartDate.Value.Minute, 0) : new DateTime(task.CreatedAt.Year, task.CreatedAt.Month, task.CreatedAt.Day, task.CreatedAt.Hour, task.CreatedAt.Minute, 0),
+                EndDate = (task.EndDate ?? task.DueDate).HasValue ? new DateTime((task.EndDate ?? task.DueDate)!.Value.Year, (task.EndDate ?? task.DueDate)!.Value.Month, (task.EndDate ?? task.DueDate)!.Value.Day, (task.EndDate ?? task.DueDate)!.Value.Hour, (task.EndDate ?? task.DueDate)!.Value.Minute, 0) : (DateTime?)null,
+                DueDate = (task.EndDate ?? task.DueDate).HasValue ? new DateTime((task.EndDate ?? task.DueDate)!.Value.Year, (task.EndDate ?? task.DueDate)!.Value.Month, (task.EndDate ?? task.DueDate)!.Value.Day, (task.EndDate ?? task.DueDate)!.Value.Hour, (task.EndDate ?? task.DueDate)!.Value.Minute, 0) : (DateTime?)null,
                 Progress = task.Progress,
                 DelayReason = task.DelayReason,
                 ErrorDetails = task.ErrorDetails,
@@ -669,12 +672,13 @@ namespace CompanyTaskManagement.Controllers
 
             await RecordTaskActivityLogsAsync(task.Id, task.TaskName, empIds, $"Status Changed to {status}", oldStatusStr, status.ToString(), task.Progress, task.DelayReason, task.ErrorDetails, task.ErrorScreenshotPath);
 
-            return Json(new { 
-                success = true, 
-                message = $"Status updated to {status}", 
-                taskId = task.Id, 
-                newStatus = task.Status.ToString(), 
-                newProgress = task.Progress 
+            return Json(new
+            {
+                success = true,
+                message = $"Status updated to {status}",
+                taskId = task.Id,
+                newStatus = task.Status.ToString(),
+                newProgress = task.Progress
             });
         }
 
@@ -706,8 +710,9 @@ namespace CompanyTaskManagement.Controllers
 
             await RecordTaskActivityLogsAsync(task.Id, task.TaskName, empIds, "Project Delay / Error Logged", task.Status.ToString(), task.Status.ToString(), task.Progress, task.DelayReason, task.ErrorDetails, task.ErrorScreenshotPath);
 
-            return Json(new { 
-                success = true, 
+            return Json(new
+            {
+                success = true,
                 message = "Error report and screenshot saved successfully.",
                 screenshotPath = task.ErrorScreenshotPath,
                 delayReason = task.DelayReason,
@@ -874,8 +879,8 @@ namespace CompanyTaskManagement.Controllers
                 return Json(new { success = true, id = existing.Id, name = existing.Name, isExisting = true });
             }
 
-            var employee = new Employee 
-            { 
+            var employee = new Employee
+            {
                 Name = trimmedName,
                 Designation = "Software Engineer",
                 Department = "Engineering",
@@ -951,9 +956,9 @@ namespace CompanyTaskManagement.Controllers
             var overdueTasks = await _context.Tasks
                 .Include(t => t.TaskCompanies).ThenInclude(tc => tc.Company)
                 .Include(t => t.TaskEmployees).ThenInclude(te => te.Employee)
-                .Where(t => t.Status != TaskStatus.Completed && 
-                            ((t.EndDate.HasValue && t.EndDate.Value <= now) || 
-                             (t.DueDate.HasValue && (t.DueDate.Value <= now || t.DueDate.Value.Date < today)) || 
+                .Where(t => t.Status != TaskStatus.Completed &&
+                            ((t.EndDate.HasValue && t.EndDate.Value <= now) ||
+                             (t.DueDate.HasValue && (t.DueDate.Value <= now || t.DueDate.Value.Date < today)) ||
                              !string.IsNullOrEmpty(t.DelayReason)))
                 .AsNoTracking()
                 .Select(t => new
@@ -983,9 +988,9 @@ namespace CompanyTaskManagement.Controllers
             var overdueTasks = await _context.Tasks
                 .Include(t => t.TaskCompanies).ThenInclude(tc => tc.Company)
                 .Include(t => t.TaskEmployees).ThenInclude(te => te.Employee)
-                .Where(t => t.Status != TaskStatus.Completed && 
-                            ((t.EndDate.HasValue && t.EndDate.Value <= now) || 
-                             (t.DueDate.HasValue && (t.DueDate.Value <= now || t.DueDate.Value.Date < today)) || 
+                .Where(t => t.Status != TaskStatus.Completed &&
+                            ((t.EndDate.HasValue && t.EndDate.Value <= now) ||
+                             (t.DueDate.HasValue && (t.DueDate.Value <= now || t.DueDate.Value.Date < today)) ||
                              !string.IsNullOrEmpty(t.DelayReason)))
                 .ToListAsync();
 
@@ -997,10 +1002,11 @@ namespace CompanyTaskManagement.Controllers
             var sent = await _emailService.SendOverdueTasksNotificationToHrAsync(overdueTasks, toEmail, ccEmail, bccEmail);
             if (sent)
             {
-                return Json(new { 
-                    success = true, 
-                    count = overdueTasks.Count, 
-                    message = $"HR email notification sent successfully for {overdueTasks.Count} uncompleted task(s)." 
+                return Json(new
+                {
+                    success = true,
+                    count = overdueTasks.Count,
+                    message = $"HR email notification sent successfully for {overdueTasks.Count} uncompleted task(s)."
                 });
             }
 
@@ -1116,7 +1122,7 @@ namespace CompanyTaskManagement.Controllers
                 var assignedTasks = emp.TaskEmployees.Select(te => te.Task).Where(t => t != null).ToList();
                 int totalAssigned = assignedTasks.Count;
                 int completedCount = assignedTasks.Count(t => t.Status == TaskStatus.Completed);
-                
+
                 // Perfect Tasks: Completed, 100% progress, and no reported delay reason
                 var perfectTasks = assignedTasks
                     .Where(t => t.Status == TaskStatus.Completed && t.Progress >= 100 && string.IsNullOrWhiteSpace(t.DelayReason))
@@ -1419,9 +1425,9 @@ namespace CompanyTaskManagement.Controllers
             else if (filter == "overdue")
             {
                 var now = DateTime.Now;
-                query = query.Where(t => t.Status != TaskStatus.Completed && 
-                                         ((t.EndDate.HasValue && t.EndDate.Value <= now) || 
-                                          (t.DueDate.HasValue && (t.DueDate.Value <= now || t.DueDate.Value.Date < today)) || 
+                query = query.Where(t => t.Status != TaskStatus.Completed &&
+                                         ((t.EndDate.HasValue && t.EndDate.Value <= now) ||
+                                          (t.DueDate.HasValue && (t.DueDate.Value <= now || t.DueDate.Value.Date < today)) ||
                                           !string.IsNullOrEmpty(t.DelayReason)));
             }
             else if (filter == "completed")

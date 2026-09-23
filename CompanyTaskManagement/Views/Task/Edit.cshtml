@@ -9,7 +9,8 @@
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb small">
         <li class="breadcrumb-item"><a asp-action="Index"><i class="bi bi-grid-1x2-fill me-1"></i>Tasks</a></li>
-        <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">Task #@Model.Id.ToString("D3")</a></li>
+        <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">Task #@Model.Id.ToString("D3")</a>
+        </li>
         <li class="breadcrumb-item active" aria-current="page">Edit</li>
     </ol>
 </nav>
@@ -19,7 +20,8 @@
     <div class="col-12 col-lg-7">
         <div class="form-shell-card">
             <div class="form-header-banner">
-                <div class="form-header-icon-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <div class="form-header-icon-box"
+                     style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
                     <i class="bi bi-pencil-square"></i>
                 </div>
                 <div>
@@ -27,681 +29,705 @@
                         <h2 class="form-section-title">Edit Task</h2>
                         <span class="badge-task-id">#@Model.Id.ToString("D3")</span>
                     </div>
-                    <p class="text-muted small mb-0">Modify task title, status, priority, due date, companies, and assigned team members.</p>
-                </div>
-            </div>
-
-            <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editTaskForm" class="p-4 p-md-4.5">
-                @Html.AntiForgeryToken()
-
-                <input type="hidden" asp-for="Id" id="taskIdInput" />
-
-                <!-- Project Selection & Task Name Row -->
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-md-5">
-                        <label asp-for="ProjectId" class="form-label-custom">
-                            <span>Associated Project</span>
-                        </label>
-                        <select asp-for="ProjectId" asp-items="Model.Projects" class="form-select form-control-custom">
-                            <option value="">-- General / No Project --</option>
-                        </select>
+                    <p class="text-muted small mb-0">Modify task title, status, priority, due date, companies, and
+                        assigned team members.</p>
                     </div>
-                    <div class="col-12 col-md-7">
-                        <label asp-for="TaskName" class="form-label-custom">
-                            <span>Task Name <span class="text-danger">*</span></span>
-                            <small class="text-muted fw-normal" id="taskNameCount">0/100</small>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-body-tertiary border-subtle">
-                                <i class="bi bi-card-heading text-primary"></i>
-                            </span>
-                            <input asp-for="TaskName"
-                                   id="inputTaskName"
-                                   class="form-control form-control-custom"
-                                   placeholder="Enter task name"
-                                   maxlength="100"
-                                   autocomplete="off" />
+                </div>
+
+                <form asp-action="Edit" method="post" enctype="multipart/form-data" id="editTaskForm" class="p-4 p-md-4.5">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" asp-for="Id" id="taskIdInput" />
+
+                    <!-- Project Selection & Task Name Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-5">
+                            <label asp-for="ProjectId" class="form-label-custom">
+                                <span>Associated Project</span>
+                            </label>
+                            <select asp-for="ProjectId" asp-items="Model.Projects" class="form-select form-control-custom">
+                                <option value="">-- General / No Project --</option>
+                            </select>
                         </div>
-                        <span asp-validation-for="TaskName" class="text-danger small mt-1 d-block"></span>
-                    </div>
-                </div>
-
-                <!-- Priority & Status Row -->
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-md-6">
-                        <label asp-for="Priority" class="form-label-custom">
-                            <span>Priority</span>
-                        </label>
-                        <select asp-for="Priority" asp-items="Model.PriorityList" id="selectPriority" class="form-select form-control-custom">
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="Status" class="form-label-custom">
-                            <span>Status</span>
-                        </label>
-                        <select asp-for="Status" asp-items="Model.StatusList" id="selectStatus" class="form-select form-control-custom">
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Start Date/Time & End Date/Time (Deadline) Row -->
-                <div class="row g-3 mb-3">
-                    <div class="col-12 col-md-6">
-                        <label asp-for="StartDate" class="form-label-custom">
-                            <span><i class="bi bi-clock text-success me-1"></i>Task Start Time</span>
-                        </label>
-                        <input asp-for="StartDate" type="datetime-local" id="inputStartDate" class="form-control form-control-custom" />
-                        <span asp-validation-for="StartDate" class="text-danger small mt-1 d-block"></span>
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                        <label asp-for="EndDate" class="form-label-custom">
-                            <span><i class="bi bi-clock-fill text-danger me-1"></i>Task End Time</span>
-                        </label>
-                        <input asp-for="EndDate" type="datetime-local" id="inputEndDate" class="form-control form-control-custom" />
-                        <span asp-validation-for="EndDate" class="text-danger small mt-1 d-block"></span>
-                    </div>
-                </div>
-
-                <!-- Total Working Duration Banner -->
-                <div class="mb-4 p-2.5 rounded-3 bg-body-tertiary border d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-hourglass-split text-warning fs-5"></i>
-                        <div>
-                            <span class="d-block small fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Calculated Total Working</span>
-                            <span class="small text-muted">Auto-computed duration between Start and End time</span>
-                        </div>
-                    </div>
-                    <span id="calcTotalWorking" class="badge bg-secondary-subtle text-main border font-monospace px-3 py-1.5 fs-6">—</span>
-                </div>
-
-                <!-- Description Field -->
-                <div class="mb-4">
-                    <label asp-for="Description" class="form-label-custom">
-                        <span>Description</span>
-                        <small class="text-muted fw-normal" id="descCharCount">0/500</small>
-                    </label>
-                    <textarea asp-for="Description"
-                              id="inputDescription"
-                              class="form-control form-control-custom"
-                              rows="3"
-                              maxlength="500"
-                              placeholder="Enter task description"></textarea>
-                    <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
-                </div>
-
-                <!-- Project Delay & Error Reporting Card -->
-                <div class="p-3 bg-body-tertiary rounded-3 border border-warning border-opacity-50 mb-4">
-                    <h6 class="fw-bold text-warning d-flex align-items-center gap-2 mb-3">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        <span>Project Delay & Error Reporting</span>
-                    </h6>
-
-                    <!-- Delay Reason -->
-                    <div class="mb-3">
-                        <label asp-for="DelayReason" class="form-label-custom">Why is this project/task delayed?</label>
-                        <input asp-for="DelayReason" class="form-control form-control-custom" placeholder="e.g., Pending API credentials from client team, server outage..." />
-                        <span asp-validation-for="DelayReason" class="text-danger small"></span>
-                    </div>
-
-                    <!-- Error Details -->
-                    <div class="mb-3">
-                        <label asp-for="ErrorDetails" class="form-label-custom">Technical Error / Blocker Details</label>
-                        <textarea asp-for="ErrorDetails" class="form-control form-control-custom" rows="2" placeholder="e.g., Error 500 Connection Timeout on endpoint /api/v1/sync..."></textarea>
-                        <span asp-validation-for="ErrorDetails" class="text-danger small"></span>
-                    </div>
-
-                    <!-- Error Screenshot Upload & Existing Image Display -->
-                    <div>
-                        <label asp-for="ErrorScreenshotFile" class="form-label-custom">Upload / Replace Error Screenshot</label>
-                        <input asp-for="ErrorScreenshotFile" type="file" accept="image/*" class="form-control form-control-custom" id="inputErrorScreenshot" />
-
-                        @if (!string.IsNullOrEmpty(Model.ErrorScreenshotPath))
-                        {
-                            <div class="mt-2 text-center p-2 bg-dark rounded border border-secondary" id="existingScreenshotContainer">
-                                <small class="text-muted d-block mb-1">Current Uploaded Screenshot:</small>
-                                <img src="@Model.ErrorScreenshotPath" alt="Current Error Screenshot" class="img-fluid rounded" style="max-height: 180px;" />
-                            </div>
-                        }
-
-                        <div id="screenshotPreviewContainer" class="mt-2 d-none text-center p-2 bg-dark rounded border border-secondary">
-                            <small class="text-success d-block mb-1">New Selected Screenshot Preview:</small>
-                            <img id="screenshotPreviewImg" src="#" alt="Screenshot Preview" class="img-fluid rounded" style="max-height: 180px;" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Companies Selection -->
-                <div class="mb-4">
-                    <div class="form-label-custom">
-                        <span>Assigned Companies <span class="text-danger">*</span></span>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge badge-royal-gold" id="companySelectCount">0 selected</span>
-                            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-gold" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
-                                <i class="bi bi-plus-circle me-1"></i>Add New
-                            </button>
-                            <span class="text-muted small">|</span>
-                            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-danger" data-bs-toggle="modal" data-bs-target="#removeCompanyModal">
-                                <i class="bi bi-trash me-1"></i>Remove
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Multi-select Helper Toolbar -->
-                    <div class="multiselect-helper-bar">
-                        <input type="text" class="form-control multiselect-filter-input" id="companyFilterInput" placeholder="Quick search company..." />
-                        <div class="d-flex gap-1">
-                            <button type="button" class="multiselect-helper-btn" id="selectAllCompaniesBtn">Select All</button>
-                            <button type="button" class="multiselect-helper-btn" id="clearAllCompaniesBtn">Clear</button>
-                        </div>
-                    </div>
-
-                    <select asp-for="SelectedCompanyIds"
-                            asp-items="Model.Companies"
-                            id="selectCompanies"
-                            class="form-select form-select-custom"
-                            multiple>
-                    </select>
-
-                    <span asp-validation-for="SelectedCompanyIds" class="text-danger small mt-1 d-block"></span>
-                </div>
-
-                <!-- Employees Selection -->
-                <div class="mb-4">
-                    <div class="form-label-custom">
-                        <span>Assigned Team Members <span class="text-danger">*</span></span>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge badge-royal-gold" id="employeeSelectCount">0 selected</span>
-                            @if (UserSession.IsAdmin())
-                            {
-                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-gold" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
-                                    <i class="bi bi-plus-circle me-1"></i>Add New (Admin)
-                                </button>
-                                <span class="text-muted small">|</span>
-                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-danger" data-bs-toggle="modal" data-bs-target="#removeEmployeeModal">
-                                    <i class="bi bi-person-dash me-1"></i>Remove (Admin)
-                                </button>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary-subtle text-muted border rounded-pill small" title="Only Administrator has permission to add/remove employees">
-                                    <i class="bi bi-lock-fill me-1"></i>Admin Adds Talent
+                        <div class="col-12 col-md-7">
+                            <label asp-for="TaskName" class="form-label-custom">
+                                <span>Task Name <span class="text-danger">*</span></span>
+                                <small class="text-muted fw-normal" id="taskNameCount">0/100</small>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-subtle">
+                                    <i class="bi bi-card-heading text-primary"></i>
                                 </span>
-                            }
+                                <input asp-for="TaskName" id="inputTaskName" class="form-control form-control-custom"
+                                       placeholder="Enter task name" maxlength="100" autocomplete="off" />
+                            </div>
+                            <span asp-validation-for="TaskName" class="text-danger small mt-1 d-block"></span>
                         </div>
                     </div>
 
-                    <!-- Multi-select Helper Toolbar -->
-                    <div class="multiselect-helper-bar">
-                        <input type="text" class="form-control multiselect-filter-input" id="employeeFilterInput" placeholder="Quick search employee..." />
-                        <div class="d-flex gap-1">
-                            <button type="button" class="multiselect-helper-btn" id="selectAllEmployeesBtn">Select All</button>
-                            <button type="button" class="multiselect-helper-btn" id="clearAllEmployeesBtn">Clear</button>
+                    <!-- Priority & Status Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="Priority" class="form-label-custom">
+                                <span>Priority</span>
+                            </label>
+                            <select asp-for="Priority" asp-items="Model.PriorityList" id="selectPriority"
+                                    class="form-select form-control-custom">
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="Status" class="form-label-custom">
+                                <span>Status</span>
+                            </label>
+                            <select asp-for="Status" asp-items="Model.StatusList" id="selectStatus"
+                                    class="form-select form-control-custom">
+                            </select>
                         </div>
                     </div>
 
-                    <select asp-for="SelectedEmployeeIds"
-                            asp-items="Model.Employees"
-                            id="selectEmployees"
-                            class="form-select form-select-custom"
-                            multiple>
-                    </select>
+                    <!-- Start Date/Time & End Date/Time (Deadline) Row -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="StartDate" class="form-label-custom">
+                                <span><i class="bi bi-clock text-success me-1"></i>Task Start Time</span>
+                            </label>
+                            <input asp-for="StartDate" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" step="60"
+                                   id="inputStartDate" class="form-control form-control-custom" />
+                            <span asp-validation-for="StartDate" class="text-danger small mt-1 d-block"></span>
+                        </div>
 
-                    <span asp-validation-for="SelectedEmployeeIds" class="text-danger small mt-1 d-block"></span>
-                </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="EndDate" class="form-label-custom">
+                                <span><i class="bi bi-clock-fill text-danger me-1"></i>Task End Time</span>
+                            </label>
+                            <input asp-for="EndDate" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" step="60"
+                                   id="inputEndDate" class="form-control form-control-custom" />
+                            <span asp-validation-for="EndDate" class="text-danger small mt-1 d-block"></span>
+                        </div>
+                    </div>
 
-                <!-- Action Buttons -->
-                <div class="d-flex align-items-center gap-2 pt-3 border-top mt-4">
-                    <button type="submit" class="btn btn-warning px-4 py-2 d-flex align-items-center gap-2 fw-semibold">
-                        <i class="bi bi-check2-circle fs-5"></i>
-                        <span>Save Changes</span>
-                    </button>
-                    <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
-                        <i class="bi bi-x-lg me-1"></i> Cancel
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
+                    <!-- Total Working Duration Banner -->
+                    <div
+                        class="mb-4 p-2.5 rounded-3 bg-body-tertiary border d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-hourglass-split text-warning fs-5"></i>
+                            <div>
+                                <span class="d-block small fw-bold text-uppercase text-muted"
+                                      style="font-size: 0.72rem;">Calculated Total Working</span>
+                                <span class="small text-muted">Auto-computed duration between Start and End time</span>
+                            </div>
+                        </div>
+                        <span id="calcTotalWorking"
+                              class="badge bg-secondary-subtle text-main border font-monospace px-3 py-1.5 fs-6">—</span>
+                    </div>
 
-    <!-- Right Column: Interactive Real-Time Preview -->
-    <div class="col-12 col-lg-5">
-        <div class="live-preview-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="preview-badge-live">Updated Preview</span>
-                <div class="d-flex gap-1 align-items-center">
-                    <span class="badge-task-id">#@Model.Id.ToString("D3")</span>
-                    <span class="priority-badge priority-medium" id="previewPriority">Medium</span>
-                </div>
-            </div>
+                    <!-- Description Field -->
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label-custom">
+                            <span>Description</span>
+                            <small class="text-muted fw-normal" id="descCharCount">0/500</small>
+                        </label>
+                        <textarea asp-for="Description" id="inputDescription" class="form-control form-control-custom"
+                                  rows="3" maxlength="500" placeholder="Enter task description"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
+                    </div>
 
-            <h4 class="fw-bold mb-2 text-break" id="previewTaskTitle">@Model.TaskName</h4>
-            <p class="text-muted small mb-3 text-break" id="previewTaskDesc" style="min-height: 40px; white-space: pre-line;">
-                @(string.IsNullOrWhiteSpace(Model.Description) ? "No description provided." : Model.Description)
-            </p>
+                    <!-- Project Delay & Error Reporting Card -->
+                    <div class="p-3 bg-body-tertiary rounded-3 border border-warning border-opacity-50 mb-4">
+                        <h6 class="fw-bold text-warning d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span>Project Delay & Error Reporting</span>
+                        </h6>
 
-            <!-- Status & Progress Preview -->
-            <div class="p-3 bg-body-tertiary rounded-3 mb-3 border border-subtle">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="status-pill status-todo" id="previewStatus">To Do</span>
-                    <small class="due-date-badge" id="previewDueDate"><i class="bi bi-calendar-event me-1"></i> Target Date</small>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <small class="text-muted fw-bold" style="font-size: 0.72rem; text-transform: uppercase;">Completion</small>
-                    <small class="fw-bold text-primary" style="font-size: 0.75rem;" id="previewProgressTxt">@Model.Progress%</small>
-                </div>
-                <div class="task-progress-track">
-                    <div class="task-progress-fill" id="previewProgressFill" style="width: @(Model.Progress)%;"></div>
-                </div>
-            </div>
+                        <!-- Delay Reason -->
+                        <div class="mb-3">
+                            <label asp-for="DelayReason" class="form-label-custom">Why is this project/task delayed?</label>
+                            <input asp-for="DelayReason" class="form-control form-control-custom"
+                                   placeholder="e.g., Pending API credentials from client team, server outage..." />
+                            <span asp-validation-for="DelayReason" class="text-danger small"></span>
+                        </div>
 
-            <div class="mb-3">
-                <label class="small text-muted fw-bold text-uppercase d-block mb-1">
-                    <i class="bi bi-buildings me-1 text-info"></i> Participating Companies
-                </label>
-                <div id="previewCompaniesList" class="d-flex flex-wrap gap-1">
-                    <!-- Synced dynamically -->
-                </div>
-            </div>
+                        <!-- Error Details -->
+                        <div class="mb-3">
+                            <label asp-for="ErrorDetails" class="form-label-custom">Technical Error / Blocker
+                                Details</label>
+                                <textarea asp-for="ErrorDetails" class="form-control form-control-custom" rows="2"
+                                          placeholder="e.g., Error 500 Connection Timeout on endpoint /api/v1/sync..."></textarea>
+                                <span asp-validation-for="ErrorDetails" class="text-danger small"></span>
+                            </div>
 
-            <div class="mb-4">
-                <label class="small text-muted fw-bold text-uppercase d-block mb-1">
-                    <i class="bi bi-people me-1 text-primary"></i> Assigned Team Members
-                </label>
-                <div id="previewEmployeesList" class="d-flex flex-wrap gap-1">
-                    <!-- Synced dynamically -->
-                </div>
-            </div>
+                            <!-- Error Screenshot Upload & Existing Image Display -->
+                            <div>
+                                <label asp-for="ErrorScreenshotFile" class="form-label-custom">Upload / Replace Error
+                                    Screenshot</label>
+                                    <input asp-for="ErrorScreenshotFile" type="file" accept="image/*"
+                                           class="form-control form-control-custom" id="inputErrorScreenshot" />
 
-            <div class="d-flex gap-2">
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary w-100">
-                    <i class="bi bi-info-circle me-1"></i> View Full Details
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+                                    @if (!string.IsNullOrEmpty(Model.ErrorScreenshotPath))
+                                    {
+                                        <div class="mt-2 text-center p-2 bg-dark rounded border border-secondary"
+                                             id="existingScreenshotContainer">
+                                            <small class="text-muted d-block mb-1">Current Uploaded Screenshot:</small>
+                                            <img src="@Model.ErrorScreenshotPath" alt="Current Error Screenshot"
+                                                 class="img-fluid rounded" style="max-height: 180px;" />
+                                        </div>
+                                    }
 
-<!-- Modal: Quick Add Company -->
-<div class="modal fade modal-custom" id="addCompanyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold"><i class="bi bi-buildings text-info me-2"></i>Add New Company</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label-custom text-white mb-2">Company Name</label>
-                <input type="text" id="newCompanyNameInput" class="form-control form-control-custom" placeholder="e.g., Apex Global Corp" autocomplete="off" />
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveNewCompanyBtn">Save Company</button>
-            </div>
-        </div>
-    </div>
-</div>
+                                    <div id="screenshotPreviewContainer"
+                                         class="mt-2 d-none text-center p-2 bg-dark rounded border border-secondary">
+                                        <small class="text-success d-block mb-1">New Selected Screenshot Preview:</small>
+                                        <img id="screenshotPreviewImg" src="#" alt="Screenshot Preview" class="img-fluid rounded"
+                                             style="max-height: 180px;" />
+                                    </div>
+                                </div>
+                            </div>
 
-<!-- Modal: Quick Add Employee -->
-<div class="modal fade modal-custom" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus text-purple me-2"></i>Add Team Member</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label-custom text-white mb-2">Employee Name</label>
-                <input type="text" id="newEmployeeNameInput" class="form-control form-control-custom" placeholder="e.g., Sarah Jenkins" autocomplete="off" />
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveNewEmployeeBtn">Save Team Member</button>
-            </div>
-        </div>
-    </div>
-</div>
+                            <!-- Companies Selection -->
+                            <div class="mb-4">
+                                <div class="form-label-custom">
+                                    <span>Assigned Companies <span class="text-danger">*</span></span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge badge-royal-gold" id="companySelectCount">0 selected</span>
+                                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-gold"
+                                                data-bs-toggle="modal" data-bs-target="#addCompanyModal">
+                                            <i class="bi bi-plus-circle me-1"></i>Add New
+                                        </button>
+                                        <span class="text-muted small">|</span>
+                                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-danger"
+                                                data-bs-toggle="modal" data-bs-target="#removeCompanyModal">
+                                            <i class="bi bi-trash me-1"></i>Remove
+                                        </button>
+                                    </div>
+                                </div>
 
-<!-- Modal: Remove Company -->
-<div class="modal fade modal-custom" id="removeCompanyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-trash me-2"></i>Remove Company</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label-custom mb-2">Select Company to Delete</label>
-                <select id="deleteCompanySelect" class="form-select form-control-custom">
-                </select>
-                <small class="text-muted mt-2 d-block"><i class="bi bi-exclamation-triangle text-warning me-1"></i>This will remove the selected company from the available options list.</small>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteCompanyBtn"><i class="bi bi-trash me-1"></i>Delete Company</button>
-            </div>
-        </div>
-    </div>
-</div>
+                                <!-- Multi-select Helper Toolbar -->
+                                <div class="multiselect-helper-bar">
+                                    <input type="text" class="form-control multiselect-filter-input" id="companyFilterInput"
+                                           placeholder="Quick search company..." />
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="multiselect-helper-btn" id="selectAllCompaniesBtn">Select
+                                            All</button>
+                                            <button type="button" class="multiselect-helper-btn"
+                                                    id="clearAllCompaniesBtn">Clear</button>
+                                        </div>
+                                    </div>
 
-<!-- Modal: Remove Employee -->
-<div class="modal fade modal-custom" id="removeEmployeeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-person-x me-2"></i>Remove Team Member</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label-custom mb-2">Select Team Member to Delete</label>
-                <select id="deleteEmployeeSelect" class="form-select form-control-custom">
-                </select>
-                <small class="text-muted mt-2 d-block"><i class="bi bi-exclamation-triangle text-warning me-1"></i>This will remove the selected employee from the team directory.</small>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteEmployeeBtn"><i class="bi bi-trash me-1"></i>Delete Employee</button>
-            </div>
-        </div>
-    </div>
-</div>
+                                    <select asp-for="SelectedCompanyIds" asp-items="Model.Companies" id="selectCompanies"
+                                            class="form-select form-select-custom" multiple>
+                                    </select>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+                                    <span asp-validation-for="SelectedCompanyIds" class="text-danger small mt-1 d-block"></span>
+                                </div>
 
-    <script>
-        $(document.body).ready(function () {
-            const priorityNames = ["Low", "Medium", "High", "Urgent"];
-            const priorityClasses = ["priority-low", "priority-medium", "priority-high", "priority-urgent"];
-            const statusNames = ["To Do", "In Progress", "In Review", "Completed"];
+                                <!-- Employees Selection -->
+                                <div class="mb-4">
+                                    <div class="form-label-custom">
+                                        <span>Assigned Team Members <span class="text-danger">*</span></span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge badge-royal-gold" id="employeeSelectCount">0 selected</span>
+                                            @if (UserSession.IsAdmin())
+                                            {
+                                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-gold"
+                                                        data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                                                    <i class="bi bi-plus-circle me-1"></i>Add New (Admin)
+                                                </button>
+                                                <span class="text-muted small">|</span>
+                                                <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-danger"
+                                                        data-bs-toggle="modal" data-bs-target="#removeEmployeeModal">
+                                                    <i class="bi bi-person-dash me-1"></i>Remove (Admin)
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary-subtle text-muted border rounded-pill small"
+                                                      title="Only Administrator has permission to add/remove employees">
+                                                    <i class="bi bi-lock-fill me-1"></i>Admin Adds Talent
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
 
-            $('#inputTaskName').on('input', function () {
-                const len = $(this).val().length;
-                $('#taskNameCount').text(len + '/100');
-                $('#previewTaskTitle').text($(this).val().trim() || 'Task Name');
-            });
+                                    <!-- Multi-select Helper Toolbar -->
+                                    <div class="multiselect-helper-bar">
+                                        <input type="text" class="form-control multiselect-filter-input" id="employeeFilterInput"
+                                               placeholder="Quick search employee..." />
+                                        <div class="d-flex gap-1">
+                                            <button type="button" class="multiselect-helper-btn" id="selectAllEmployeesBtn">Select
+                                                All</button>
+                                                <button type="button" class="multiselect-helper-btn"
+                                                        id="clearAllEmployeesBtn">Clear</button>
+                                            </div>
+                                        </div>
 
-            $('#inputDescription').on('input', function () {
-                const len = $(this).val().length;
-                $('#descCharCount').text(len + '/500');
-                $('#previewTaskDesc').text($(this).val().trim() || 'No description provided.');
-            });
+                                        <select asp-for="SelectedEmployeeIds" asp-items="Model.Employees" id="selectEmployees"
+                                                class="form-select form-select-custom" multiple>
+                                        </select>
 
-            $('#selectPriority').on('change', function () {
-                const valInt = parseInt($(this).val());
-                const pName = priorityNames[valInt] || 'Medium';
-                const pClass = priorityClasses[valInt] || 'priority-medium';
-                $('#previewPriority').text(pName).attr('class', 'priority-badge ' + pClass);
-            });
+                                        <span asp-validation-for="SelectedEmployeeIds" class="text-danger small mt-1 d-block"></span>
+                                    </div>
 
-            $('#selectStatus').on('change', function () {
-                const valInt = parseInt($(this).val());
-                const sName = statusNames[valInt] || 'To Do';
-                $('#previewStatus').text(sName);
-                if (valInt === 3) {
-                    $('#inputProgress').val(100).trigger('input');
-                }
-            });
+                                    <!-- Action Buttons -->
+                                    <div class="d-flex align-items-center gap-2 pt-3 border-top mt-4">
+                                        <button type="submit" class="btn btn-warning px-4 py-2 d-flex align-items-center gap-2 fw-semibold">
+                                            <i class="bi bi-check2-circle fs-5"></i>
+                                            <span>Save Changes</span>
+                                        </button>
+                                        <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2">
+                                            <i class="bi bi-x-lg me-1"></i> Cancel
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
 
-            $('#inputDueDate').on('change', function () {
-                const val = $(this).val();
-                if (val) {
-                    const d = new Date(val);
-                    $('#previewDueDate').html('<i class="bi bi-calendar-event me-1"></i> ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
-                } else {
-                    $('#previewDueDate').html('<i class="bi bi-calendar-event me-1"></i> No Due Date');
-                }
-            });
+                        <!-- Right Column: Interactive Real-Time Preview -->
+                        <div class="col-12 col-lg-5">
+                            <div class="live-preview-card">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="preview-badge-live">Updated Preview</span>
+                                    <div class="d-flex gap-1 align-items-center">
+                                        <span class="badge-task-id">#@Model.Id.ToString("D3")</span>
+                                        <span class="priority-badge priority-medium" id="previewPriority">Medium</span>
+                                    </div>
+                                </div>
 
-            $('#inputProgress').on('input', function () {
-                const p = $(this).val();
-                $('#progressVal').text(p);
-                $('#previewProgressTxt').text(p + '%');
-                $('#previewProgressFill').css('width', p + '%');
-            });
+                                <h4 class="fw-bold mb-2 text-break" id="previewTaskTitle">@Model.TaskName</h4>
+                                <p class="text-muted small mb-3 text-break" id="previewTaskDesc"
+                                   style="min-height: 40px; white-space: pre-line;">
+                                    @(string.IsNullOrWhiteSpace(Model.Description) ? "No description provided." : Model.Description)
+                                </p>
 
-            $('#companyFilterInput').on('keyup input', function () {
-                const term = $(this).val().toLowerCase();
-                $('#selectCompanies option').each(function () {
-                    const txt = $(this).text().toLowerCase();
-                    $(this).toggle(txt.includes(term));
-                });
-            });
+                                <!-- Status & Progress Preview -->
+                                <div class="p-3 bg-body-tertiary rounded-3 mb-3 border border-subtle">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="status-pill status-todo" id="previewStatus">To Do</span>
+                                        <small class="due-date-badge" id="previewDueDate"><i class="bi bi-calendar-event me-1"></i> Target
+                                            Date</small>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="text-muted fw-bold"
+                                                   style="font-size: 0.72rem; text-transform: uppercase;">Completion</small>
+                                            <small class="fw-bold text-primary" style="font-size: 0.75rem;"
+                                                   id="previewProgressTxt">@Model.Progress%</small>
+                                        </div>
+                                        <div class="task-progress-track">
+                                            <div class="task-progress-fill" id="previewProgressFill" style="width: @(Model.Progress)%;"></div>
+                                        </div>
+                                    </div>
 
-            $('#employeeFilterInput').on('keyup input', function () {
-                const term = $(this).val().toLowerCase();
-                $('#selectEmployees option').each(function () {
-                    const txt = $(this).text().toLowerCase();
-                    $(this).toggle(txt.includes(term));
-                });
-            });
+                                    <div class="mb-3">
+                                        <label class="small text-muted fw-bold text-uppercase d-block mb-1">
+                                            <i class="bi bi-buildings me-1 text-info"></i> Participating Companies
+                                        </label>
+                                        <div id="previewCompaniesList" class="d-flex flex-wrap gap-1">
+                                            <!-- Synced dynamically -->
+                                        </div>
+                                    </div>
 
-            $('#selectAllCompaniesBtn').on('click', function () {
-                $('#selectCompanies option:visible').prop('selected', true);
-                syncLivePreview();
-            });
+                                    <div class="mb-4">
+                                        <label class="small text-muted fw-bold text-uppercase d-block mb-1">
+                                            <i class="bi bi-people me-1 text-primary"></i> Assigned Team Members
+                                        </label>
+                                        <div id="previewEmployeesList" class="d-flex flex-wrap gap-1">
+                                            <!-- Synced dynamically -->
+                                        </div>
+                                    </div>
 
-            $('#clearAllCompaniesBtn').on('click', function () {
-                $('#selectCompanies option').prop('selected', false);
-                syncLivePreview();
-            });
+                                    <div class="d-flex gap-2">
+                                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary w-100">
+                                            <i class="bi bi-info-circle me-1"></i> View Full Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            $('#selectAllEmployeesBtn').on('click', function () {
-                $('#selectEmployees option:visible').prop('selected', true);
-                syncLivePreview();
-            });
+                        <!-- Modal: Quick Add Company -->
+                        <div class="modal fade modal-custom" id="addCompanyModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title fw-bold"><i class="bi bi-buildings text-info me-2"></i>Add New Company</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <label class="form-label-custom text-white mb-2">Company Name</label>
+                                        <input type="text" id="newCompanyNameInput" class="form-control form-control-custom"
+                                               placeholder="e.g., Apex Global Corp" autocomplete="off" />
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" id="saveNewCompanyBtn">Save Company</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            $('#clearAllEmployeesBtn').on('click', function () {
-                $('#selectEmployees option').prop('selected', false);
-                syncLivePreview();
-            });
+                        <!-- Modal: Quick Add Employee -->
+                        <div class="modal fade modal-custom" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title fw-bold"><i class="bi bi-person-plus text-purple me-2"></i>Add Team Member</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <label class="form-label-custom text-white mb-2">Employee Name</label>
+                                        <input type="text" id="newEmployeeNameInput" class="form-control form-control-custom"
+                                               placeholder="e.g., Sarah Jenkins" autocomplete="off" />
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" id="saveNewEmployeeBtn">Save Team Member</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            $('#selectCompanies, #selectEmployees').on('change', syncLivePreview);
+                        <!-- Modal: Remove Company -->
+                        <div class="modal fade modal-custom" id="removeCompanyModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title fw-bold text-danger"><i class="bi bi-trash me-2"></i>Remove Company</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <label class="form-label-custom mb-2">Select Company to Delete</label>
+                                        <select id="deleteCompanySelect" class="form-select form-control-custom">
+                                        </select>
+                                        <small class="text-muted mt-2 d-block"><i class="bi bi-exclamation-triangle text-warning me-1"></i>This
+                                            will remove the selected company from the available options list.</small>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-danger" id="confirmDeleteCompanyBtn"><i
+                                                class="bi bi-trash me-1"></i>Delete Company</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-            function syncLivePreview() {
-                const selComps = $('#selectCompanies option:selected');
-                $('#companySelectCount').text(selComps.length + ' selected');
-                const compContainer = $('#previewCompaniesList').empty();
+                                <!-- Modal: Remove Employee -->
+                                <div class="modal fade modal-custom" id="removeEmployeeModal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-person-x me-2"></i>Remove Team Member</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <label class="form-label-custom mb-2">Select Team Member to Delete</label>
+                                                <select id="deleteEmployeeSelect" class="form-select form-control-custom">
+                                                </select>
+                                                <small class="text-muted mt-2 d-block"><i class="bi bi-exclamation-triangle text-warning me-1"></i>This
+                                                    will remove the selected employee from the team directory.</small>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="button" class="btn btn-danger" id="confirmDeleteEmployeeBtn"><i
+                                                        class="bi bi-trash me-1"></i>Delete Employee</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                if (selComps.length > 0) {
-                    selComps.each(function () {
-                        compContainer.append(`<span class="company-badge-chip"><i class="bi bi-buildings"></i> ${$(this).text()}</span>`);
-                    });
-                } else {
-                    compContainer.append('<span class="empty-badge-pill">No companies selected</span>');
-                }
+                                        @section Scripts {
+                                            @{
+                                                await Html.RenderPartialAsync("_ValidationScriptsPartial");
+                                            }
 
-                const selEmps = $('#selectEmployees option:selected');
-                $('#employeeSelectCount').text(selEmps.length + ' selected');
-                const empContainer = $('#previewEmployeesList').empty();
+                                            <script>
+                                                $(document.body).ready(function () {
+                                                    const priorityNames = ["Low", "Medium", "High", "Urgent"];
+                                                    const priorityClasses = ["priority-low", "priority-medium", "priority-high", "priority-urgent"];
+                                                    const statusNames = ["To Do", "In Progress", "In Review", "Completed"];
 
-                if (selEmps.length > 0) {
-                    selEmps.each(function () {
-                        const name = $(this).text();
-                        const initial = name ? name.charAt(0) : '?';
-                        empContainer.append(`<span class="employee-badge-chip"><span class="avatar-initial-circle avatar-color-2">${initial}</span> ${name}</span>`);
-                    });
-                } else {
-                    empContainer.append('<span class="empty-badge-pill">No team members selected</span>');
-                }
-            }
+                                                    $('#inputTaskName').on('input', function () {
+                                                        const len = $(this).val().length;
+                                                        $('#taskNameCount').text(len + '/100');
+                                                        $('#previewTaskTitle').text($(this).val().trim() || 'Task Name');
+                                                    });
 
-            $('#saveNewCompanyBtn').on('click', function () {
-                const name = $('#newCompanyNameInput').val().trim();
-                if (!name) return;
+                                                    $('#inputDescription').on('input', function () {
+                                                        const len = $(this).val().length;
+                                                        $('#descCharCount').text(len + '/500');
+                                                        $('#previewTaskDesc').text($(this).val().trim() || 'No description provided.');
+                                                    });
 
-                $.ajax({
-                    url: '/Task/QuickCreateCompany',
-                    type: 'POST',
-                    data: { name: name },
-                    success: function (res) {
-                        if (res.success) {
-                            if (!res.isExisting) {
-                                $('#selectCompanies').append(new Option(res.name, res.id, true, true));
-                            } else {
-                                $(`#selectCompanies option[value="${res.id}"]`).prop('selected', true);
-                            }
-                            syncLivePreview();
-                            $('#newCompanyNameInput').val('');
-                            bootstrap.Modal.getInstance(document.getElementById('addCompanyModal')).hide();
-                        }
-                    }
-                });
-            });
+                                                    $('#selectPriority').on('change', function () {
+                                                        const valInt = parseInt($(this).val());
+                                                        const pName = priorityNames[valInt] || 'Medium';
+                                                        const pClass = priorityClasses[valInt] || 'priority-medium';
+                                                        $('#previewPriority').text(pName).attr('class', 'priority-badge ' + pClass);
+                                                    });
 
-            $('#saveNewEmployeeBtn').on('click', function () {
-                const name = $('#newEmployeeNameInput').val().trim();
-                if (!name) return;
+                                                    $('#selectStatus').on('change', function () {
+                                                        const valInt = parseInt($(this).val());
+                                                        const sName = statusNames[valInt] || 'To Do';
+                                                        $('#previewStatus').text(sName);
+                                                        if (valInt === 3) {
+                                                            $('#inputProgress').val(100).trigger('input');
+                                                        }
+                                                    });
 
-                $.ajax({
-                    url: '/Task/QuickCreateEmployee',
-                    type: 'POST',
-                    data: { name: name },
-                    success: function (res) {
-                        if (res.success) {
-                            if (!res.isExisting) {
-                                $('#selectEmployees').append(new Option(res.name, res.id, true, true));
-                            } else {
-                                $(`#selectEmployees option[value="${res.id}"]`).prop('selected', true);
-                            }
-                            syncLivePreview();
-                            $('#newEmployeeNameInput').val('');
-                            bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal')).hide();
-                        } else {
-                            alert(res.message || 'Error adding employee.');
-                        }
-                    }
-                });
-            });
+                                                    $('#inputDueDate').on('change', function () {
+                                                        const val = $(this).val();
+                                                        if (val) {
+                                                            const d = new Date(val);
+                                                            $('#previewDueDate').html('<i class="bi bi-calendar-event me-1"></i> ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+                                                        } else {
+                                                            $('#previewDueDate').html('<i class="bi bi-calendar-event me-1"></i> No Due Date');
+                                                        }
+                                                    });
 
-            // Populate Remove Company Modal options when shown
-            $('#removeCompanyModal').on('show.bs.modal', function () {
-                const $select = $('#deleteCompanySelect').empty();
-                $('#selectCompanies option').each(function () {
-                    $select.append(new Option($(this).text(), $(this).val()));
-                });
-            });
+                                                    $('#inputProgress').on('input', function () {
+                                                        const p = $(this).val();
+                                                        $('#progressVal').text(p);
+                                                        $('#previewProgressTxt').text(p + '%');
+                                                        $('#previewProgressFill').css('width', p + '%');
+                                                    });
 
-            // Confirm Quick Delete Company
-            $('#confirmDeleteCompanyBtn').on('click', function () {
-                const id = $('#deleteCompanySelect').val();
-                if (!id) return;
-                const companyName = $('#deleteCompanySelect option:selected').text();
+                                                    $('#companyFilterInput').on('keyup input', function () {
+                                                        const term = $(this).val().toLowerCase();
+                                                        $('#selectCompanies option').each(function () {
+                                                            const txt = $(this).text().toLowerCase();
+                                                            $(this).toggle(txt.includes(term));
+                                                        });
+                                                    });
 
-                if (!confirm(`Are you sure you want to remove '${companyName}' from companies?`)) return;
+                                                    $('#employeeFilterInput').on('keyup input', function () {
+                                                        const term = $(this).val().toLowerCase();
+                                                        $('#selectEmployees option').each(function () {
+                                                            const txt = $(this).text().toLowerCase();
+                                                            $(this).toggle(txt.includes(term));
+                                                        });
+                                                    });
 
-                $.ajax({
-                    url: '/Task/QuickDeleteCompany',
-                    type: 'POST',
-                    data: { id: id },
-                    success: function (res) {
-                        if (res.success) {
-                            $(`#selectCompanies option[value="${res.id}"]`).remove();
-                            $(`#deleteCompanySelect option[value="${res.id}"]`).remove();
-                            syncLivePreview();
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('removeCompanyModal'));
-                            if (modal) modal.hide();
-                        } else {
-                            alert(res.message || 'Error removing company.');
-                        }
-                    }
-                });
-            });
+                                                    $('#selectAllCompaniesBtn').on('click', function () {
+                                                        $('#selectCompanies option:visible').prop('selected', true);
+                                                        syncLivePreview();
+                                                    });
 
-            // Populate Remove Employee Modal options when shown
-            $('#removeEmployeeModal').on('show.bs.modal', function () {
-                const $select = $('#deleteEmployeeSelect').empty();
-                $('#selectEmployees option').each(function () {
-                    $select.append(new Option($(this).text(), $(this).val()));
-                });
-            });
+                                                    $('#clearAllCompaniesBtn').on('click', function () {
+                                                        $('#selectCompanies option').prop('selected', false);
+                                                        syncLivePreview();
+                                                    });
 
-            // Confirm Quick Delete Employee
-            $('#confirmDeleteEmployeeBtn').on('click', function () {
-                const id = $('#deleteEmployeeSelect').val();
-                if (!id) return;
-                const empName = $('#deleteEmployeeSelect option:selected').text();
+                                                    $('#selectAllEmployeesBtn').on('click', function () {
+                                                        $('#selectEmployees option:visible').prop('selected', true);
+                                                        syncLivePreview();
+                                                    });
 
-                if (!confirm(`Are you sure you want to remove '${empName}' from team members?`)) return;
+                                                    $('#clearAllEmployeesBtn').on('click', function () {
+                                                        $('#selectEmployees option').prop('selected', false);
+                                                        syncLivePreview();
+                                                    });
 
-                $.ajax({
-                    url: '/Task/QuickDeleteEmployee',
-                    type: 'POST',
-                    data: { id: id },
-                    success: function (res) {
-                        if (res.success) {
-                            $(`#selectEmployees option[value="${res.id}"]`).remove();
-                            $(`#deleteEmployeeSelect option[value="${res.id}"]`).remove();
-                            syncLivePreview();
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('removeEmployeeModal'));
-                            if (modal) modal.hide();
-                        } else {
-                            alert(res.message || 'Error removing employee.');
-                        }
-                    }
-                });
-            });
+                                                    $('#selectCompanies, #selectEmployees').on('change', syncLivePreview);
 
-            // Screenshot Preview
-            $('#inputErrorScreenshot').on('change', function () {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#screenshotPreviewImg').attr('src', e.target.result);
-                        $('#screenshotPreviewContainer').removeClass('d-none');
-                        $('#existingScreenshotContainer').addClass('d-none');
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    $('#screenshotPreviewContainer').addClass('d-none');
-                    $('#existingScreenshotContainer').removeClass('d-none');
-                }
-            });
+                                                    function syncLivePreview() {
+                                                        const selComps = $('#selectCompanies option:selected');
+                                                        $('#companySelectCount').text(selComps.length + ' selected');
+                                                        const compContainer = $('#previewCompaniesList').empty();
 
-            // Total Working Calculation
-            function updateTotalWorking() {
-                const sVal = $('#inputStartDate').val();
-                const eVal = $('#inputEndDate').val();
-                const $badge = $('#calcTotalWorking');
-                if (sVal && eVal) {
-                    const s = new Date(sVal);
-                    const e = new Date(eVal);
-                    let diffMs = e - s;
-                    if (s.toDateString() !== e.toDateString()) {
-                        const sMins = s.getHours() * 60 + s.getMinutes();
-                        const eMins = e.getHours() * 60 + e.getMinutes();
-                        let shiftMins = eMins >= sMins ? (eMins - sMins) : ((24 * 60 - sMins) + eMins);
-                        diffMs = shiftMins * 60 * 1000;
-                    }
-                    if (diffMs > 0) {
-                        const totalMins = Math.floor(diffMs / 60000);
-                        const hrs = Math.floor(totalMins / 60);
-                        const mins = totalMins % 60;
-                        $badge.text(`${hrs}:${mins.toString().padStart(2, '0')}`);
-                        $badge.attr('class', 'badge bg-success-subtle text-success border border-success-subtle font-monospace px-3 py-1.5 fs-6');
-                    } else {
-                        $badge.text('0:00');
-                        $badge.attr('class', 'badge bg-warning-subtle text-warning border border-warning-subtle font-monospace px-3 py-1.5 fs-6');
-                    }
-                } else {
-                    $badge.text('—');
-                    $badge.attr('class', 'badge bg-secondary-subtle text-main border font-monospace px-3 py-1.5 fs-6');
-                }
-            }
+                                                        if (selComps.length > 0) {
+                                                            selComps.each(function () {
+                                                                compContainer.append(`<span class="company-badge-chip"><i class="bi bi-buildings"></i> ${$(this).text()}</span>`);
+                                                            });
+                                                        } else {
+                                                            compContainer.append('<span class="empty-badge-pill">No companies selected</span>');
+                                                        }
 
-            $('#inputStartDate, #inputEndDate').on('input change', updateTotalWorking);
-            updateTotalWorking();
+                                                        const selEmps = $('#selectEmployees option:selected');
+                                                        $('#employeeSelectCount').text(selEmps.length + ' selected');
+                                                        const empContainer = $('#previewEmployeesList').empty();
 
-            $('#inputTaskName').trigger('input');
-            $('#inputDescription').trigger('input');
-            $('#selectPriority').trigger('change');
-            $('#selectStatus').trigger('change');
-            $('#inputDueDate').trigger('change');
-            $('#inputProgress').trigger('input');
-            syncLivePreview();
-        });
-    </script>
-}
+                                                        if (selEmps.length > 0) {
+                                                            selEmps.each(function () {
+                                                                const name = $(this).text();
+                                                                const initial = name ? name.charAt(0) : '?';
+                                                                empContainer.append(`<span class="employee-badge-chip"><span class="avatar-initial-circle avatar-color-2">${initial}</span> ${name}</span>`);
+                                                            });
+                                                        } else {
+                                                            empContainer.append('<span class="empty-badge-pill">No team members selected</span>');
+                                                        }
+                                                    }
+
+                                                    $('#saveNewCompanyBtn').on('click', function () {
+                                                        const name = $('#newCompanyNameInput').val().trim();
+                                                        if (!name) return;
+
+                                                        $.ajax({
+                                                            url: '/Task/QuickCreateCompany',
+                                                            type: 'POST',
+                                                            data: { name: name },
+                                                            success: function (res) {
+                                                                if (res.success) {
+                                                                    if (!res.isExisting) {
+                                                                        $('#selectCompanies').append(new Option(res.name, res.id, true, true));
+                                                                    } else {
+                                                                        $(`#selectCompanies option[value="${res.id}"]`).prop('selected', true);
+                                                                    }
+                                                                    syncLivePreview();
+                                                                    $('#newCompanyNameInput').val('');
+                                                                    bootstrap.Modal.getInstance(document.getElementById('addCompanyModal')).hide();
+                                                                }
+                                                            }
+                                                        });
+                                                    });
+
+                                                    $('#saveNewEmployeeBtn').on('click', function () {
+                                                        const name = $('#newEmployeeNameInput').val().trim();
+                                                        if (!name) return;
+
+                                                        $.ajax({
+                                                            url: '/Task/QuickCreateEmployee',
+                                                            type: 'POST',
+                                                            data: { name: name },
+                                                            success: function (res) {
+                                                                if (res.success) {
+                                                                    if (!res.isExisting) {
+                                                                        $('#selectEmployees').append(new Option(res.name, res.id, true, true));
+                                                                    } else {
+                                                                        $(`#selectEmployees option[value="${res.id}"]`).prop('selected', true);
+                                                                    }
+                                                                    syncLivePreview();
+                                                                    $('#newEmployeeNameInput').val('');
+                                                                    bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal')).hide();
+                                                                } else {
+                                                                    alert(res.message || 'Error adding employee.');
+                                                                }
+                                                            }
+                                                        });
+                                                    });
+
+                                                    // Populate Remove Company Modal options when shown
+                                                    $('#removeCompanyModal').on('show.bs.modal', function () {
+                                                        const $select = $('#deleteCompanySelect').empty();
+                                                        $('#selectCompanies option').each(function () {
+                                                            $select.append(new Option($(this).text(), $(this).val()));
+                                                        });
+                                                    });
+
+                                                    // Confirm Quick Delete Company
+                                                    $('#confirmDeleteCompanyBtn').on('click', function () {
+                                                        const id = $('#deleteCompanySelect').val();
+                                                        if (!id) return;
+                                                        const companyName = $('#deleteCompanySelect option:selected').text();
+
+                                                        if (!confirm(`Are you sure you want to remove '${companyName}' from companies?`)) return;
+
+                                                        $.ajax({
+                                                            url: '/Task/QuickDeleteCompany',
+                                                            type: 'POST',
+                                                            data: { id: id },
+                                                            success: function (res) {
+                                                                if (res.success) {
+                                                                    $(`#selectCompanies option[value="${res.id}"]`).remove();
+                                                                    $(`#deleteCompanySelect option[value="${res.id}"]`).remove();
+                                                                    syncLivePreview();
+                                                                    const modal = bootstrap.Modal.getInstance(document.getElementById('removeCompanyModal'));
+                                                                    if (modal) modal.hide();
+                                                                } else {
+                                                                    alert(res.message || 'Error removing company.');
+                                                                }
+                                                            }
+                                                        });
+                                                    });
+
+                                                    // Populate Remove Employee Modal options when shown
+                                                    $('#removeEmployeeModal').on('show.bs.modal', function () {
+                                                        const $select = $('#deleteEmployeeSelect').empty();
+                                                        $('#selectEmployees option').each(function () {
+                                                            $select.append(new Option($(this).text(), $(this).val()));
+                                                        });
+                                                    });
+
+                                                    // Confirm Quick Delete Employee
+                                                    $('#confirmDeleteEmployeeBtn').on('click', function () {
+                                                        const id = $('#deleteEmployeeSelect').val();
+                                                        if (!id) return;
+                                                        const empName = $('#deleteEmployeeSelect option:selected').text();
+
+                                                        if (!confirm(`Are you sure you want to remove '${empName}' from team members?`)) return;
+
+                                                        $.ajax({
+                                                            url: '/Task/QuickDeleteEmployee',
+                                                            type: 'POST',
+                                                            data: { id: id },
+                                                            success: function (res) {
+                                                                if (res.success) {
+                                                                    $(`#selectEmployees option[value="${res.id}"]`).remove();
+                                                                    $(`#deleteEmployeeSelect option[value="${res.id}"]`).remove();
+                                                                    syncLivePreview();
+                                                                    const modal = bootstrap.Modal.getInstance(document.getElementById('removeEmployeeModal'));
+                                                                    if (modal) modal.hide();
+                                                                } else {
+                                                                    alert(res.message || 'Error removing employee.');
+                                                                }
+                                                            }
+                                                        });
+                                                    });
+
+                                                    // Screenshot Preview
+                                                    $('#inputErrorScreenshot').on('change', function () {
+                                                        const file = this.files[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onload = function (e) {
+                                                                $('#screenshotPreviewImg').attr('src', e.target.result);
+                                                                $('#screenshotPreviewContainer').removeClass('d-none');
+                                                                $('#existingScreenshotContainer').addClass('d-none');
+                                                            }
+                                                            reader.readAsDataURL(file);
+                                                        } else {
+                                                            $('#screenshotPreviewContainer').addClass('d-none');
+                                                            $('#existingScreenshotContainer').removeClass('d-none');
+                                                        }
+                                                    });
+
+                                                    // Total Working Calculation
+                                                    function updateTotalWorking() {
+                                                        const sVal = $('#inputStartDate').val();
+                                                        const eVal = $('#inputEndDate').val();
+                                                        const $badge = $('#calcTotalWorking');
+                                                        if (sVal && eVal) {
+                                                            const s = new Date(sVal);
+                                                            const e = new Date(eVal);
+                                                            let diffMs = e - s;
+                                                            if (s.toDateString() !== e.toDateString()) {
+                                                                const sMins = s.getHours() * 60 + s.getMinutes();
+                                                                const eMins = e.getHours() * 60 + e.getMinutes();
+                                                                let shiftMins = eMins >= sMins ? (eMins - sMins) : ((24 * 60 - sMins) + eMins);
+                                                                diffMs = shiftMins * 60 * 1000;
+                                                            }
+                                                            if (diffMs > 0) {
+                                                                const totalMins = Math.floor(diffMs / 60000);
+                                                                const hrs = Math.floor(totalMins / 60);
+                                                                const mins = totalMins % 60;
+                                                                $badge.text(`${hrs}:${mins.toString().padStart(2, '0')}`);
+                                                                $badge.attr('class', 'badge bg-success-subtle text-success border border-success-subtle font-monospace px-3 py-1.5 fs-6');
+                                                            } else {
+                                                                $badge.text('0:00');
+                                                                $badge.attr('class', 'badge bg-warning-subtle text-warning border border-warning-subtle font-monospace px-3 py-1.5 fs-6');
+                                                            }
+                                                        } else {
+                                                            $badge.text('—');
+                                                            $badge.attr('class', 'badge bg-secondary-subtle text-main border font-monospace px-3 py-1.5 fs-6');
+                                                        }
+                                                    }
+
+                                                    $('#inputStartDate, #inputEndDate').on('input change', updateTotalWorking);
+                                                    updateTotalWorking();
+
+                                                    $('#inputTaskName').trigger('input');
+                                                    $('#inputDescription').trigger('input');
+                                                    $('#selectPriority').trigger('change');
+                                                    $('#selectStatus').trigger('change');
+                                                    $('#inputDueDate').trigger('change');
+                                                    $('#inputProgress').trigger('input');
+                                                    syncLivePreview();
+                                                });
+                                            </script>
+                                        }
