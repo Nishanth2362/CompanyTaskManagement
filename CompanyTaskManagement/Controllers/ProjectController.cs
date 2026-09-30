@@ -1,20 +1,35 @@
-using CompanyTaskManagement.Data;
-using CompanyTaskManagement.Models;
+using System;
+using System.Threading.Tasks;
+using CompanyTaskManagement.Application.Features.Companies.Queries.GetAll;
+using CompanyTaskManagement.Application.Features.Employees.Queries.GetAll;
+using CompanyTaskManagement.Application.Features.Projects.Commands.AddEdit;
+using CompanyTaskManagement.Application.Features.Projects.Commands.Delete;
+using CompanyTaskManagement.Application.Features.Projects.Queries.GetById;
+using CompanyTaskManagement.Application.Features.Projects.Queries.GetDashboard;
+using CompanyTaskManagement.Domain.Entities;
 using CompanyTaskManagement.Services;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CompanyTaskManagement.Controllers
 {
+    [Authorize]
     public class ProjectController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IMediator _mediator;
         private readonly IUserSessionService _sessionService;
+        private readonly ILogger<ProjectController> _logger;
 
-        public ProjectController(ApplicationDbContext context, IUserSessionService sessionService)
+        public ProjectController(
+            IMediator mediator,
+            IUserSessionService sessionService,
+            ILogger<ProjectController> logger)
         {
-            _context = context;
+            _mediator = mediator;
             _sessionService = sessionService;
+            _logger = logger;
         }
 
         // =========================================================
@@ -22,40 +37,23 @@ namespace CompanyTaskManagement.Controllers
         // =========================================================
         public async Task<IActionResult> Index(string status = "all", string search = "")
         {
-            var query = _context.Projects.AsNoTracking().AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
+            var result = await _mediator.Send(new GetProjectDashboardQuery
             {
-                var s = search.Trim().ToLower();
-                query = query.Where(p => p.ProjectName.ToLower().Contains(s) ||
-                                         p.ClientCompany.ToLower().Contains(s) ||
-                                         p.Description.ToLower().Contains(s) ||
-                                         p.LeadManagerName.ToLower().Contains(s));
-            }
+                Status = status,
+                Search = search
+            });
 
-            if (!string.IsNullOrWhiteSpace(status) && status.ToLower() != "all")
-            {
-                query = query.Where(p => p.Status.ToLower() == status.ToLower());
-            }
+            var (projects, metrics) = result.Data;
 
-            var projects = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
-            var allProjects = await _context.Projects.AsNoTracking().ToListAsync();
-
-            var taskCounts = await _context.Tasks
-                .Where(t => t.ProjectId.HasValue)
-                .GroupBy(t => t.ProjectId!.Value)
-                .Select(g => new { ProjectId = g.Key, Total = g.Count(), Completed = g.Count(t => t.Status == Models.TaskStatus.Completed) })
-                .ToDictionaryAsync(g => g.ProjectId, g => (Total: g.Total, Completed: g.Completed));
-            ViewBag.ProjectTaskStats = taskCounts;
-
+            ViewBag.ProjectTaskStats = metrics?.TaskStats;
             ViewBag.SelectedStatus = string.IsNullOrWhiteSpace(status) ? "all" : status.ToLower();
             ViewBag.Search = search;
-            ViewBag.TotalProjects = allProjects.Count;
-            ViewBag.InProgressCount = allProjects.Count(p => p.Status == "In Progress");
-            ViewBag.PlanningCount = allProjects.Count(p => p.Status == "Planning");
-            ViewBag.CompletedCount = allProjects.Count(p => p.Status == "Completed");
-            ViewBag.OnHoldCount = allProjects.Count(p => p.Status == "On Hold");
-            ViewBag.TotalBudget = allProjects.Sum(p => p.Budget ?? 0);
+            ViewBag.TotalProjects = metrics?.TotalProjects ?? 0;
+            ViewBag.InProgressCount = metrics?.InProgressCount ?? 0;
+            ViewBag.PlanningCount = metrics?.PlanningCount ?? 0;
+            ViewBag.CompletedCount = metrics?.CompletedCount ?? 0;
+            ViewBag.OnHoldCount = metrics?.OnHoldCount ?? 0;
+            ViewBag.TotalBudget = metrics?.TotalBudget ?? 0;
 
             ViewBag.IsAdmin = _sessionService.IsAdmin();
             ViewBag.CurrentRole = _sessionService.GetCurrentRole();
@@ -68,14 +66,14 @@ namespace CompanyTaskManagement.Controllers
         // =========================================================
         public async Task<IActionResult> Details(int id)
         {
-            var project = await _context.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
-            if (project == null)
+            var result = await _mediator.Send(new GetProjectByIdQuery(id));
+            if (!result.Succeeded || result.Data == null)
             {
                 return NotFound();
             }
 
             ViewBag.IsAdmin = _sessionService.IsAdmin();
-            return View(project);
+            return View(result.Data);
         }
 
         // =========================================================
@@ -90,8 +88,11 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Companies = await _context.Companies.OrderBy(c => c.Name).ToListAsync();
-            ViewBag.Employees = await _context.Employees.OrderBy(e => e.Name).ToListAsync();
+            var companiesRes = await _mediator.Send(new GetAllCompaniesQuery());
+            var employeesRes = await _mediator.Send(new GetAllEmployeesQuery());
+
+            ViewBag.Companies = companiesRes.Data;
+            ViewBag.Employees = employeesRes.Data;
 
             var model = new Project
             {
@@ -119,17 +120,36 @@ namespace CompanyTaskManagement.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Companies = await _context.Companies.OrderBy(c => c.Name).ToListAsync();
-                ViewBag.Employees = await _context.Employees.OrderBy(e => e.Name).ToListAsync();
+                var companiesRes = await _mediator.Send(new GetAllCompaniesQuery());
+                var employeesRes = await _mediator.Send(new GetAllEmployeesQuery());
+                ViewBag.Companies = companiesRes.Data;
+                ViewBag.Employees = employeesRes.Data;
                 return View(model);
             }
 
-            model.CreatedAt = DateTime.Now;
-            _context.Projects.Add(model);
-            await _context.SaveChangesAsync();
+            var command = new AddEditProjectCommand
+            {
+                Id = 0,
+                ProjectName = model.ProjectName,
+                ClientCompany = model.ClientCompany,
+                Description = model.Description,
+                Status = model.Status,
+                Priority = model.Priority,
+                StartDate = model.StartDate,
+                TargetEndDate = model.TargetEndDate,
+                Budget = model.Budget,
+                LeadManagerName = model.LeadManagerName
+            };
 
-            TempData["Success"] = $"Project \"{model.ProjectName}\" was created successfully by Administrator.";
-            return RedirectToAction(nameof(Index));
+            var result = await _mediator.Send(command);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = $"Project \"{model.ProjectName}\" was created successfully by Administrator.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["Error"] = string.Join("; ", result.Messages);
+            return View(model);
         }
 
         // =========================================================
@@ -144,16 +164,19 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var project = await _context.Projects.FindAsync(id);
-            if (project == null)
+            var result = await _mediator.Send(new GetProjectByIdQuery(id));
+            if (!result.Succeeded || result.Data == null)
             {
                 return NotFound();
             }
 
-            ViewBag.Companies = await _context.Companies.OrderBy(c => c.Name).ToListAsync();
-            ViewBag.Employees = await _context.Employees.OrderBy(e => e.Name).ToListAsync();
+            var companiesRes = await _mediator.Send(new GetAllCompaniesQuery());
+            var employeesRes = await _mediator.Send(new GetAllEmployeesQuery());
 
-            return View(project);
+            ViewBag.Companies = companiesRes.Data;
+            ViewBag.Employees = employeesRes.Data;
+
+            return View(result.Data);
         }
 
         // =========================================================
@@ -176,31 +199,36 @@ namespace CompanyTaskManagement.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Companies = await _context.Companies.OrderBy(c => c.Name).ToListAsync();
-                ViewBag.Employees = await _context.Employees.OrderBy(e => e.Name).ToListAsync();
+                var companiesRes = await _mediator.Send(new GetAllCompaniesQuery());
+                var employeesRes = await _mediator.Send(new GetAllEmployeesQuery());
+                ViewBag.Companies = companiesRes.Data;
+                ViewBag.Employees = employeesRes.Data;
                 return View(model);
             }
 
-            var existing = await _context.Projects.FindAsync(id);
-            if (existing == null)
+            var command = new AddEditProjectCommand
             {
-                return NotFound();
+                Id = id,
+                ProjectName = model.ProjectName,
+                ClientCompany = model.ClientCompany,
+                Description = model.Description,
+                Status = model.Status,
+                Priority = model.Priority,
+                StartDate = model.StartDate,
+                TargetEndDate = model.TargetEndDate,
+                Budget = model.Budget,
+                LeadManagerName = model.LeadManagerName
+            };
+
+            var result = await _mediator.Send(command);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = $"Project \"{model.ProjectName}\" updated successfully.";
+                return RedirectToAction(nameof(Index));
             }
 
-            existing.ProjectName = model.ProjectName;
-            existing.ClientCompany = model.ClientCompany;
-            existing.Description = model.Description;
-            existing.Status = model.Status;
-            existing.Priority = model.Priority;
-            existing.StartDate = model.StartDate;
-            existing.TargetEndDate = model.TargetEndDate;
-            existing.Budget = model.Budget;
-            existing.LeadManagerName = model.LeadManagerName;
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Project \"{existing.ProjectName}\" updated successfully.";
-            return RedirectToAction(nameof(Index));
+            TempData["Error"] = string.Join("; ", result.Messages);
+            return View(model);
         }
 
         // =========================================================
@@ -216,17 +244,16 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var project = await _context.Projects.FindAsync(id);
-            if (project == null)
+            var result = await _mediator.Send(new DeleteProjectCommand(id));
+            if (result.Succeeded)
             {
-                return NotFound();
+                TempData["Success"] = "Project deleted successfully.";
+            }
+            else
+            {
+                TempData["Error"] = string.Join("; ", result.Messages);
             }
 
-            var name = project.ProjectName;
-            _context.Projects.Remove(project);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Project \"{name}\" deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
     }

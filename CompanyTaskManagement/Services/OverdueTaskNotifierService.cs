@@ -1,7 +1,15 @@
-using CompanyTaskManagement.Data;
-using CompanyTaskManagement.Models;
-using Microsoft.EntityFrameworkCore;
-using TaskStatus = CompanyTaskManagement.Models.TaskStatus;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CompanyTaskManagement.Application.Features.Tasks.Queries.GetOverdue;
+using CompanyTaskManagement.Domain.Entities;
+using CompanyTaskManagement.Services;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace CompanyTaskManagement.Services
 {
@@ -60,22 +68,13 @@ namespace CompanyTaskManagement.Services
         private async Task CheckAndNotifyOverdueTasksAsync()
         {
             using var scope = _serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-            var now = DateTime.Now;
-            var today = DateTime.Today;
-            var overdueTasks = await dbContext.Tasks
-                .AsSplitQuery()
-                .Include(t => t.TaskCompanies).ThenInclude(tc => tc.Company)
-                .Include(t => t.TaskEmployees).ThenInclude(te => te.Employee)
-                .Where(t => t.Status != TaskStatus.Completed && 
-                            ((t.EndDate.HasValue && t.EndDate.Value <= now) || 
-                             (t.DueDate.HasValue && (t.DueDate.Value <= now || t.DueDate.Value.Date < today)) || 
-                             !string.IsNullOrEmpty(t.DelayReason)))
-                .ToListAsync();
+            var result = await mediator.Send(new GetOverdueTasksEntitiesQuery());
+            var overdueTasks = result.Data ?? new List<TaskItem>();
 
-            if (overdueTasks.Any())
+            if (overdueTasks.Count > 0)
             {
                 _logger.LogInformation("Found {Count} overdue uncompleted task(s). Sending email notification to HR...", overdueTasks.Count);
                 await emailService.SendOverdueTasksNotificationToHrAsync(overdueTasks);

@@ -1,8 +1,8 @@
-@model IEnumerable<CompanyTaskManagement.Models.HrComplaint>
+@model IEnumerable<CompanyTaskManagement.Domain.Entities.HrComplaint>
 
 @{
     ViewData["Title"] = "HR Confidential Grievance Portal";
-    var complaintList = Model?.ToList() ?? new List<CompanyTaskManagement.Models.HrComplaint>();
+    var complaintList = Model?.ToList() ?? new List<CompanyTaskManagement.Domain.Entities.HrComplaint>();
     var currentFilter = ViewBag.CurrentFilter as string ?? "all";
     var categories = ViewBag.Categories as List<string> ?? new List<string>();
     var selectedCategory = ViewBag.SelectedCategory as string;
@@ -457,3 +457,4 @@ else
         }
     </div>
 }
+

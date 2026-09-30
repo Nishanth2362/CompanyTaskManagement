@@ -1,13 +1,13 @@
-@model CompanyTaskManagement.Models.TaskItem
+@model CompanyTaskManagement.Domain.Entities.TaskItem
 
 @{
     ViewData["Title"] = "Task Details - " + Model.TaskName;
     var compCount = Model.TaskCompanies?.Count ?? 0;
     var empCount = Model.TaskEmployees?.Count ?? 0;
-    var priorityCss = Model.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent ? "priority-urgent" :
-                      Model.Priority == CompanyTaskManagement.Models.TaskPriority.High ? "priority-high" :
-                      Model.Priority == CompanyTaskManagement.Models.TaskPriority.Medium ? "priority-medium" : "priority-low";
-    var isOverdue = Model.Status != CompanyTaskManagement.Models.TaskStatus.Completed && ((Model.EndDate.HasValue && Model.EndDate.Value <= DateTime.Now) || (Model.DueDate.HasValue && (Model.DueDate.Value <= DateTime.Now || Model.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(Model.DelayReason));
+    var priorityCss = Model.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.Urgent ? "priority-urgent" :
+                      Model.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.High ? "priority-high" :
+                      Model.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.Medium ? "priority-medium" : "priority-low";
+    var isOverdue = Model.Status != CompanyTaskManagement.Domain.Enums.TaskStatus.Completed && ((Model.EndDate.HasValue && Model.EndDate.Value <= DateTime.Now) || (Model.DueDate.HasValue && (Model.DueDate.Value <= DateTime.Now || Model.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(Model.DelayReason));
 }
 
 <!-- Breadcrumbs -->
@@ -123,7 +123,7 @@
             <span class="fw-bold text-primary">@Model.Progress% Completed</span>
         </div>
         <div class="task-progress-track" style="height: 9px;">
-            <div class="task-progress-fill @(Model.Status == CompanyTaskManagement.Models.TaskStatus.Completed ? "fill-completed" : "")" style="width: @(Model.Progress)%;"></div>
+            <div class="task-progress-fill @(Model.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.Completed ? "fill-completed" : "")" style="width: @(Model.Progress)%;"></div>
         </div>
     </div>
 </div>

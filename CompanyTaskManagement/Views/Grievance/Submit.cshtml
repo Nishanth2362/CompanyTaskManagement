@@ -1,8 +1,8 @@
-@model CompanyTaskManagement.Models.HrComplaint
+@model CompanyTaskManagement.Domain.Entities.HrComplaint
 
 @{
     ViewData["Title"] = "File Confidential Grievance - HR Portal";
-    var employees = ViewBag.Employees as List<CompanyTaskManagement.Models.Employee> ?? new List<CompanyTaskManagement.Models.Employee>();
+    var employees = ViewBag.Employees as List<CompanyTaskManagement.Domain.Entities.Employee> ?? new List<CompanyTaskManagement.Domain.Entities.Employee>();
 }
 
 <style>
@@ -408,3 +408,4 @@
         });
     </script>
 }
+

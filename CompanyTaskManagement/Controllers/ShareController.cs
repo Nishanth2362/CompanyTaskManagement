@@ -1,19 +1,27 @@
-using CompanyTaskManagement.Data;
-using CompanyTaskManagement.Models;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using CompanyTaskManagement.Application.Features.Share.Commands;
+using CompanyTaskManagement.Application.Features.Share.Queries;
+using CompanyTaskManagement.Domain.Entities;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CompanyTaskManagement.Controllers
 {
+    [Authorize]
     public class ShareController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IMediator _mediator;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWebHostEnvironment _env;
 
-        public ShareController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env)
+        public ShareController(IMediator mediator, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env)
         {
-            _context = context;
+            _mediator = mediator;
             _httpContextAccessor = httpContextAccessor;
             _env = env;
         }
@@ -27,56 +35,34 @@ namespace CompanyTaskManagement.Controllers
             string? category = null,
             string? status = null,
             string? search = null,
-            string sort = "latest")
+            string sort = "latest",
+            int page = 1,
+            int pageSize = 10)
         {
-            var query = _context.ColleaguePosts
-                .Include(p => p.Feedbacks)
-                .AsQueryable();
-
-            // Category filter
-            if (!string.IsNullOrEmpty(category) && int.TryParse(category, out int catVal))
+            var result = await _mediator.Send(new GetShareDashboardQuery
             {
-                query = query.Where(p => (int)p.Category == catVal);
-            }
+                Category = category,
+                Status = status,
+                Search = search,
+                Sort = sort,
+                Page = page,
+                PageSize = pageSize
+            });
 
-            // Status filter
-            if (!string.IsNullOrEmpty(status) && int.TryParse(status, out int statusVal))
-            {
-                query = query.Where(p => (int)p.Status == statusVal);
-            }
+            ViewBag.TotalPosts = result.TotalPosts;
+            ViewBag.TotalFeedbacks = result.TotalFeedbacks;
+            ViewBag.TotalLikes = result.TotalLikes;
 
-            // Search
-            if (!string.IsNullOrEmpty(search))
-            {
-                var term = search.ToLower();
-                query = query.Where(p =>
-                    p.Title.ToLower().Contains(term) ||
-                    p.Description.ToLower().Contains(term) ||
-                    (p.Tags != null && p.Tags.ToLower().Contains(term)) ||
-                    p.AuthorName.ToLower().Contains(term));
-            }
+            ViewBag.CurrentPage = result.CurrentPage;
+            ViewBag.PageSize = result.PageSize;
+            ViewBag.TotalPages = result.TotalPages;
 
-            // Sort
-            query = sort switch
-            {
-                "most_liked" => query.OrderByDescending(p => p.LikesCount).ThenByDescending(p => p.CreatedAt),
-                "most_feedback" => query.OrderByDescending(p => p.Feedbacks.Count).ThenByDescending(p => p.CreatedAt),
-                _ => query.OrderByDescending(p => p.IsPinned).ThenByDescending(p => p.CreatedAt)
-            };
+            ViewBag.SelectedCategory = result.SelectedCategory;
+            ViewBag.SelectedStatus = result.SelectedStatus;
+            ViewBag.Search = result.Search;
+            ViewBag.Sort = result.Sort;
 
-            var posts = await query.ToListAsync();
-
-            // Stats for hero
-            ViewBag.TotalPosts = await _context.ColleaguePosts.CountAsync();
-            ViewBag.TotalFeedbacks = await _context.ColleagueFeedbacks.CountAsync();
-            ViewBag.TotalLikes = await _context.ColleaguePosts.SumAsync(p => (int?)p.LikesCount) ?? 0;
-
-            ViewBag.SelectedCategory = category;
-            ViewBag.SelectedStatus = status;
-            ViewBag.Search = search;
-            ViewBag.Sort = sort;
-
-            return View(posts);
+            return View(result.Posts);
         }
 
         // =========================================================
@@ -93,14 +79,28 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            post.CreatedAt = DateTime.UtcNow;
-            post.Status = PostStatus.SeekingFeedback;
-            post.LikesCount = 0;
+            var result = await _mediator.Send(new CreateColleaguePostCommand
+            {
+                Title = post.Title,
+                Description = post.Description,
+                LiveUrl = post.LiveUrl,
+                RepositoryUrl = post.RepositoryUrl,
+                Category = post.Category,
+                AuthorName = post.AuthorName,
+                AuthorEmail = post.AuthorEmail,
+                AuthorDepartment = post.AuthorDepartment,
+                Tags = post.Tags
+            });
 
-            _context.ColleaguePosts.Add(post);
-            await _context.SaveChangesAsync();
+            if (result.Succeeded)
+            {
+                TempData["Success"] = result.Messages.Count > 0 ? result.Messages[0] : "Your post has been shared!";
+            }
+            else
+            {
+                TempData["Error"] = string.Join("; ", result.Messages);
+            }
 
-            TempData["Success"] = $"✅ Your post \"{post.Title}\" has been shared with your colleagues!";
             return RedirectToAction(nameof(Index));
         }
 
@@ -116,9 +116,6 @@ namespace CompanyTaskManagement.Controllers
                 return Json(new { success = false, message = "Invalid feedback data." });
             }
 
-            var post = await _context.ColleaguePosts.FindAsync(req.PostId);
-            if (post == null) return Json(new { success = false, message = "Post not found." });
-
             string? screenshotPath = null;
             if (req.Screenshot != null && req.Screenshot.Length > 0)
             {
@@ -133,37 +130,37 @@ namespace CompanyTaskManagement.Controllers
                 screenshotPath = "/uploads/feedbacks/" + uniqueFileName;
             }
 
-            var feedback = new ColleagueFeedback
+            var result = await _mediator.Send(new AddFeedbackCommand
             {
                 PostId = req.PostId,
-                ColleagueName = req.ColleagueName.Trim(),
-                ColleagueEmail = req.ColleagueEmail?.Trim(),
-                ColleagueRole = req.ColleagueRole?.Trim() ?? "Team Member",
-                Sentiment = (FeedbackSentiment)req.Sentiment,
-                Rating = Math.Clamp(req.Rating, 1, 5),
-                Comment = req.Comment.Trim(),
-                ScreenshotPath = screenshotPath,
-                CreatedAt = DateTime.UtcNow
-            };
+                ColleagueName = req.ColleagueName,
+                ColleagueEmail = req.ColleagueEmail,
+                ColleagueRole = req.ColleagueRole,
+                Sentiment = req.Sentiment,
+                Rating = req.Rating,
+                Comment = req.Comment,
+                ScreenshotPath = screenshotPath
+            });
 
-            _context.ColleagueFeedbacks.Add(feedback);
-            await _context.SaveChangesAsync();
+            if (!result.Succeeded)
+            {
+                return Json(new { success = false, message = string.Join("; ", result.Messages) });
+            }
 
-            var feedbackCount = await _context.ColleagueFeedbacks.CountAsync(f => f.PostId == req.PostId);
-
+            var d = result.Data;
             return Json(new
             {
                 success = true,
                 message = "Your feedback has been submitted!",
-                feedbackCount,
-                sentimentLabel = GetSentimentLabel(feedback.Sentiment),
-                authorInitials = feedback.ColleagueName.Length > 0 ? feedback.ColleagueName[0].ToString().ToUpper() : "?",
-                authorName = feedback.ColleagueName,
-                authorRole = feedback.ColleagueRole,
-                rating = feedback.Rating,
-                comment = feedback.Comment,
-                screenshotPath = feedback.ScreenshotPath,
-                createdAt = "Just now"
+                feedbackCount = d.FeedbackCount,
+                sentimentLabel = d.SentimentLabel,
+                authorInitials = d.AuthorInitials,
+                authorName = d.AuthorName,
+                authorRole = d.AuthorRole,
+                rating = d.Rating,
+                comment = d.Comment,
+                screenshotPath = d.ScreenshotPath,
+                createdAt = d.CreatedAt
             });
         }
 
@@ -177,36 +174,17 @@ namespace CompanyTaskManagement.Controllers
             if (req == null || req.PostId <= 0)
                 return Json(new { success = false });
 
-            var post = await _context.ColleaguePosts.FindAsync(req.PostId);
-            if (post == null) return Json(new { success = false });
-
             var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-            var userIdentifier = ip;
 
-            var existingLike = await _context.ColleaguePostLikes
-                .FirstOrDefaultAsync(l => l.PostId == req.PostId && l.UserIdentifier == userIdentifier);
-
-            bool liked;
-            if (existingLike != null)
+            var result = await _mediator.Send(new TogglePostLikeCommand
             {
-                _context.ColleaguePostLikes.Remove(existingLike);
-                post.LikesCount = Math.Max(0, post.LikesCount - 1);
-                liked = false;
-            }
-            else
-            {
-                _context.ColleaguePostLikes.Add(new ColleaguePostLike
-                {
-                    PostId = req.PostId,
-                    UserIdentifier = userIdentifier,
-                    LikedAt = DateTime.UtcNow
-                });
-                post.LikesCount++;
-                liked = true;
-            }
+                PostId = req.PostId,
+                UserIdentifier = ip
+            });
 
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, liked, likesCount = post.LikesCount });
+            if (!result.Succeeded) return Json(new { success = false });
+
+            return Json(new { success = true, liked = result.Data.Liked, likesCount = result.Data.LikesCount });
         }
 
         // =========================================================
@@ -216,18 +194,21 @@ namespace CompanyTaskManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int postId, PostStatus newStatus)
         {
-            var post = await _context.ColleaguePosts.FindAsync(postId);
-            if (post == null)
+            var result = await _mediator.Send(new UpdatePostStatusCommand
             {
-                TempData["Error"] = "Post not found.";
-                return RedirectToAction(nameof(Index));
+                PostId = postId,
+                NewStatus = newStatus
+            });
+
+            if (result.Succeeded)
+            {
+                TempData["Success"] = result.Messages.Count > 0 ? result.Messages[0] : "Status updated.";
+            }
+            else
+            {
+                TempData["Error"] = string.Join("; ", result.Messages);
             }
 
-            post.Status = newStatus;
-            post.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Post status updated to \"{newStatus}\".";
             return RedirectToAction(nameof(Index));
         }
 
@@ -238,17 +219,17 @@ namespace CompanyTaskManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int postId)
         {
-            var post = await _context.ColleaguePosts.FindAsync(postId);
-            if (post == null)
+            var result = await _mediator.Send(new DeletePostCommand(postId));
+
+            if (result.Succeeded)
             {
-                TempData["Error"] = "Post not found.";
-                return RedirectToAction(nameof(Index));
+                TempData["Success"] = result.Messages.Count > 0 ? result.Messages[0] : "Post removed.";
+            }
+            else
+            {
+                TempData["Error"] = string.Join("; ", result.Messages);
             }
 
-            _context.ColleaguePosts.Remove(post);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Post has been removed.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -259,24 +240,7 @@ namespace CompanyTaskManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetFeedbacks(int postId)
         {
-            var feedbacks = await _context.ColleagueFeedbacks
-                .Where(f => f.PostId == postId)
-                .OrderByDescending(f => f.CreatedAt)
-                .Select(f => new
-                {
-                    f.Id,
-                    f.ColleagueName,
-                    f.ColleagueRole,
-                    f.Rating,
-                    f.Comment,
-                    f.ScreenshotPath,
-                    SentimentLabel = GetSentimentLabel((FeedbackSentiment)f.Sentiment),
-                    SentimentClass = GetSentimentClass((FeedbackSentiment)f.Sentiment),
-                    AuthorInitials = f.ColleagueName.Substring(0, 1).ToUpper(),
-                    CreatedAt = f.CreatedAt.ToString("MMM dd, yyyy")
-                })
-                .ToListAsync();
-
+            var feedbacks = await _mediator.Send(new GetPostFeedbacksQuery(postId));
             return Json(new { success = true, feedbacks });
         }
 
@@ -290,49 +254,23 @@ namespace CompanyTaskManagement.Controllers
             if (req == null || req.PostId <= 0 || string.IsNullOrWhiteSpace(req.ReactorName))
                 return Json(new { success = false, message = "Invalid request." });
 
-            var post = await _context.ColleaguePosts.FindAsync(req.PostId);
-            if (post == null) return Json(new { success = false, message = "Post not found." });
-
             var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var identifier = $"{req.ReactorName.Trim().ToLower()}_{ip}";
 
-            // Remove any existing reaction by this user on this post (one reaction per user)
-            var existing = await _context.ColleagueReactions
-                .FirstOrDefaultAsync(r => r.PostId == req.PostId && r.UserIdentifier == identifier);
-
-            bool toggled = false;
-            if (existing != null && existing.Reaction == (ReactionType)req.ReactionType)
+            var result = await _mediator.Send(new AddReactionCommand
             {
-                // Same reaction → toggle off
-                _context.ColleagueReactions.Remove(existing);
-                toggled = false;
-            }
-            else
-            {
-                if (existing != null)
-                    _context.ColleagueReactions.Remove(existing);
+                PostId = req.PostId,
+                ReactorName = req.ReactorName,
+                ReactionType = req.ReactionType,
+                UserIdentifier = identifier
+            });
 
-                _context.ColleagueReactions.Add(new ColleagueReaction
-                {
-                    PostId = req.PostId,
-                    UserIdentifier = identifier,
-                    ReactorName = req.ReactorName.Trim(),
-                    Reaction = (ReactionType)req.ReactionType,
-                    CreatedAt = DateTime.UtcNow
-                });
-                toggled = true;
+            if (!result.Succeeded)
+            {
+                return Json(new { success = false, message = string.Join("; ", result.Messages) });
             }
 
-            await _context.SaveChangesAsync();
-
-            // Return updated counts for all reaction types
-            var counts = await _context.ColleagueReactions
-                .Where(r => r.PostId == req.PostId)
-                .GroupBy(r => r.Reaction)
-                .Select(g => new { Type = (int)g.Key, Count = g.Count() })
-                .ToListAsync();
-
-            return Json(new { success = true, toggled, counts });
+            return Json(new { success = true, toggled = result.Data.Toggled, counts = result.Data.Counts });
         }
 
         // =========================================================
@@ -345,32 +283,29 @@ namespace CompanyTaskManagement.Controllers
             if (req == null || req.PostId <= 0 || string.IsNullOrWhiteSpace(req.AuthorName) || string.IsNullOrWhiteSpace(req.ReplyText))
                 return Json(new { success = false, message = "Name and reply text are required." });
 
-            var post = await _context.ColleaguePosts.FindAsync(req.PostId);
-            if (post == null) return Json(new { success = false, message = "Post not found." });
-
-            var reply = new ColleagueReply
+            var result = await _mediator.Send(new AddReplyCommand
             {
                 PostId = req.PostId,
-                AuthorName = req.AuthorName.Trim(),
-                AuthorRole = req.AuthorRole?.Trim() ?? "Team Member",
-                ReplyText = req.ReplyText.Trim(),
-                CreatedAt = DateTime.UtcNow
-            };
+                AuthorName = req.AuthorName,
+                AuthorRole = req.AuthorRole,
+                ReplyText = req.ReplyText
+            });
 
-            _context.ColleagueReplies.Add(reply);
-            await _context.SaveChangesAsync();
+            if (!result.Succeeded)
+            {
+                return Json(new { success = false, message = string.Join("; ", result.Messages) });
+            }
 
-            int replyCount = await _context.ColleagueReplies.CountAsync(r => r.PostId == req.PostId);
-
+            var d = result.Data;
             return Json(new
             {
                 success = true,
-                replyCount,
-                authorInitials = reply.AuthorName[0].ToString().ToUpper(),
-                authorName = reply.AuthorName,
-                authorRole = reply.AuthorRole,
-                replyText = reply.ReplyText,
-                createdAt = "Just now"
+                replyCount = d.ReplyCount,
+                authorInitials = d.AuthorInitials,
+                authorName = d.AuthorName,
+                authorRole = d.AuthorRole,
+                replyText = d.ReplyText,
+                createdAt = d.CreatedAt
             });
         }
 
@@ -381,20 +316,7 @@ namespace CompanyTaskManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetReplies(int postId)
         {
-            var replies = await _context.ColleagueReplies
-                .Where(r => r.PostId == postId)
-                .OrderBy(r => r.CreatedAt)
-                .Select(r => new
-                {
-                    r.Id,
-                    r.AuthorName,
-                    r.AuthorRole,
-                    r.ReplyText,
-                    AuthorInitials = r.AuthorName.Substring(0, 1).ToUpper(),
-                    CreatedAt = r.CreatedAt.ToString("MMM dd, hh:mm tt")
-                })
-                .ToListAsync();
-
+            var replies = await _mediator.Send(new GetPostRepliesQuery(postId));
             return Json(new { success = true, replies });
         }
 
@@ -405,37 +327,9 @@ namespace CompanyTaskManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetReactions(int postId)
         {
-            var counts = await _context.ColleagueReactions
-                .Where(r => r.PostId == postId)
-                .GroupBy(r => r.Reaction)
-                .Select(g => new { Type = (int)g.Key, Count = g.Count() })
-                .ToListAsync();
-
+            var counts = await _mediator.Send(new GetPostReactionsQuery(postId));
             return Json(new { success = true, counts });
         }
-
-        // =========================================================
-        // Helpers
-        // =========================================================
-        private static string GetSentimentLabel(FeedbackSentiment s) => s switch
-        {
-            FeedbackSentiment.Impressive => "🌟 Highly Impressive",
-            FeedbackSentiment.Suggestion => "💡 Suggestion",
-            FeedbackSentiment.BugFound => "🐞 Bug Found",
-            FeedbackSentiment.ReadyToShip => "🚀 Ready to Ship",
-            FeedbackSentiment.DesignFeedback => "🎨 Design Feedback",
-            _ => "💬 Feedback"
-        };
-
-        private static string GetSentimentClass(FeedbackSentiment s) => s switch
-        {
-            FeedbackSentiment.Impressive => "bg-warning text-dark",
-            FeedbackSentiment.Suggestion => "bg-info text-dark",
-            FeedbackSentiment.BugFound => "bg-danger text-white",
-            FeedbackSentiment.ReadyToShip => "bg-success text-white",
-            FeedbackSentiment.DesignFeedback => "bg-primary text-white",
-            _ => "bg-secondary text-white"
-        };
     }
 
     // =========================================================

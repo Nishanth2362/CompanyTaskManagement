@@ -1,0 +1,753 @@
+@model CompanyTaskManagement.ViewModels.RegisterViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Create Account — Auxinz.io Tasks";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* ---------- High-End Sky Blue Design System Tokens ---------- */
+        :root {
+            --bg-body: #0284C7;
+            --bg-surface: #0369A1;
+            --bg-card: rgba(10, 25, 47, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.22);
+            --border-hover: rgba(255, 255, 255, 0.6);
+            --brand-primary: #0284C7;
+            --brand-indigo: #0369A1;
+            --brand-cyan: #38BDF8;
+            --brand-violet: #6366F1;
+            --gradient-brand: linear-gradient(135deg, #FFFFFF 0%, #BAE6FD 60%, #E0F2FE 100%);
+            --gradient-button: linear-gradient(135deg, #0284C7 0%, #0369A1 50%, #1D4ED8 100%);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            min-height: 100%;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0369A1 0%, #0284C7 35%, #0EA5E9 70%, #38BDF8 100%);
+            background-attachment: fixed;
+            color: #F8FAFC;
+        }
+
+        /* ====== SPLIT SCREEN CONTAINER ====== */
+        .layout {
+            display: grid;
+            grid-template-columns: 1.1fr 1.1fr;
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Ambient Glow Spheres */
+        .ambient-glow-1 {
+            position: absolute;
+            top: -120px;
+            left: -100px;
+            width: 650px;
+            height: 650px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, transparent 70%);
+            pointer-events: none;
+            filter: blur(40px);
+            z-index: 0;
+        }
+
+        .ambient-glow-2 {
+            position: absolute;
+            bottom: -150px;
+            right: 5%;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(186, 230, 253, 0.28) 0%, transparent 70%);
+            pointer-events: none;
+            filter: blur(50px);
+            z-index: 0;
+        }
+
+        /* ====== LEFT PANEL (HERO + PREVIEW) ====== */
+        .left {
+            position: relative;
+            background: linear-gradient(160deg, rgba(3, 105, 161, 0.35) 0%, rgba(2, 132, 199, 0.08) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 64px 72px;
+            overflow: hidden;
+            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            z-index: 1;
+        }
+
+        .left::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1.2px, transparent 1.2px);
+            background-size: 32px 32px;
+            mask-image: radial-gradient(ellipse 90% 90% at 30% 50%, black 0%, transparent 85%);
+            pointer-events: none;
+        }
+
+        .left-content {
+            position: relative;
+            z-index: 2;
+            max-width: 520px;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 18px 7px 12px;
+            background: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 100px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #FFFFFF;
+            letter-spacing: 0.03em;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 0 10px #FFFFFF;
+            animation: pulse-ring 2s ease infinite;
+        }
+
+        .headline {
+            font-size: clamp(36px, 3.5vw, 50px);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            color: #FFFFFF;
+            text-shadow: 0 2px 14px rgba(3, 105, 161, 0.35);
+            margin-bottom: 18px;
+        }
+
+        .headline span {
+            background: linear-gradient(135deg, #FFFFFF 0%, #BAE6FD 60%, #E0F2FE 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtext {
+            font-size: 15.5px;
+            font-weight: 450;
+            color: rgba(255, 255, 255, 0.92);
+            line-height: 1.65;
+            margin-bottom: 34px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .feature-icon-box {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.20);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 15px;
+            flex-shrink: 0;
+            backdrop-filter: blur(8px);
+        }
+
+        /* ====== RIGHT PANEL (REGISTER CARD) ====== */
+        .right {
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+            padding: 40px 28px;
+            z-index: 1;
+        }
+
+        /* Premium Porcelain Glass Card */
+        .register-card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 540px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 24px;
+            padding: 40px 38px;
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            box-shadow: 0 25px 60px -15px rgba(2, 60, 115, 0.35),
+                        0 10px 25px -5px rgba(0, 0, 0, 0.06),
+                        0 0 0 1px rgba(255, 255, 255, 0.9);
+            animation: floatUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+            margin: auto;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: #FFFFFF !important;
+            box-shadow: 0 8px 20px -4px rgba(2, 132, 199, 0.45);
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .brand-text {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #0F172A;
+            display: flex;
+            align-items: center;
+        }
+
+        .brand-text span.brand-dot-io {
+            color: #0284C7;
+        }
+
+        .brand-tag {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #0284C7;
+            background: #E0F2FE;
+            padding: 2px 9px;
+            border-radius: 6px;
+            margin-left: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .card-title {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: #0F172A;
+            margin-bottom: 6px;
+        }
+
+        .card-subtitle {
+            font-size: 14.5px;
+            color: #64748B;
+            margin-bottom: 24px;
+            font-weight: 450;
+        }
+
+        /* Form elements */
+        .form-label-custom {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #334155;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 7px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94A3B8;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+            transition: color 0.2s ease;
+            z-index: 3;
+            font-size: 15px;
+        }
+
+        .form-control-custom, .form-select-custom {
+            width: 100%;
+            background: #F8FAFC !important;
+            border: 1.5px solid #E2E8F0 !important;
+            border-radius: 12px !important;
+            padding: 12px 14px 12px 42px !important;
+            font-family: inherit !important;
+            font-size: 14px !important;
+            color: #0F172A !important;
+            font-weight: 500 !important;
+            outline: none !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .form-select-custom {
+            padding-right: 36px !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%230284C7' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 14px center !important;
+            background-size: 12px 10px !important;
+            cursor: pointer;
+        }
+
+        .form-select-custom option {
+            background: #FFFFFF !important;
+            color: #0F172A !important;
+        }
+
+        .form-control-custom::placeholder {
+            color: #94A3B8 !important;
+            font-weight: 400;
+        }
+
+        .form-control-custom:focus, .form-select-custom:focus {
+            border-color: #0284C7 !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.14) !important;
+        }
+
+        .input-wrap:focus-within .input-icon {
+            color: #0284C7;
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94A3B8;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.2s;
+            z-index: 3;
+        }
+
+        .toggle-pw:hover {
+            color: #0F172A;
+        }
+
+        .form-check-label {
+            font-size: 13px;
+            color: #475569;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+
+        .form-check-label a {
+            color: #0284C7;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-check-label a:hover {
+            text-decoration: underline;
+        }
+
+        .form-check-input {
+            background-color: #FFFFFF;
+            border: 1.5px solid #CBD5E1;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            margin-top: 2px;
+        }
+
+        .form-check-input:checked {
+            background-color: #0284C7;
+            border-color: #0284C7;
+        }
+
+        /* Vibrant Glowing Button */
+        .btn-submit {
+            width: 100%;
+            padding: 13.5px 24px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+            color: #FFFFFF;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -4px rgba(2, 132, 199, 0.45);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px -4px rgba(2, 132, 199, 0.58);
+            color: #FFFFFF;
+        }
+
+        .card-footer-box {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #F1F5F9;
+            font-size: 13.5px;
+            color: #64748B;
+        }
+
+        .card-footer-box a {
+            color: #0284C7;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.2s;
+        }
+
+        .card-footer-box a:hover {
+            color: #0369A1;
+            text-decoration: underline;
+        }
+
+        .copyright-text {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .copyright-text a {
+            color: #FFFFFF;
+            text-decoration: none;
+        }
+
+        .copyright-text a:hover {
+            color: #E0F2FE;
+        }
+
+        @@keyframes pulse-ring {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 8px #38BDF8;
+            }
+            50% {
+                transform: scale(1.15);
+                box-shadow: 0 0 16px #38BDF8;
+            }
+        }
+
+        @@keyframes floatUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @@media (max-width: 1024px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            .left {
+                display: none;
+            }
+            .right {
+                min-height: 100vh;
+                padding: 36px 20px;
+            }
+            .register-card {
+                padding: 34px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <div class="ambient-glow-1"></div>
+        <div class="ambient-glow-2"></div>
+
+        <!-- ====== LEFT PANEL (HERO + PREVIEW) ====== -->
+        <div class="left">
+            <div class="left-content">
+
+                <div class="badge-pill">
+                    <span class="badge-dot"></span>
+                    Auxinz.io Enterprise Platform
+                </div>
+
+                <h1 class="headline">
+                    Collaborate Better.<br>
+                    <span>Achieve More.</span>
+                </h1>
+
+                <p class="subtext">
+                    Create your individual corporate account to join your department workspace, track assignments, and collaborate in real-time on Auxinz.io.
+                </p>
+
+                <!-- Feature Grid -->
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon-box">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </div>
+                        Self-Service Sign Up
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon-box">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        Encrypted Security
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon-box">
+                            <i class="bi bi-diagram-3-fill"></i>
+                        </div>
+                        Auto Department Link
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon-box">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                        </div>
+                        Immediate Portal Access
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ====== RIGHT PANEL (REGISTER CARD) ====== -->
+        <div class="right">
+            <div class="register-card">
+
+                <!-- Brand Header -->
+                <div class="brand-header">
+                    <div class="brand-icon">A</div>
+                    <div>
+                        <div class="brand-text">Auxinz<span class="brand-dot-io">.io</span> <span class="brand-tag">Tasks</span></div>
+                    </div>
+                </div>
+
+                <h2 class="card-title">Create an Account</h2>
+                <p class="card-subtitle">Fill in your information to join your workspace</p>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger py-2 px-3 mb-3 small d-flex align-items-center" style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #991B1B; border-radius: 12px;">
+                        <div>
+                            <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Registration Error</div>
+                            @Html.ValidationSummary(false, "", new { @class = "mb-0 ps-3" })
+                        </div>
+                    </div>
+                }
+
+                <form asp-controller="Account" asp-action="Register" method="post" id="signupForm">
+                    
+                    <!-- First Name & Last Name -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6 form-group mb-2">
+                            <label class="form-label-custom">First Name *</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input asp-for="FirstName" class="form-control-custom" id="firstNameInput" placeholder="First Name" required autofocus />
+                            </div>
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 form-group mb-2">
+                            <label class="form-label-custom">Last Name</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input asp-for="LastName" class="form-control-custom" id="lastNameInput" placeholder="Last Name" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" asp-for="FullName" id="fullNameHidden" />
+
+                    <!-- Corporate Email & Mobile -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-7 form-group mb-2">
+                            <label class="form-label-custom">Corporate Email *</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-envelope-at"></i>
+                                </span>
+                                <input asp-for="Email" class="form-control-custom" id="emailInput" placeholder="name@auxinz.io" required />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-5 form-group mb-2">
+                            <label class="form-label-custom">Mobile Number</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input asp-for="Phone" class="form-control-custom" id="phoneInput" placeholder="9876543210" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role, Department & Designation -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-4 form-group mb-2">
+                            <label class="form-label-custom">Role</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-person-badge"></i>
+                                </span>
+                                <select asp-for="Role" class="form-select-custom" id="roleSelect">
+                                    <option value="Employee" selected>Employee</option>
+                                    <option value="HR">HR Manager</option>
+                                    <option value="Admin">Administrator</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group mb-2">
+                            <label class="form-label-custom">Department</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-building"></i>
+                                </span>
+                                <input asp-for="Department" class="form-control-custom" id="deptInput" placeholder="Engineering" />
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group mb-2">
+                            <label class="form-label-custom">Designation</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-briefcase"></i>
+                                </span>
+                                <input asp-for="Designation" class="form-control-custom" id="desigInput" placeholder="Software Engineer" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password & Confirm Password -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6 form-group mb-2">
+                            <label class="form-label-custom">Password * (Min 6)</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-shield-lock"></i>
+                                </span>
+                                <input asp-for="Password" type="password" class="form-control-custom" id="pwdInput" placeholder="••••••••" required />
+                                <button type="button" class="toggle-pw" onclick="togglePasswordVisibility('pwdInput', 'eyeIcon1')">
+                                    <i class="bi bi-eye" id="eyeIcon1"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 form-group mb-2">
+                            <label class="form-label-custom">Confirm Password *</label>
+                            <div class="input-wrap">
+                                <span class="input-icon">
+                                    <i class="bi bi-shield-lock"></i>
+                                </span>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control-custom" id="confirmPwdInput" placeholder="••••••••" required />
+                                <button type="button" class="toggle-pw" onclick="togglePasswordVisibility('confirmPwdInput', 'eyeIcon2')">
+                                    <i class="bi bi-eye" id="eyeIcon2"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-submit" id="btnSubmit">
+                        <i class="bi bi-check-circle-fill fs-5"></i>
+                        Sign Up to Auxinz.io &amp; Proceed to Login
+                    </button>
+                </form>
+
+                <div class="card-footer-box">
+                    Already registered? <a href="/Account/Login"><i class="bi bi-box-arrow-in-right me-1"></i>Sign in here</a>
+                </div>
+
+                <div class="copyright-text">
+                    &copy; 2026 - <a href="https://amoebatronix.com/" target="_blank">Amoebatronix Private Limited.</a> All rights reserved
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input || !icon) return;
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        }
+
+        // Sync FullName before form submit
+        document.getElementById('signupForm').addEventListener('submit', function() {
+            const first = document.getElementById('firstNameInput').value.trim();
+            const last = document.getElementById('lastNameInput').value.trim();
+            document.getElementById('fullNameHidden').value = (first + ' ' + last).trim();
+        });
+    </script>
+</body>
+</html>

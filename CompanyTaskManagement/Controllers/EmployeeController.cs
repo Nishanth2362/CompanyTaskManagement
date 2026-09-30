@@ -1,20 +1,34 @@
-using CompanyTaskManagement.Data;
-using CompanyTaskManagement.Models;
+using System;
+using System.Threading.Tasks;
+using CompanyTaskManagement.Application.Features.Employees.Commands.AddEdit;
+using CompanyTaskManagement.Application.Features.Employees.Commands.AddIntern;
+using CompanyTaskManagement.Application.Features.Employees.Commands.Delete;
+using CompanyTaskManagement.Application.Features.Employees.Queries.GetById;
+using CompanyTaskManagement.Application.Features.Employees.Queries.GetDirectory;
+using CompanyTaskManagement.Domain.Entities;
 using CompanyTaskManagement.Services;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CompanyTaskManagement.Controllers
 {
+    [Authorize]
     public class EmployeeController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IMediator _mediator;
         private readonly IUserSessionService _sessionService;
+        private readonly ILogger<EmployeeController> _logger;
 
-        public EmployeeController(ApplicationDbContext context, IUserSessionService sessionService)
+        public EmployeeController(
+            IMediator mediator,
+            IUserSessionService sessionService,
+            ILogger<EmployeeController> logger)
         {
-            _context = context;
+            _mediator = mediator;
             _sessionService = sessionService;
+            _logger = logger;
         }
 
         // =========================================================
@@ -22,51 +36,23 @@ namespace CompanyTaskManagement.Controllers
         // =========================================================
         public async Task<IActionResult> Index(string department = "all", string search = "")
         {
-            var query = _context.Employees
-                .Include(e => e.TaskEmployees)
-                    .ThenInclude(te => te.Task)
-                .AsNoTracking()
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(search))
+            var result = await _mediator.Send(new GetEmployeeDirectoryQuery
             {
-                var s = search.Trim().ToLower();
-                query = query.Where(e => e.Name.ToLower().Contains(s) ||
-                                         (e.Designation != null && e.Designation.ToLower().Contains(s)) ||
-                                         (e.Department != null && e.Department.ToLower().Contains(s)) ||
-                                         (e.Email != null && e.Email.ToLower().Contains(s)));
-            }
+                Department = department,
+                Search = search
+            });
 
-            if (!string.IsNullOrWhiteSpace(department) && department.ToLower() != "all")
-            {
-                if (department.Equals("Internship", StringComparison.OrdinalIgnoreCase) || department.Equals("Interns", StringComparison.OrdinalIgnoreCase))
-                {
-                    query = query.Where(e => (e.Department != null && e.Department.ToLower() == "internship") ||
-                                             (e.Designation != null && e.Designation.ToLower().Contains("intern")));
-                }
-                else
-                {
-                    query = query.Where(e => e.Department != null && e.Department.ToLower() == department.ToLower());
-                }
-            }
-
-            var employees = await query.OrderBy(e => e.Name).ToListAsync();
-            var allEmployees = await _context.Employees.Include(e => e.TaskEmployees).AsNoTracking().ToListAsync();
+            var (employees, metrics) = result.Data;
 
             ViewBag.SelectedDepartment = string.IsNullOrWhiteSpace(department) ? "all" : department;
             ViewBag.Search = search;
-            ViewBag.TotalEmployees = allEmployees.Count;
-            ViewBag.FrontendCount = allEmployees.Count(e => e.Department == "Frontend");
-            ViewBag.BackendCount = allEmployees.Count(e => e.Department == "Backend" || e.Department == "Engineering");
-            ViewBag.DesignCount = allEmployees.Count(e => e.Department == "UI / UX Designer" || e.Department == "Product & Design");
-            ViewBag.TesterCount = allEmployees.Count(e => e.Department == "Tester" || e.Department == "Quality Assurance");
-            ViewBag.InternsCount = allEmployees.Count(e => (e.Department != null && (e.Department.Equals("Intern", StringComparison.OrdinalIgnoreCase) || e.Department.Equals("Internship", StringComparison.OrdinalIgnoreCase))) || (e.Designation != null && e.Designation.ToLower().Contains("intern")));
-
-            // Senior team leads for mentor assignment dropdown
-            ViewBag.SeniorMentors = allEmployees
-                .Where(e => e.Department != "Internship" && !(e.Designation != null && e.Designation.ToLower().Contains("intern")))
-                .OrderBy(e => e.Name)
-                .ToList();
+            ViewBag.TotalEmployees = metrics?.TotalEmployees ?? 0;
+            ViewBag.FrontendCount = metrics?.FrontendCount ?? 0;
+            ViewBag.BackendCount = metrics?.BackendCount ?? 0;
+            ViewBag.DesignCount = metrics?.DesignCount ?? 0;
+            ViewBag.TesterCount = metrics?.TesterCount ?? 0;
+            ViewBag.InternsCount = metrics?.InternsCount ?? 0;
+            ViewBag.SeniorMentors = metrics?.SeniorMentors;
 
             ViewBag.IsAdmin = _sessionService.IsAdmin();
             ViewBag.CurrentRole = _sessionService.GetCurrentRole();
@@ -79,24 +65,14 @@ namespace CompanyTaskManagement.Controllers
         // =========================================================
         public async Task<IActionResult> Details(int id)
         {
-            var employee = await _context.Employees
-                .Include(e => e.TaskEmployees)
-                    .ThenInclude(te => te.Task)
-                        .ThenInclude(t => t.Project)
-                .Include(e => e.TaskEmployees)
-                    .ThenInclude(te => te.Task)
-                        .ThenInclude(t => t.TaskCompanies)
-                            .ThenInclude(tc => tc.Company)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == id);
-
-            if (employee == null)
+            var result = await _mediator.Send(new GetEmployeeByIdQuery(id));
+            if (!result.Succeeded || result.Data == null)
             {
                 return NotFound();
             }
 
             ViewBag.IsAdmin = _sessionService.IsAdmin();
-            return View(employee);
+            return View(result.Data);
         }
 
         // =========================================================
@@ -112,59 +88,27 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (string.IsNullOrWhiteSpace(name))
+            var result = await _mediator.Send(new AddInternCommand
             {
-                TempData["Error"] = "Intern name is required.";
-                return RedirectToAction(nameof(Index));
-            }
+                Name = name,
+                Email = email,
+                Phone = phone,
+                Domain = domain,
+                MentorName = mentorName,
+                JoinedDate = joinedDate,
+                Notes = notes
+            });
 
-            var trimmedName = name.Trim();
-            var existingEmp = await _context.Employees.FirstOrDefaultAsync(e => e.Name.ToLower() == trimmedName.ToLower());
-            
-            if (existingEmp == null)
+            if (result.Succeeded)
             {
-                var newEmp = new Employee
-                {
-                    Name = trimmedName,
-                    Email = !string.IsNullOrWhiteSpace(email) ? email.Trim() : $"{trimmedName.ToLower().Replace(" ", ".")}@auxinz.io",
-                    Phone = phone,
-                    Department = "Internship",
-                    Designation = $"Software Intern ({domain})",
-                    IsActive = true,
-                    CreatedAt = DateTime.Now
-                };
-                _context.Employees.Add(newEmp);
+                TempData["Success"] = $"🎉 Intern '{name.Trim()}' added successfully to Directory & Internship Hub by Administrator.";
             }
             else
             {
-                existingEmp.Department = "Internship";
-                if (string.IsNullOrWhiteSpace(existingEmp.Designation) || !existingEmp.Designation.Contains("Intern"))
-                {
-                    existingEmp.Designation = $"Software Intern ({domain})";
-                }
+                TempData["Error"] = string.Join("; ", result.Messages);
             }
 
-            // Sync with InternshipMembers table
-            var existingMember = await _context.InternshipMembers.FirstOrDefaultAsync(m => m.Name.ToLower() == trimmedName.ToLower());
-            if (existingMember == null)
-            {
-                _context.InternshipMembers.Add(new InternshipMember
-                {
-                    Name = trimmedName,
-                    Email = !string.IsNullOrWhiteSpace(email) ? email.Trim() : $"{trimmedName.ToLower().Replace(" ", ".")}@auxinz.io",
-                    Role = "Intern",
-                    Domain = string.IsNullOrWhiteSpace(domain) ? "Backend .NET / C#" : domain,
-                    MentorName = mentorName,
-                    Status = "Active",
-                    JoinedDate = joinedDate ?? DateTime.Today,
-                    Notes = notes
-                });
-            }
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"🎉 Intern '{trimmedName}' added successfully to Directory & Internship Hub by Administrator.";
-            return RedirectToAction(nameof(Index), new { department = "Internship" });
+            return RedirectToAction(nameof(Index), new { department = "Intern" });
         }
 
         // =========================================================
@@ -207,21 +151,27 @@ namespace CompanyTaskManagement.Controllers
                 return View(model);
             }
 
-            var trimmedName = model.Name.Trim();
-            var existing = await _context.Employees.FirstOrDefaultAsync(e => e.Name.ToLower() == trimmedName.ToLower());
-            if (existing != null)
+            var command = new AddEditEmployeeCommand
             {
-                ModelState.AddModelError("Name", $"An employee with the name '{trimmedName}' already exists.");
-                return View(model);
+                Id = 0,
+                Name = model.Name,
+                Email = model.Email,
+                CompanyName = string.IsNullOrWhiteSpace(model.CompanyName) ? "Auxinzio" : model.CompanyName.Trim(),
+                Designation = model.Designation ?? "Software Engineer",
+                Department = model.Department ?? "Engineering",
+                Phone = model.Phone,
+                IsActive = model.IsActive
+            };
+
+            var result = await _mediator.Send(command);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = $"Employee '{model.Name}' added successfully by Administrator.";
+                return RedirectToAction(nameof(Index));
             }
 
-            model.Name = trimmedName;
-            model.CreatedAt = DateTime.Now;
-            _context.Employees.Add(model);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Employee '{model.Name}' added successfully by Administrator.";
-            return RedirectToAction(nameof(Index));
+            TempData["Error"] = string.Join("; ", result.Messages);
+            return View(model);
         }
 
         // =========================================================
@@ -236,13 +186,13 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null)
+            var result = await _mediator.Send(new GetEmployeeByIdQuery(id));
+            if (!result.Succeeded || result.Data == null)
             {
                 return NotFound();
             }
 
-            return View(employee);
+            return View(result.Data);
         }
 
         // =========================================================
@@ -268,31 +218,27 @@ namespace CompanyTaskManagement.Controllers
                 return View(model);
             }
 
-            var employee = await _context.Employees.FindAsync(id);
-            if (employee == null)
+            var command = new AddEditEmployeeCommand
             {
-                return NotFound();
+                Id = id,
+                Name = model.Name,
+                Email = model.Email,
+                CompanyName = string.IsNullOrWhiteSpace(model.CompanyName) ? "Auxinzio" : model.CompanyName.Trim(),
+                Designation = model.Designation ?? "Software Engineer",
+                Department = model.Department ?? "Engineering",
+                Phone = model.Phone,
+                IsActive = model.IsActive
+            };
+
+            var result = await _mediator.Send(command);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = $"Employee '{model.Name}' updated successfully.";
+                return RedirectToAction(nameof(Index));
             }
 
-            var trimmedName = model.Name.Trim();
-            var existing = await _context.Employees.FirstOrDefaultAsync(e => e.Id != id && e.Name.ToLower() == trimmedName.ToLower());
-            if (existing != null)
-            {
-                ModelState.AddModelError("Name", $"Another employee with the name '{trimmedName}' already exists.");
-                return View(model);
-            }
-
-            employee.Name = trimmedName;
-            employee.Email = model.Email?.Trim();
-            employee.Designation = model.Designation?.Trim();
-            employee.Department = model.Department?.Trim();
-            employee.Phone = model.Phone?.Trim();
-            employee.IsActive = model.IsActive;
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Employee '{employee.Name}' updated successfully.";
-            return RedirectToAction(nameof(Index));
+            TempData["Error"] = string.Join("; ", result.Messages);
+            return View(model);
         }
 
         // =========================================================
@@ -308,20 +254,16 @@ namespace CompanyTaskManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var employee = await _context.Employees
-                .Include(e => e.TaskEmployees)
-                .FirstOrDefaultAsync(e => e.Id == id);
-
-            if (employee == null)
+            var result = await _mediator.Send(new DeleteEmployeeCommand(id));
+            if (result.Succeeded)
             {
-                return NotFound();
+                TempData["Success"] = "Employee removed from the directory successfully.";
+            }
+            else
+            {
+                TempData["Error"] = string.Join("; ", result.Messages);
             }
 
-            var empName = employee.Name;
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Employee '{empName}' removed from the directory.";
             return RedirectToAction(nameof(Index));
         }
     }

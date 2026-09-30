@@ -1,9 +1,9 @@
-@model CompanyTaskManagement.Models.Project
+@model CompanyTaskManagement.Domain.Entities.Project
 
 @{
     ViewData["Title"] = "Edit Project";
-    var companies = ViewBag.Companies as IEnumerable<CompanyTaskManagement.Models.Company> ?? new List<CompanyTaskManagement.Models.Company>();
-    var employees = ViewBag.Employees as IEnumerable<CompanyTaskManagement.Models.Employee> ?? new List<CompanyTaskManagement.Models.Employee>();
+    var companies = ViewBag.Companies as IEnumerable<CompanyTaskManagement.Domain.Entities.Company> ?? new List<CompanyTaskManagement.Domain.Entities.Company>();
+    var employees = ViewBag.Employees as IEnumerable<CompanyTaskManagement.Domain.Entities.Employee> ?? new List<CompanyTaskManagement.Domain.Entities.Employee>();
 }
 
 <!-- Page Header Navigation -->
@@ -131,3 +131,4 @@
         </div>
     </div>
 </div>
+
