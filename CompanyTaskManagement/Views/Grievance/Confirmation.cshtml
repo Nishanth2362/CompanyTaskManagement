@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Grievance Submitted - Confirmation";
+    var ticket = ViewBag.Ticket as string ?? "N/A";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card shadow-sm border-0 text-center p-4 p-md-5" style="border-radius: 20px; background: var(--bg-surface, #ffffff);">
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                        <i class="bi bi-shield-check fs-1"></i>
+                    </div>
+                </div>
+
+                <h2 class="fw-bold mb-2" style="color: var(--text-main, #0f172a);">Grievance Registered Confidentially</h2>
+                <p class="text-muted mb-4" style="max-width: 520px; margin: 0 auto; font-size: 0.95rem;">
+                    Your concern has been submitted safely and securely to the Human Resources department. All details and attachments are held under strict confidentiality.
+                </p>
+
+                <div class="p-3 mb-4 rounded-3 border text-start" style="background: var(--bg-surface-secondary, #f8fafc); border-color: var(--border-subtle, #e2e8f0) !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">Incident Reference Number</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Active Case</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="fs-4 fw-bold font-monospace text-primary" id="ticketNumber">#@ticket</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="navigator.clipboard.writeText('@ticket'); this.innerHTML = '<i class=\'bi bi-check-lg\'></i> Copied';">
+                            <i class="bi bi-clipboard me-1"></i> Copy Ticket
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 text-start d-flex align-items-start gap-3 p-3 mb-4 rounded-3" style="background: rgba(59, 130, 246, 0.08); color: #1d4ed8;">
+                    <i class="bi bi-info-circle-fill fs-5 mt-1 flex-shrink-0"></i>
+                    <div class="small">
+                        <strong>What happens next?</strong><br>
+                        Our designated HR representative will review your report within 24 to 48 business hours. If you did not choose anonymous submission, follow-ups will be communicated discreetly.
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                    <a asp-action="Index" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                        <i class="bi bi-grid me-1"></i> View Grievance Portal
+                    </a>
+                    <a asp-action="Submit" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold">
+                        <i class="bi bi-plus-circle me-1"></i> Submit Another Concern
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

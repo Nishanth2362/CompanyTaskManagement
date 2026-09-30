@@ -4,18 +4,20 @@ using System.Diagnostics;
 
 namespace CompanyTaskManagement.Controllers
 {
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public class HomeController : Controller
     {
         public IActionResult Index()
         {
-            return View();
+            return RedirectToAction("Index", "Task");
         }
 
         public IActionResult Privacy()
         {
-            return View();
+            return RedirectToAction("Index", "Task");
         }
 
+        [Microsoft.AspNetCore.Authorization.AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

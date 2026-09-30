@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.EntityFrameworkCore
 @inject CompanyTaskManagement.Services.IUserSessionService UserSession
-@inject CompanyTaskManagement.Data.ApplicationDbContext AppDb
+@inject MediatR.IMediator Mediator
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
 <head>
@@ -27,7 +28,7 @@
             try {
                 var savedTheme = localStorage.getItem('taskflow_theme') || 'light';
                 document.documentElement.setAttribute('data-bs-theme', savedTheme);
-            } catch (e) { }
+            } catch (e) {}
         })();
     </script>
 </head>
@@ -38,7 +39,8 @@
         var currentRole = UserSession.GetCurrentRole();
         var currentEmpName = UserSession.GetCurrentEmployeeName();
         var isCanAssign = UserSession.IsAdminOrHr();
-        var employeesList = AppDb.Employees.OrderBy(e => e.Name).ToList();
+        var empResponse = await Mediator.Send(new CompanyTaskManagement.Application.Features.Employees.Queries.GetAll.GetAllEmployeesQuery());
+        var employeesList = (empResponse.Data ?? new List<CompanyTaskManagement.Domain.Entities.Employee>()).Where(e => e.IsActive).ToList();
         var returnUrl = Context.Request.Path + Context.Request.QueryString;
     }
 
@@ -138,11 +140,11 @@
                         <!-- Role Switcher Dropdown -->
                         <div class="dropdown flex-grow-1 flex-xl-grow-0">
                             <button class="btn btn-role-switcher dropdown-toggle d-flex align-items-center justify-content-between gap-1.5 shadow-2xs w-100 w-xl-auto" type="button" id="roleSwitcherDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Active Role Context">
-                                @if (currentRole == CompanyTaskManagement.Models.UserRole.Admin)
+                                @if (currentRole == CompanyTaskManagement.Domain.Enums.UserRole.Admin)
                                 {
                                     <span class="role-pill role-pill-admin"><i class="bi bi-crown-fill text-gold me-1"></i> Admin</span>
                                 }
-                                else if (currentRole == CompanyTaskManagement.Models.UserRole.HR)
+                                else if (currentRole == CompanyTaskManagement.Domain.Enums.UserRole.HR)
                                 {
                                     <span class="role-pill role-pill-hr"><i class="bi bi-briefcase-fill me-1"></i> HR Manager</span>
                                 }
@@ -160,7 +162,7 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="role" value="Admin" />
                                         <input type="hidden" name="returnUrl" value="@returnUrl" />
-                                        <button type="submit" class="dropdown-item rounded-2 py-2 d-flex align-items-center justify-content-between @(currentRole == CompanyTaskManagement.Models.UserRole.Admin ? "active fw-bold" : "")">
+                                        <button type="submit" class="dropdown-item rounded-2 py-2 d-flex align-items-center justify-content-between @(currentRole == CompanyTaskManagement.Domain.Enums.UserRole.Admin ? "active fw-bold" : "")">
                                             <span class="d-flex align-items-center gap-2">
                                                 <i class="bi bi-shield-shaded text-danger"></i> Administrator
                                             </span>
@@ -173,7 +175,7 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="role" value="HR" />
                                         <input type="hidden" name="returnUrl" value="@returnUrl" />
-                                        <button type="submit" class="dropdown-item rounded-2 py-2 d-flex align-items-center justify-content-between @(currentRole == CompanyTaskManagement.Models.UserRole.HR ? "active fw-bold" : "")">
+                                        <button type="submit" class="dropdown-item rounded-2 py-2 d-flex align-items-center justify-content-between @(currentRole == CompanyTaskManagement.Domain.Enums.UserRole.HR ? "active fw-bold" : "")">
                                             <span class="d-flex align-items-center gap-2">
                                                 <i class="bi bi-briefcase-fill text-primary"></i> HR Manager
                                             </span>
@@ -187,7 +189,7 @@
                                 </li>
                                 @foreach (var emp in employeesList)
                                 {
-                                    var isSelectedEmp = currentRole == CompanyTaskManagement.Models.UserRole.Employee && UserSession.GetCurrentEmployeeId() == emp.Id;
+                                    var isSelectedEmp = currentRole == CompanyTaskManagement.Domain.Enums.UserRole.Employee && UserSession.GetCurrentEmployeeId() == emp.Id;
                                     <li>
                                         <form asp-controller="Account" asp-action="SwitchRole" method="post" class="m-0 p-0">
                                             @Html.AntiForgeryToken()
@@ -206,6 +208,15 @@
                                         </form>
                                     </li>
                                 }
+                                <li><hr class="dropdown-divider border-secondary border-opacity-25 my-2"></li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item rounded-2 py-2 text-danger d-flex align-items-center gap-2">
+                                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </div>
 
@@ -322,3 +333,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

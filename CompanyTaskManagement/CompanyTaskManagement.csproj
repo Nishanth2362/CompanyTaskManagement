@@ -7,12 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
+    <ProjectReference Include="..\CompanyTaskManagement.Application\CompanyTaskManagement.Application.csproj" />
+    <ProjectReference Include="..\CompanyTaskManagement.Infrastructure\CompanyTaskManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\CompanyTaskManagement.Domain\CompanyTaskManagement.Domain.csproj" />
+    <ProjectReference Include="..\CompanyTaskManagement.Shared\CompanyTaskManagement.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
   </ItemGroup>
 
   <!-- Auto-kill running app before build so Visual Studio never gets locked file errors -->

@@ -1,4 +1,4 @@
-@model IEnumerable<CompanyTaskManagement.Models.Team>
+@model IEnumerable<CompanyTaskManagement.Domain.Entities.Team>
 @using CompanyTaskManagement.Models
 @inject CompanyTaskManagement.Services.IUserSessionService UserSession
 
@@ -12,13 +12,13 @@
     var currentRole = UserSession.GetCurrentRole();
     var currentEmployeeId = UserSession.GetCurrentEmployeeId();
 
-    var incompleteTasksList = ViewBag.IncompleteTasksList as List<TeamTask> ?? new List<TeamTask>();
-    int totalTeams = ViewBag.TotalTeams ?? 0;
-    int totalLeaders = ViewBag.TotalLeaders ?? 0;
-    int totalMembers = ViewBag.TotalMembers ?? 0;
-    int totalTasks = ViewBag.TotalTasks ?? 0;
-    int completedTasks = ViewBag.CompletedTasks ?? 0;
-    int incompleteTasks = ViewBag.IncompleteTasks ?? 0;
+    var incompleteTasksList = (ViewBag.IncompleteTasksList as List<CompanyTaskManagement.Domain.Entities.TeamTask>) ?? (ViewBag.IncompleteTasks as List<CompanyTaskManagement.Domain.Entities.TeamTask>) ?? new List<CompanyTaskManagement.Domain.Entities.TeamTask>();
+    int totalTeams = ViewBag.TotalTeams is int tt ? tt : 0;
+    int totalLeaders = ViewBag.TotalLeaders is int tl ? tl : 0;
+    int totalMembers = ViewBag.TotalMembers is int tm ? tm : 0;
+    int totalTasks = ViewBag.TotalTasks is int tts ? tts : 0;
+    int completedTasks = ViewBag.CompletedTasks is int ct ? ct : 0;
+    int incompleteTasks = ViewBag.IncompleteTasks is int itVal ? itVal : incompleteTasksList.Count;
     double completionRate = totalTasks > 0 ? Math.Round((double)completedTasks / totalTasks * 100, 1) : 0;
 }
 
@@ -1326,3 +1326,4 @@
     }
 </script>
 }
+

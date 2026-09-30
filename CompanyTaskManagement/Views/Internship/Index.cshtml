@@ -1,16 +1,16 @@
 @{
     ViewData["Title"] = "Internship Learning Academy & Team";
-    var materials = ViewBag.Materials as List<CompanyTaskManagement.Models.InternStudyMaterial> ?? new List<CompanyTaskManagement.Models.InternStudyMaterial>();
-    var doubts = ViewBag.Doubts as List<CompanyTaskManagement.Models.InternDoubt> ?? new List<CompanyTaskManagement.Models.InternDoubt>();
-    var members = ViewBag.Members as List<CompanyTaskManagement.Models.InternshipMember> ?? new List<CompanyTaskManagement.Models.InternshipMember>();
-    var youTubeVideos = ViewBag.YouTubeVideos as List<CompanyTaskManagement.Models.InternYouTubeReference> ?? new List<CompanyTaskManagement.Models.InternYouTubeReference>();
-    var testResults = ViewBag.TestResults as List<CompanyTaskManagement.Models.InternTestResult> ?? new List<CompanyTaskManagement.Models.InternTestResult>();
+    var materials = ViewBag.Materials as List<CompanyTaskManagement.Domain.Entities.InternStudyMaterial> ?? new List<CompanyTaskManagement.Domain.Entities.InternStudyMaterial>();
+    var doubts = ViewBag.Doubts as List<CompanyTaskManagement.Domain.Entities.InternDoubt> ?? new List<CompanyTaskManagement.Domain.Entities.InternDoubt>();
+    var members = ViewBag.Members as List<CompanyTaskManagement.Domain.Entities.InternshipMember> ?? new List<CompanyTaskManagement.Domain.Entities.InternshipMember>();
+    var youTubeVideos = ViewBag.YouTubeVideos as List<CompanyTaskManagement.Domain.Entities.InternYouTubeReference> ?? new List<CompanyTaskManagement.Domain.Entities.InternYouTubeReference>();
+    var testResults = ViewBag.TestResults as List<CompanyTaskManagement.Domain.Entities.InternTestResult> ?? new List<CompanyTaskManagement.Domain.Entities.InternTestResult>();
     var tracks = ViewBag.Tracks as List<string> ?? new List<string>();
     var activeTab = ViewBag.ActiveTab as string ?? "youtube";
     var selectedTrack = ViewBag.SelectedTrack as string ?? "all";
     var selectedDoubtStatus = ViewBag.SelectedDoubtStatus as string ?? "all";
     var search = ViewBag.Search as string;
-    var employees = ViewBag.Employees as List<CompanyTaskManagement.Models.Employee> ?? new List<CompanyTaskManagement.Models.Employee>();
+    var employees = ViewBag.Employees as List<CompanyTaskManagement.Domain.Entities.Employee> ?? new List<CompanyTaskManagement.Domain.Entities.Employee>();
     var isAdmin = ViewBag.IsAdmin as bool? ?? false;
 }
 
@@ -3388,3 +3388,4 @@
         });
     </script>
 }
+

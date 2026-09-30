@@ -1,20 +1,24 @@
-using CompanyTaskManagement.Data;
-using CompanyTaskManagement.Models;
+using System;
+using System.Threading.Tasks;
+using CompanyTaskManagement.Application.Features.MindForge.Commands;
+using CompanyTaskManagement.Application.Features.MindForge.Queries;
 using CompanyTaskManagement.Services;
 using CompanyTaskManagement.ViewModels;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CompanyTaskManagement.Controllers
 {
+    [Authorize]
     public class MindForgeController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IMediator _mediator;
         private readonly IUserSessionService _sessionService;
 
-        public MindForgeController(ApplicationDbContext context, IUserSessionService sessionService)
+        public MindForgeController(IMediator mediator, IUserSessionService sessionService)
         {
-            _context = context;
+            _mediator = mediator;
             _sessionService = sessionService;
         }
 
@@ -26,23 +30,13 @@ namespace CompanyTaskManagement.Controllers
         {
             ViewData["Title"] = "MindForge – Employee Brain Games";
 
-            await EnsureMindForgeTablesCreatedAsync();
-
-            var leaderboard = await _context.MindForgeScores
-                .AsNoTracking()
-                .OrderByDescending(s => s.Score)
-                .ThenBy(s => s.TimeTakenSeconds)
-                .Take(10)
-                .ToListAsync();
-
-            int totalPlayed = await _context.MindForgeScores.CountAsync();
-            int highScore = leaderboard.Any() ? leaderboard.Max(s => s.Score) : 0;
+            var dashboard = await _mediator.Send(new GetMindForgeDashboardQuery());
 
             var model = new MindForgePageViewModel
             {
-                TopLeaderboardScores = leaderboard,
-                TotalGamesPlayed = totalPlayed,
-                HighScoreToday = highScore
+                TopLeaderboardScores = dashboard.TopLeaderboardScores,
+                TotalGamesPlayed = dashboard.TotalGamesPlayed,
+                HighScoreToday = dashboard.HighScoreToday
             };
 
             return View(model);
@@ -61,42 +55,29 @@ namespace CompanyTaskManagement.Controllers
 
             try
             {
-                await EnsureMindForgeTablesCreatedAsync();
-
                 var empName = _sessionService.GetCurrentEmployeeName();
                 var empId = _sessionService.GetCurrentEmployeeId();
 
-                var scoreEntity = new MindForgeScore
+                var result = await _mediator.Send(new SubmitMindForgeScoreCommand
                 {
                     EmployeeId = empId,
                     EmployeeName = string.IsNullOrWhiteSpace(empName) ? "Anonymous Gamer" : empName,
                     GameType = dto.GameType,
                     Score = dto.Score,
-                    TimeTakenSeconds = dto.TimeTakenSeconds,
-                    PlayedAt = DateTime.Now
-                };
+                    TimeTakenSeconds = dto.TimeTakenSeconds
+                });
 
-                _context.MindForgeScores.Add(scoreEntity);
-                await _context.SaveChangesAsync();
+                if (!result.Succeeded)
+                {
+                    return Json(new { success = false, message = string.Join("; ", result.Messages) });
+                }
 
-                var topLeaderboard = await _context.MindForgeScores
-                    .Where(s => s.GameType == dto.GameType)
-                    .OrderByDescending(s => s.Score)
-                    .ThenBy(s => s.TimeTakenSeconds)
-                    .Take(10)
-                    .Select(s => new {
-                        s.EmployeeName,
-                        s.Score,
-                        s.TimeTakenSeconds,
-                        PlayedAt = s.PlayedAt.ToString("MMM dd, HH:mm")
-                    })
-                    .ToListAsync();
-
-                return Json(new { 
-                    success = true, 
+                return Json(new
+                {
+                    success = true,
                     message = "Score saved dynamically to database!",
-                    savedScore = scoreEntity.Score,
-                    leaderboard = topLeaderboard
+                    savedScore = result.Data.SavedScore,
+                    leaderboard = result.Data.Leaderboard
                 });
             }
             catch (Exception ex)
@@ -111,74 +92,8 @@ namespace CompanyTaskManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetLeaderboard(string? gameType = null)
         {
-            await EnsureMindForgeTablesCreatedAsync();
-
-            var query = _context.MindForgeScores.AsNoTracking().AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(gameType) && gameType != "all")
-            {
-                query = query.Where(s => s.GameType == gameType);
-            }
-
-            var scores = await query
-                .OrderByDescending(s => s.Score)
-                .ThenBy(s => s.TimeTakenSeconds)
-                .Take(10)
-                .Select(s => new {
-                    s.Id,
-                    s.EmployeeName,
-                    s.GameType,
-                    s.Score,
-                    s.TimeTakenSeconds,
-                    PlayedAt = s.PlayedAt.ToString("MMM dd, HH:mm")
-                })
-                .ToListAsync();
-
+            var scores = await _mediator.Send(new GetMindForgeLeaderboardQuery(gameType));
             return Json(new { success = true, leaderboard = scores });
-        }
-
-        private async Task EnsureMindForgeTablesCreatedAsync()
-        {
-            try
-            {
-                var sqlQuestionsCleanup = @"
-                    IF EXISTS (SELECT * FROM sys.tables WHERE name = 'MindForgeQuestions')
-                    BEGIN
-                        DROP TABLE [MindForgeQuestions];
-                    END;";
-
-                await _context.Database.ExecuteSqlRawAsync(sqlQuestionsCleanup);
-
-                var sqlScores = @"
-                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'MindForgeScores')
-                    BEGIN
-                        CREATE TABLE [MindForgeScores] (
-                            [Id] INT IDENTITY(1,1) PRIMARY KEY,
-                            [EmployeeId] INT NULL,
-                            [EmployeeName] NVARCHAR(150) NOT NULL,
-                            [GameType] NVARCHAR(100) NOT NULL,
-                            [Score] INT NOT NULL DEFAULT 0,
-                            [TimeTakenSeconds] INT NOT NULL DEFAULT 0,
-                            [PlayedAt] DATETIME2 NOT NULL DEFAULT GETDATE()
-                        );
-                    END;
-
-                    IF NOT EXISTS (SELECT 1 FROM [MindForgeScores])
-                    BEGIN
-                        INSERT INTO [MindForgeScores] ([EmployeeName], [GameType], [Score], [TimeTakenSeconds]) VALUES
-                        ('Mujimal', 'MemoryMatch', 1200, 24),
-                        ('Anas Ahamad', 'WordScramble', 980, 32),
-                        ('Karthikeyan', 'DotNetQuiz', 1150, 28),
-                        ('Srithar', 'MathChallenge', 1050, 30),
-                        ('Santhosh', 'MemoryMatch', 920, 38);
-                    END;";
-
-                await _context.Database.ExecuteSqlRawAsync(sqlScores);
-            }
-            catch
-            {
-                // Self-healing fallback
-            }
         }
     }
 }

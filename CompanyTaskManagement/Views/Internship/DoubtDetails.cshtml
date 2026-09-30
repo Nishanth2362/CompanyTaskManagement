@@ -1,8 +1,8 @@
-@model CompanyTaskManagement.Models.InternDoubt
+@model CompanyTaskManagement.Domain.Entities.InternDoubt
 
 @{
     ViewData["Title"] = $"Doubt: {Model.Title} - Internship Academy";
-    var employees = ViewBag.Employees as List<CompanyTaskManagement.Models.Employee> ?? new List<CompanyTaskManagement.Models.Employee>();
+    var employees = ViewBag.Employees as List<CompanyTaskManagement.Domain.Entities.Employee> ?? new List<CompanyTaskManagement.Domain.Entities.Employee>();
 
     var urgencyClass = Model.Urgency == "Blocker / Critical" ? "bg-danger text-white" :
                        Model.Urgency == "Help Needed Today" ? "bg-warning text-dark" : "badge-royal-gold";
@@ -10,7 +10,7 @@
     var statusClass = Model.Status == "Resolved" ? "badge-emerald" :
                       Model.Status == "Clarified" ? "badge-royal-gold" : "bg-warning text-dark";
 
-    var clarifications = Model.Clarifications?.ToList() ?? new List<CompanyTaskManagement.Models.InternDoubtClarification>();
+    var clarifications = Model.Clarifications?.ToList() ?? new List<CompanyTaskManagement.Domain.Entities.InternDoubtClarification>();
 }
 
 <!-- Breadcrumb -->
@@ -282,3 +282,4 @@
         });
     </script>
 }
+

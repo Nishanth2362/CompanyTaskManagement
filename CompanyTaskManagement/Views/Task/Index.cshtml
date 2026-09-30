@@ -1,13 +1,13 @@
-@model IEnumerable<CompanyTaskManagement.Models.TaskItem>
+@model IEnumerable<CompanyTaskManagement.Domain.Entities.TaskItem>
 @inject CompanyTaskManagement.Services.IUserSessionService UserSession
 
 @{
     ViewData["Title"] = "Tasks Dashboard";
-    var taskList = Model?.ToList() ?? new List<CompanyTaskManagement.Models.TaskItem>();
+    var taskList = Model?.ToList() ?? new List<CompanyTaskManagement.Domain.Entities.TaskItem>();
     var totalTasks = taskList.Count;
-    var inProgressCount = taskList.Count(t => t.Status == CompanyTaskManagement.Models.TaskStatus.InProgress);
-    var completedCount = taskList.Count(t => t.Status == CompanyTaskManagement.Models.TaskStatus.Completed);
-    var overdueUncompletedCount = taskList.Count(t => t.Status != CompanyTaskManagement.Models.TaskStatus.Completed &&
+    var inProgressCount = taskList.Count(t => t.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.InProgress);
+    var completedCount = taskList.Count(t => t.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.Completed);
+    var overdueUncompletedCount = taskList.Count(t => t.Status != CompanyTaskManagement.Domain.Enums.TaskStatus.Completed &&
 ((t.EndDate.HasValue && t.EndDate.Value <= DateTime.Now) || (t.DueDate.HasValue && (t.DueDate.Value <= DateTime.Now ||
 t.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(t.DelayReason)));
     var tasksWithErrorsCount = taskList.Count(t => !string.IsNullOrEmpty(t.ErrorScreenshotPath) ||
@@ -472,11 +472,11 @@ else
                                                         ? string.Join(", ", item.TaskEmployees.Select(e => e.Employee?.Name))
                                                         : "";
 
-                                                    var priorityCss = item.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent ? "priority-urgent" :
-                                                                      item.Priority == CompanyTaskManagement.Models.TaskPriority.High ? "priority-high" :
-                                                                      item.Priority == CompanyTaskManagement.Models.TaskPriority.Medium ? "priority-medium" : "priority-low";
+                                                    var priorityCss = item.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.Urgent ? "priority-urgent" :
+                                                                      item.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.High ? "priority-high" :
+                                                                      item.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.Medium ? "priority-medium" : "priority-low";
 
-                                                    var isOverdue = item.Status != CompanyTaskManagement.Models.TaskStatus.Completed &&
+                                                    var isOverdue = item.Status != CompanyTaskManagement.Domain.Enums.TaskStatus.Completed &&
                                             ((item.EndDate.HasValue && item.EndDate.Value <= DateTime.Now) || (item.DueDate.HasValue &&
                                             (item.DueDate.Value <= DateTime.Now || item.DueDate.Value.Date < DateTime.Today)) ||
                                             !string.IsNullOrEmpty(item.DelayReason));
@@ -573,11 +573,11 @@ else
                                                         <!-- Priority -->
                                                         <td class="text-nowrap text-center" style="min-width: 80px;">
                                                             <span class="priority-badge @priorityCss">
-                                                                @if (item.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent)
+                                                                @if (item.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.Urgent)
                                                                 {
                                                                     <i class="bi bi-fire text-danger me-1"></i>
                                                                 }
-                                                                else if (item.Priority == CompanyTaskManagement.Models.TaskPriority.High)
+                                                                else if (item.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.High)
                                                                 {
                                                                     <i class="bi bi-star-fill text-warning me-1"></i>
                                                                 }
@@ -590,15 +590,15 @@ else
                                                             <select class="form-select form-select-sm quick-status-select js-quick-status d-inline-block"
                                                                     data-task-id="@item.Id">
                                                                 <option value="ToDo"
-                                                                        selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.ToDo)">To Do</option>
+                                                                        selected="@(item.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.ToDo)">To Do</option>
                                                                 <option value="InProgress"
-                                                                        selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.InProgress)">In
+                                                                        selected="@(item.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.InProgress)">In
                                                                     Progress</option>
                                                                     <option value="InReview"
-                                                                            selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.InReview)">In Review
+                                                                            selected="@(item.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.InReview)">In Review
                                                                     </option>
                                                                     <option value="Completed"
-                                                                            selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.Completed)">Completed
+                                                                            selected="@(item.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.Completed)">Completed
                                                                     </option>
                                                                 </select>
                                                             </td>
@@ -787,11 +787,11 @@ else
                                                     ? string.Join(", ", item.TaskEmployees.Select(e => e.Employee?.Name))
                                                     : "";
 
-                                                var priorityCss = item.Priority == CompanyTaskManagement.Models.TaskPriority.Urgent ? "priority-urgent" :
-                                                                  item.Priority == CompanyTaskManagement.Models.TaskPriority.High ? "priority-high" :
-                                                                  item.Priority == CompanyTaskManagement.Models.TaskPriority.Medium ? "priority-medium" : "priority-low";
+                                                var priorityCss = item.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.Urgent ? "priority-urgent" :
+                                                                  item.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.High ? "priority-high" :
+                                                                  item.Priority == CompanyTaskManagement.Domain.Enums.TaskPriority.Medium ? "priority-medium" : "priority-low";
 
-                                                var isOverdue = item.Status != CompanyTaskManagement.Models.TaskStatus.Completed && ((item.EndDate.HasValue &&
+                                                var isOverdue = item.Status != CompanyTaskManagement.Domain.Enums.TaskStatus.Completed && ((item.EndDate.HasValue &&
                                         item.EndDate.Value <= DateTime.Now) || (item.DueDate.HasValue && (item.DueDate.Value <= DateTime.Now ||
                                         item.DueDate.Value.Date < DateTime.Today)) || !string.IsNullOrEmpty(item.DelayReason));
                                                 var isToday = (item.StartDate.HasValue ? item.StartDate.Value.Date == DateTime.Today : item.CreatedAt.Date ==
@@ -813,16 +813,16 @@ else
                             
                                                             <select class="form-select form-select-sm quick-status-select js-quick-status"
                                                                     data-task-id="@item.Id" style="width: auto;">
-                                                                <option value="ToDo" selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.ToDo)">
+                                                                <option value="ToDo" selected="@(item.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.ToDo)">
                                                                     To Do</option>
                                                                     <option value="InProgress"
-                                                                            selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.InProgress)">In Progress
+                                                                            selected="@(item.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.InProgress)">In Progress
                                                                     </option>
                                                                     <option value="InReview"
-                                                                            selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.InReview)">In Review
+                                                                            selected="@(item.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.InReview)">In Review
                                                                     </option>
                                                                     <option value="Completed"
-                                                                            selected="@(item.Status == CompanyTaskManagement.Models.TaskStatus.Completed)">Completed
+                                                                            selected="@(item.Status == CompanyTaskManagement.Domain.Enums.TaskStatus.Completed)">Completed
                                                                     </option>
                                                                 </select>
                                                             </div>

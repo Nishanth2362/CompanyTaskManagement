@@ -19,15 +19,25 @@ namespace CompanyTaskManagement.Services
         public UserRole GetCurrentRole()
         {
             var session = _httpContextAccessor.HttpContext?.Session;
-            if (session == null) return UserRole.Admin;
+            var user = _httpContextAccessor.HttpContext?.User;
 
-            var roleStr = session.GetString(SessionKeyRole);
-            if (Enum.TryParse<UserRole>(roleStr, out var role))
+            if (session != null)
             {
-                return role;
+                var roleStr = session.GetString(SessionKeyRole);
+                if (Enum.TryParse<UserRole>(roleStr, out var role))
+                {
+                    return role;
+                }
             }
 
-            return UserRole.Admin; // Default to Admin for full experience out-of-the-box
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                if (user.IsInRole("Admin")) return UserRole.Admin;
+                if (user.IsInRole("HR")) return UserRole.HR;
+                if (user.IsInRole("Employee")) return UserRole.Employee;
+            }
+
+            return UserRole.Employee;
         }
 
         public int? GetCurrentEmployeeId()

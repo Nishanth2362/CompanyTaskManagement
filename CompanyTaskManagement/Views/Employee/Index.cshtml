@@ -1,14 +1,14 @@
-@model IEnumerable<CompanyTaskManagement.Models.Employee>
+@model IEnumerable<CompanyTaskManagement.Domain.Entities.Employee>
 @{
     ViewData["Title"] = "Employees Directory";
-    var currentRole = ViewBag.CurrentRole as CompanyTaskManagement.Models.UserRole? ??
-CompanyTaskManagement.Models.UserRole.Employee;
+    var currentRole = ViewBag.CurrentRole as CompanyTaskManagement.Domain.Enums.UserRole? ??
+CompanyTaskManagement.Domain.Enums.UserRole.Employee;
     var isAdmin = ViewBag.IsAdmin as bool? ?? false;
     var selectedDept = ViewBag.SelectedDepartment as string ?? "all";
     var search = ViewBag.Search as string ?? "";
     var totalEmployees = ViewBag.TotalEmployees as int? ?? Model.Count();
-    var seniorMentors = ViewBag.SeniorMentors as List<CompanyTaskManagement.Models.Employee> ?? new
-List<CompanyTaskManagement.Models.Employee>();
+    var seniorMentors = ViewBag.SeniorMentors as List<CompanyTaskManagement.Domain.Entities.Employee> ?? new
+List<CompanyTaskManagement.Domain.Entities.Employee>();
 }
 
 <!-- Notification Alerts -->
@@ -468,3 +468,4 @@ List<CompanyTaskManagement.Models.Employee>();
                             </div>
                         </div>
                     }
+

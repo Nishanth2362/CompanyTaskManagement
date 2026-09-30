@@ -1,9 +1,9 @@
-@model IEnumerable<CompanyTaskManagement.Models.Project>
+@model IEnumerable<CompanyTaskManagement.Domain.Entities.Project>
 @inject CompanyTaskManagement.Services.IUserSessionService UserSession
 
 @{
     ViewData["Title"] = "Projects Portfolio";
-    var projectList = Model?.ToList() ?? new List<CompanyTaskManagement.Models.Project>();
+    var projectList = Model?.ToList() ?? new List<CompanyTaskManagement.Domain.Entities.Project>();
     var isAdmin = UserSession.IsAdmin();
     var isHr = UserSession.IsHr();
     var isEmployee = UserSession.IsEmployee();
@@ -361,3 +361,4 @@ else
         }
     </div>
 }
+
