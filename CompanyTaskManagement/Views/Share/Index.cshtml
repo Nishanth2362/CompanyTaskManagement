@@ -553,6 +553,42 @@
         box-shadow: 0 8px 20px rgba(124, 58, 237, 0.45);
         color: #ffffff !important;
     }
+    .btn-teams-call {
+        background: linear-gradient(135deg, #5b5fc7 0%, #464eb8 100%);
+        color: #ffffff !important;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 0.5rem 1.15rem;
+        box-shadow: 0 4px 14px rgba(91, 95, 199, 0.35);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-teams-call:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(91, 95, 199, 0.55);
+        color: #ffffff !important;
+    }
+    .btn-teams-chat {
+        background: rgba(91, 95, 199, 0.08);
+        color: #5b5fc7 !important;
+        border: 1.5px solid #5b5fc7;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.48rem 0.95rem;
+        font-size: 0.82rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-teams-chat:hover {
+        background: rgba(91, 95, 199, 0.2);
+        color: #3f44a3 !important;
+        transform: translateY(-1px);
+    }
+    [data-bs-theme="dark"] .btn-teams-chat {
+        background: rgba(91, 95, 199, 0.2);
+        color: #a5b4fc !important;
+        border-color: #818cf8;
+    }
 
     /* ===== IMPORTANT MEETINGS ===== */
     .imp-meeting-panel {
@@ -684,26 +720,33 @@
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="badge-morning-sync">
-                            <i class="bi bi-sun-fill text-warning"></i> Morning Standup
+                            <i class="bi bi-sun-fill text-warning"></i> Morning Scrum Call
                         </span>
                         <span class="meeting-time-pill">
-                            <i class="bi bi-clock-fill"></i> 10:00 AM – 10:30 AM
+                            <i class="bi bi-clock-fill"></i> 10:00 AM – 10:30 AM IST
                         </span>
                     </div>
                     <h5 class="fw-bold mb-1 d-flex align-items-center gap-2">
-                        <span>Daily Morning Sync Call</span>
+                        <i class="bi bi-microsoft text-primary"></i>
+                        <span>Mukesh Kumar: Scrum Call</span>
                     </h5>
                     <p class="text-muted small mb-3">
-                        Daily task alignment, sprint planning updates, priorities, and unblocking colleagues.
+                        <strong>AUX &amp; ATX</strong> – IT Project Allocation &amp; Reporting. Daily task alignment, sprint updates, priorities, and unblocking colleagues.
                     </p>
                 </div>
                 <div class="pt-3 border-top border-secondary border-opacity-25 d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    <a href="https://meet.google.com/cnk-vbyu-kty" target="_blank" rel="noopener noreferrer" class="btn btn-meet-join d-inline-flex align-items-center gap-2 shadow-sm">
-                        <i class="bi bi-camera-video-fill"></i>
-                        <span>Join Morning Standup</span>
-                    </a>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <a href="https://teams.microsoft.com/meet/41667160694480?p=S8MAJ0" target="_blank" rel="noopener noreferrer" class="btn btn-teams-call d-inline-flex align-items-center gap-2 shadow-sm">
+                            <i class="bi bi-camera-video-fill"></i>
+                            <span>Join Scrum Call</span>
+                        </a>
+                        <a href="https://teams.microsoft.com/l/message/19:5fe595fcb9f24c3aae2a3d1b560647cb@thread.v2/1790686238872?context=%7B%22contextType%22%3A%22chat%22%7D" target="_blank" rel="noopener noreferrer" class="btn btn-teams-chat d-inline-flex align-items-center gap-1.5" title="Open Teams Chat Thread">
+                            <i class="bi bi-chat-text-fill"></i>
+                            <span>Teams Chat</span>
+                        </a>
+                    </div>
                     <div class="d-flex align-items-center gap-1.5">
-                        <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3 py-1.5 copy-meet-btn" data-link="https://meet.google.com/cnk-vbyu-kty" title="Copy Google Meet Link">
+                        <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3 py-1.5 copy-meet-btn" data-link="https://teams.microsoft.com/meet/41667160694480?p=S8MAJ0" title="Copy Teams Meeting Link">
                             <i class="bi bi-clipboard me-1"></i>
                             <span>Copy Link</span>
                         </button>
@@ -722,26 +765,33 @@
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="badge-evening-sync">
-                            <i class="bi bi-moon-stars-fill text-info"></i> Evening Closure Sync
+                            <i class="bi bi-moon-stars-fill text-info"></i> EOD Status Call
                         </span>
                         <span class="meeting-time-pill">
-                            <i class="bi bi-clock-fill"></i> 6:00 PM – 6:30 PM
+                            <i class="bi bi-clock-fill"></i> 6:00 PM – 6:30 PM IST
                         </span>
                     </div>
                     <h5 class="fw-bold mb-1 d-flex align-items-center gap-2">
-                        <span>Daily Evening Closure Call</span>
+                        <i class="bi bi-microsoft text-primary"></i>
+                        <span>Mukesh Kumar &amp; Nishanth: EOD Status Call</span>
                     </h5>
                     <p class="text-muted small mb-3">
-                        End-of-day review, completed deliverables check, status sync, and tomorrow's prep.
+                        <strong>AUX &amp; ATX</strong> – End-of-day review, completed deliverables check, status sync, and tomorrow's prep.
                     </p>
                 </div>
                 <div class="pt-3 border-top border-secondary border-opacity-25 d-flex flex-wrap align-items-center justify-content-between gap-2">
-                    <a href="https://meet.google.com/skx-imxp-iyg" target="_blank" rel="noopener noreferrer" class="btn btn-meet-eod d-inline-flex align-items-center gap-2 shadow-sm">
-                        <i class="bi bi-camera-video-fill"></i>
-                        <span>Join Evening Closure Call</span>
-                    </a>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <a href="https://teams.microsoft.com/meet/45509282" target="_blank" rel="noopener noreferrer" class="btn btn-meet-eod d-inline-flex align-items-center gap-2 shadow-sm">
+                            <i class="bi bi-camera-video-fill"></i>
+                            <span>Join EOD Call</span>
+                        </a>
+                        <a href="https://teams.microsoft.com/l/message/19:a60df647-f4f8-4578-ab7a-5f57b45c8966_e7aae9f7-a793-4c9a-9ff7-d6e0da68668e@unq.gbl.spaces/1790743244068?context=%7B%22contextType%22%3A%22chat%22%7D" target="_blank" rel="noopener noreferrer" class="btn btn-teams-chat d-inline-flex align-items-center gap-1.5" title="Open Teams Chat Thread">
+                            <i class="bi bi-chat-text-fill"></i>
+                            <span>Teams Chat</span>
+                        </a>
+                    </div>
                     <div class="d-flex align-items-center gap-1.5">
-                        <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3 py-1.5 copy-meet-btn" data-link="https://meet.google.com/skx-imxp-iyg" title="Copy Google Meet Link">
+                        <button type="button" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1.5 px-3 py-1.5 copy-meet-btn" data-link="https://teams.microsoft.com/meet/45509282" title="Copy Teams Meeting Link">
                             <i class="bi bi-clipboard me-1"></i>
                             <span>Copy Link</span>
                         </button>
@@ -2023,7 +2073,24 @@ else
     const IMP_KEY = 'auxinzio_imp_meetings';
 
     function getImpMeetings() {
-        try { return JSON.parse(localStorage.getItem(IMP_KEY)) || []; }
+        try {
+            const stored = localStorage.getItem(IMP_KEY);
+            if (stored) return JSON.parse(stored);
+            const defaults = [
+                {
+                    title: "Mukesh Kumar: Scrum Call (10:00 AM IST)",
+                    url: "https://teams.microsoft.com/meet/41667160694480?p=S8MAJ0",
+                    addedAt: new Date().toISOString()
+                },
+                {
+                    title: "Mukesh Kumar & Nishanth: EOD Status Call (6:00 PM IST)",
+                    url: "https://teams.microsoft.com/meet/45509282",
+                    addedAt: new Date().toISOString()
+                }
+            ];
+            saveImpMeetings(defaults);
+            return defaults;
+        }
         catch { return []; }
     }
 
@@ -2083,7 +2150,7 @@ else
     }
 
     function isValidMeetingUrl(url) {
-        if (!url || url.length > 250) return false;
+        if (!url || url.length > 1000) return false;
         let testUrl = url;
         if (!/^https?:\/\//i.test(testUrl)) {
             testUrl = 'https://' + testUrl;
