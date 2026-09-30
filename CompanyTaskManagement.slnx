@@ -1,3 +1,15 @@
 <Solution>
-  <Project Path="CompanyTaskManagement/CompanyTaskManagement.csproj" />
+  <Folder Name="/Common/">
+    <Project Path="CompanyTaskManagement.Shared/CompanyTaskManagement.Shared.csproj" />
+  </Folder>
+  <Folder Name="/Core/">
+    <Project Path="CompanyTaskManagement.Application/CompanyTaskManagement.Application.csproj" />
+    <Project Path="CompanyTaskManagement.Domain/CompanyTaskManagement.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Host/">
+    <Project Path="CompanyTaskManagement/CompanyTaskManagement.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="CompanyTaskManagement.Infrastructure/CompanyTaskManagement.Infrastructure.csproj" />
+  </Folder>
 </Solution>
